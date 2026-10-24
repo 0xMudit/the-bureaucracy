@@ -1,4 +1,4 @@
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 import { NEWS_WINDOW_MS } from "@/lib/config";
 import { ensureUniqueIds, fetchAllFeeds } from "@/lib/ingest";
 import { canWrite, pruneOlderThan, StoreError, upsertItems } from "@/lib/store";
@@ -46,6 +46,7 @@ async function run(request: Request): Promise<Response> {
     revalidatePath("/");
     revalidatePath("/syllabus");
     revalidatePath("/optional");
+    revalidateTag("items", { expire: 0 });
 
     return Response.json(
       {

@@ -14,6 +14,13 @@ export async function proxy(request: NextRequest) {
 
   if (!url || !key) return NextResponse.next();
 
+  // Anonymous visitors have no session to refresh. Skipping the auth call here
+  // keeps the proxy off the network for the vast majority of page views.
+  const hasSession = request.cookies
+    .getAll()
+    .some((cookie) => cookie.name.startsWith("sb-") && cookie.name.includes("-auth-token"));
+  if (!hasSession) return NextResponse.next();
+
   let response = NextResponse.next({ request });
 
   const supabase = createServerClient(url, key, {

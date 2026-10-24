@@ -100,10 +100,12 @@ export async function listItems(): Promise<FeedItem[]> {
   if (db) {
     const { data, error } = await db
       .from("items")
-      .select("*")
-      .gte("published_at", new Date(Date.now() - 36 * 3_600_000).toISOString())
+      .select(
+        "id,title,kicker,url,source,source_url,source_tier,summary,published_at,fetched_at,topics,primary_topic,exam_score,priority,keywords,optionals,primary_optional,points,seed_points,comment_count",
+      )
+      .gte("published_at", new Date(Date.now() - 26 * 3_600_000).toISOString())
       .order("published_at", { ascending: false })
-      .limit(1200);
+      .limit(600);
     if (error) throw new StoreError(error.message);
     return (data ?? []).map(rowToItem);
   }

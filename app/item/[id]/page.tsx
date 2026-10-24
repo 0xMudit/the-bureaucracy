@@ -13,7 +13,8 @@ import { NEWS_WINDOW_MS, SITE } from "@/lib/config";
 import { buildFeed } from "@/lib/rank";
 import { PAPER_LABEL, priorityLabel } from "@/lib/taxonomy-extras";
 import { OPTIONALS, TOPICS } from "@/lib/taxonomy";
-import { canWrite, getItem, getVotedIds, listComments, listItems } from "@/lib/store";
+import { cachedComments, cachedItem, cachedItems } from "@/lib/cached";
+import { canWrite, getVotedIds } from "@/lib/store";
 import type { FeedItem } from "@/lib/types";
 import { formatDate, timeAgo } from "@/lib/utils";
 
@@ -25,7 +26,7 @@ interface PageProps {
 }
 
 async function loadItem(id: string): Promise<FeedItem | null> {
-  const item = await getItem(id);
+  const item = await cachedItem(id);
   if (!item) return null;
   if (Date.now() - new Date(item.publishedAt).getTime() > NEWS_WINDOW_MS) return null;
   return item;
@@ -66,7 +67,7 @@ export default async function ItemPage({ params, searchParams }: PageProps) {
   const jar = await cookies();
   const voterId = jar.get("tb_voter")?.value;
   const user = await getSessionUser();
-  const [voted, comments, all] = await Promise.all([getVotedIds(voterId), listComments(item.id), listItems()]);
+  const [voted, comments, all] = await Promise.all([getVotedIds(voterId), cachedComments(item.id), cachedItems()]);
   const tree = buildCommentTree(comments);
   const topic = item.primaryTopic ? TOPICS[item.primaryTopic] : null;
   const paper = topic ? PAPER_LABEL[topic.paper] : "Current affairs";

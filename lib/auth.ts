@@ -1,4 +1,5 @@
 import { cache } from "react";
+import { cookies } from "next/headers";
 import { SITE } from "@/lib/config";
 import { serviceClient } from "@/lib/store";
 import { authConfigured, createSupabaseServer } from "@/lib/supabase/server";
@@ -35,18 +36,26 @@ export function isAdminEmail(email: string | null | undefined): boolean {
 export const getSessionUser = cache(async (): Promise<SessionUser | null> => {
   if (!authConfigured()) return null;
 
-  let user;
+  let userId: string;
+  let email: string;
   try {
+    // No Supabase session cookie means no user — skip the auth round trip
+    // entirely for anonymous readers.
+    const jar = await cookies();
+    const hasSession = jar.getAll().some(({ name }) => name.startsWith("sb-") && name.includes("-auth-token"));
+    if (!hasSession) return null;
+
     const supabase = await createSupabaseServer();
-    const { data, error } = await supabase.auth.getUser();
-    if (error) return null;
-    user = data.user;
+    // getClaims verifies the JWT locally against the project's JWKS instead of
+    // asking the auth server on every render.
+    const { data, error } = await supabase.auth.getClaims();
+    if (error || !data?.claims?.sub) return null;
+    userId = data.claims.sub;
+    email = typeof data.claims.email === "string" ? data.claims.email : "";
   } catch {
     return null;
   }
-  if (!user) return null;
 
-  const email = user.email ?? "";
   let profile: { display_name: string | null; role: string | null } | null = null;
 
   const db = serviceClient();
@@ -54,7 +63,7 @@ export const getSessionUser = cache(async (): Promise<SessionUser | null> => {
     const { data } = await db
       .from("tb_profiles")
       .select("display_name, role")
-      .eq("id", user.id)
+      .eq("id", userId)
       .maybeSingle();
     profile = data;
   }
@@ -63,7 +72,7 @@ export const getSessionUser = cache(async (): Promise<SessionUser | null> => {
   const fallbackName = email ? email.split("@")[0].replace(/[._-]+/g, " ") : "Reader";
 
   return {
-    id: user.id,
+    id: userId,
     email,
     name: profile?.display_name?.trim() || fallbackName,
     role,

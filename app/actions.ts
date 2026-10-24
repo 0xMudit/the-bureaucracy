@@ -1,7 +1,7 @@
 "use server";
 
 import { cookies, headers } from "next/headers";
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 import { redirect } from "next/navigation";
 import { analyze } from "@/lib/classify";
 import { getSessionUser } from "@/lib/auth";
@@ -52,6 +52,7 @@ export async function voteAction(itemId: string): Promise<VoteResult> {
     const result = await vote(itemId, voterId);
     revalidatePath("/");
     revalidatePath(`/item/${itemId}`);
+    revalidateTag("items", { expire: 30 });
     return { ok: true, ...result };
   } catch (error) {
     if (error instanceof StoreError) return { ok: false, error: error.message };
@@ -87,6 +88,8 @@ export async function commentAction(_prev: CommentState, formData: FormData): Pr
   try {
     await addComment({ itemId, parentId, author, body, authorId: user.id });
     revalidatePath(`/item/${itemId}`);
+    revalidateTag("comments", { expire: 0 });
+    revalidateTag("items", { expire: 30 });
     return { ok: true, stamp: Date.now() };
   } catch (error) {
     if (error instanceof StoreError && error.code === "not-found") {
@@ -192,6 +195,7 @@ export async function submitAction(_prev: SubmitState, formData: FormData): Prom
     await upsertItems([item]);
     revalidatePath("/");
     revalidatePath("/syllabus");
+    revalidateTag("items", { expire: 0 });
   } catch (error) {
     if (error instanceof StoreError) return { error: error.message };
     return { error: "The story could not be saved." };

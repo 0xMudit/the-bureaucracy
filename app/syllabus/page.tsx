@@ -3,7 +3,7 @@ import Link from "next/link";
 import { ArrowRight, BookOpen } from "lucide-react";
 import { buildFeed, optionalCounts } from "@/lib/rank";
 import { NEWS_WINDOW_MS } from "@/lib/config";
-import { listItems } from "@/lib/store";
+import { cachedItems } from "@/lib/cached";
 import { OPTIONAL_ORDER, OPTIONALS, PAPERS, TOPICS, TOPIC_LIST } from "@/lib/taxonomy";
 import type { PaperId } from "@/lib/types";
 import { timeAgo } from "@/lib/utils";
@@ -21,7 +21,7 @@ const PAPER_ORDER: PaperId[] = ["prelims", "gs1", "gs2", "gs3", "gs4", "essay"];
 
 export default async function SyllabusPage() {
   const cutoff = Date.now() - NEWS_WINDOW_MS;
-  const all = await listItems();
+  const all = await cachedItems();
   const fresh = all.filter((item) => new Date(item.publishedAt).getTime() >= cutoff);
   const optionCounts = optionalCounts(fresh);
   const mapped = fresh.filter((item) => item.primaryTopic || item.primaryOptional).length;

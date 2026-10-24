@@ -11,7 +11,8 @@ import { SearchBox } from "@/components/search-box";
 import { TopicFilter } from "@/components/topic-filter";
 import { buildFeed, filterItems, optionalCounts, topicCounts } from "@/lib/rank";
 import { NEWS_WINDOW_MS } from "@/lib/config";
-import { canWrite, getVotedIds, listItems } from "@/lib/store";
+import { cachedItems } from "@/lib/cached";
+import { canWrite, getVotedIds } from "@/lib/store";
 import { OPTIONAL_ORDER, OPTIONALS, PAPERS, TOPICS } from "@/lib/taxonomy";
 import type { OptionalId, PaperId, SortKey, TopicId } from "@/lib/types";
 import { timeAgo } from "@/lib/utils";
@@ -64,7 +65,7 @@ export default async function HomePage({
   const paperRaw = param(params.paper);
   const paper = (Object.keys(PAPERS) as PaperId[]).includes(paperRaw as PaperId) ? paperRaw : "all";
 
-  const all = await listItems();
+  const all = await cachedItems();
   const cutoff = Date.now() - NEWS_WINDOW_MS;
   const fresh = all.filter((item) => new Date(item.publishedAt).getTime() >= cutoff);
 

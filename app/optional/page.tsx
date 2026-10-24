@@ -3,7 +3,7 @@ import Link from "next/link";
 import { ArrowRight, BookOpen, Clock } from "lucide-react";
 import { buildFeed } from "@/lib/rank";
 import { NEWS_WINDOW_MS } from "@/lib/config";
-import { listItems } from "@/lib/store";
+import { cachedItems } from "@/lib/cached";
 import { OPTIONAL_ORDER, OPTIONALS } from "@/lib/taxonomy";
 import { timeAgo } from "@/lib/utils";
 
@@ -18,7 +18,7 @@ export const metadata: Metadata = {
 
 export default async function OptionalPage() {
   const cutoff = Date.now() - NEWS_WINDOW_MS;
-  const all = await listItems();
+  const all = await cachedItems();
   const fresh = all.filter((item) => new Date(item.publishedAt).getTime() >= cutoff);
   const totalTagged = fresh.filter((item) => item.optionals.length > 0).length;
 

@@ -1,6 +1,6 @@
 import { SITE, NEWS_WINDOW_MS } from "@/lib/config";
+import { cachedItems } from "@/lib/cached";
 import { buildFeed } from "@/lib/rank";
-import { listItems } from "@/lib/store";
 import { OPTIONALS, TOPICS } from "@/lib/taxonomy";
 
 export const dynamic = "force-dynamic";
@@ -16,7 +16,7 @@ function xml(value: string): string {
 
 export async function GET() {
   const cutoff = Date.now() - NEWS_WINDOW_MS;
-  const all = await listItems();
+  const all = await cachedItems();
   const fresh = all.filter((item) => new Date(item.publishedAt).getTime() >= cutoff);
   const items = buildFeed(fresh, { sort: "top", limit: 30 });
 
