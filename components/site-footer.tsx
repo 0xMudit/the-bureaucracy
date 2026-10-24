@@ -1,0 +1,85 @@
+import Link from "next/link";
+import { Rss } from "lucide-react";
+import { GithubMark } from "@/components/github-mark";
+import { SITE, NEWS_WINDOW_HOURS } from "@/lib/config";
+
+const SECTIONS = [
+  { href: "/", label: "Top" },
+  { href: "/?sort=new", label: "New" },
+  { href: "/?sort=best", label: "Best" },
+  { href: "/?sort=discussed", label: "Discussed" },
+  { href: "/syllabus", label: "Syllabus" },
+  { href: "/optional", label: "Optionals" },
+  { href: "/saved", label: "Saved" },
+  { href: "/submit", label: "Submit" },
+  { href: "/about", label: "Method" },
+];
+
+export function SiteFooter() {
+  return (
+    <footer className="mt-16 border-t-2 border-foreground/85 bg-secondary/35">
+      <div className="mx-auto grid max-w-6xl gap-10 px-4 py-10 sm:px-6 md:grid-cols-[1.6fr_0.8fr_1.2fr]">
+        <div>
+          <Link href="/" className="display text-2xl">
+            The Bureaucracy
+          </Link>
+          <p className="mt-2 max-w-sm text-sm leading-relaxed text-muted-foreground">
+            A reading room for people preparing to run the state. Only the last {NEWS_WINDOW_HOURS} hours of
+            policy news, ranked by what the syllabus actually asks.
+          </p>
+          <p className="mt-4 max-w-sm font-mono text-[9px] uppercase leading-relaxed tracking-[0.14em] text-muted-foreground/80">
+            Not affiliated with UPSC, any state PSC, or the Government of India. Always verify notifications on
+            the commission&apos;s own website.
+          </p>
+        </div>
+
+        <nav aria-label="Footer" className="grid grid-cols-2 gap-x-6 gap-y-2 content-start">
+          {SECTIONS.map((section) => (
+            <Link
+              key={section.href}
+              href={section.href}
+              className="py-0.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
+            >
+              {section.label}
+            </Link>
+          ))}
+        </nav>
+
+        <div className="space-y-3 text-sm">
+          <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-foreground">The fine print</p>
+          <p className="text-muted-foreground">
+            Headlines and excerpts belong to their publishers. Every card links out to the original.
+            Aggregation uses public RSS feeds; the ranking and syllabus mapping are ours.
+          </p>
+          <p className="text-xs text-muted-foreground">
+            Masthead portrait: <em>VIVA CHE</em>, Jim Fitzpatrick (1968). Supplied by the editor.
+          </p>
+          <div className="flex items-center gap-4 pt-1">
+            <a
+              href="/feed.xml"
+              className="inline-flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-[0.14em] text-muted-foreground hover:text-primary"
+            >
+              <Rss className="size-3.5" /> RSS
+            </a>
+            <a
+              href={SITE.github}
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-[0.14em] text-muted-foreground hover:text-primary"
+            >
+              <GithubMark className="size-3.5" /> Source
+            </a>
+          </div>
+        </div>
+      </div>
+      <div className="border-t border-border/80">
+        <div className="mx-auto flex max-w-6xl flex-col gap-1 px-4 py-4 font-mono text-[9px] uppercase tracking-[0.14em] text-muted-foreground sm:flex-row sm:items-center sm:justify-between sm:px-6">
+          <span>
+            © {new Date().getFullYear()} {SITE.name} · Built by {SITE.author}
+          </span>
+          <span>/ search · j k move · o open · v vote · s save</span>
+        </div>
+      </div>
+    </footer>
+  );
+}
