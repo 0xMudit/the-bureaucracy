@@ -199,14 +199,20 @@ The endpoint refuses to run when no writable store is configured, and requires `
 
 ### Scheduled refresh
 
-[`.github/workflows/ingest.yml`](.github/workflows/ingest.yml) runs every 15 minutes (and on manual
-dispatch). Set:
+Three layers, cheapest first:
 
-- repository **variable** `SITE_URL` — e.g. `https://the-bureaucracy.vercel.app`
-- repository **secret** `CRON_SECRET` — the same value as the Vercel environment variable
+1. **`pg_cron` inside Supabase** ([`supabase/cron.example.sql`](supabase/cron.example.sql)) calls
+   `POST /api/ingest` every 15 minutes via `pg_net`. This is the primary scheduler and the most reliable:
+   it does not depend on GitHub or on anyone visiting the site.
+2. **[`.github/workflows/ingest.yml`](.github/workflows/ingest.yml)** runs every 15 minutes (and on manual
+   dispatch). Set:
+   - repository **variable** `SITE_URL` — e.g. `https://the-bureaucracy.vercel.app`
+   - repository **secret** `CRON_SECRET` — the same value as the Vercel environment variable
+3. **`GET /api/pulse`** — any open tab nudges a refresh when the newest fetched item is older than 20
+   minutes (5-minute cooldown, per-IP rate limit).
 
-Vercel Hobby only allows a daily cron, so GitHub Actions is the primary scheduler. The endpoint is safe to
-call repeatedly; duplicates are merged and pruning is idempotent.
+All three are idempotent: duplicates are merged and pruning is safe to repeat. Vercel Hobby only allows a
+daily cron, which is why the schedule lives in Supabase and GitHub.
 
 ## Deployment
 
