@@ -7,7 +7,7 @@ import { KeyboardShortcuts } from "@/components/keyboard-shortcuts";
 
 export function Providers({ children }: { children: React.ReactNode }) {
   return (
-    <NextThemesProvider attribute="class" defaultTheme="light" enableSystem disableTransitionOnChange>
+    <NextThemesProvider attribute="class" defaultTheme="dark" enableSystem disableTransitionOnChange>
       {children}
       <Toaster />
       <AutoRefresh />

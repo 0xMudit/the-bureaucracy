@@ -37,7 +37,7 @@ export function Sidebar({ brief, topicCounts, sources, total, latestFetchedAt }:
   const max = Math.max(1, ...topicCounts.map((t) => t.count));
 
   return (
-    <aside className="space-y-4 lg:sticky lg:top-4 lg:self-start">
+    <aside className="min-w-0 space-y-4 lg:sticky lg:top-4 lg:self-start">
       <Card title="The brief" meta="Top 3 by relevance">
         <ol className="divide-y divide-border/70">
           {brief.map((item, index) => {

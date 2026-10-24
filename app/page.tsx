@@ -130,7 +130,7 @@ export default async function HomePage({
   return (
     <div className="mx-auto max-w-6xl px-4 sm:px-6">
       <div className="grid gap-8 py-5 lg:grid-cols-[minmax(0,1fr)_292px] lg:gap-10">
-        <section aria-labelledby="feed-title">
+        <section aria-labelledby="feed-title" className="min-w-0">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
             <div>
               <div className="flex items-center gap-2 font-mono text-[9px] uppercase tracking-[0.16em] text-muted-foreground">
@@ -170,7 +170,7 @@ export default async function HomePage({
             />
           </div>
 
-          <div className="mb-2 mt-1 flex items-center justify-between font-mono text-[9px] uppercase tracking-[0.12em] text-muted-foreground">
+          <div className="mb-2 mt-1 flex flex-wrap items-center justify-between gap-x-3 gap-y-1 font-mono text-[9px] uppercase tracking-[0.12em] text-muted-foreground">
             <span>
               {feed.length} {feed.length === 1 ? "story" : "stories"}
               {topicInfo ? ` in ${topicInfo.label}` : ""}

@@ -154,26 +154,47 @@ npm run seed         # ingest + write seed/local store (+ Supabase if configured
 | Variable | Required | Purpose |
 | --- | --- | --- |
 | `NEXT_PUBLIC_SUPABASE_URL` | production | Supabase project URL. |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | production | Public key used for sign-in sessions. Safe for the browser. |
 | `SUPABASE_SERVICE_ROLE_KEY` | production | Server-only key. Never expose with `NEXT_PUBLIC_`. |
 | `CRON_SECRET` | production | Bearer token for `POST /api/ingest`. |
 | `NEXT_PUBLIC_SITE_URL` | recommended | Canonical URL for metadata, sitemap and RSS. |
+| `ADMIN_EMAILS` | optional | Comma-separated emails forced to editor, on top of the database role. |
+
+## Accounts and the editor's desk
+
+- **Sign-in lives at `/submit`.** Logged-out visitors get a sign-in / create-account panel; once signed in,
+  the same page shows the link submission form.
+- **The editor role comes from `ADMIN_EMAILS`.** The deployment's editor email (and anything listed in
+  `ADMIN_EMAILS`) is promoted on sign-up and on every request; other accounts stay readers.
+- **Commenting requires an account.** Voting stays anonymous and is tied to the `tb_voter` cookie, so anyone
+  can vote without signing in.
+- **`/admin` is the editor dashboard** — visitors and page views for 14 days, sign-ins, accounts, latest
+  comments and recent paths. It is `noindex` and refuses non-editors.
+- **Tracking is first-party.** [`app/api/track`](app/api/track/route.ts) stores the path, referrer, a rotating
+  browser id and (when signed in) the account id. No IP addresses, no third-party scripts.
+
+Auth tables (`tb_profiles`, `tb_visits`, `tb_login_events`) and the `comments.author_id` column are created by
+[`supabase/migrations/20261024000002_accounts.sql`](supabase/migrations/20261024000002_accounts.sql).
 
 ## Supabase setup
 
 1. Create a project at <https://supabase.com/dashboard>.
-2. Open **SQL Editor**, paste [`supabase/schema.sql`](supabase/schema.sql), and run it.
-   Or, with the CLI linked and a database password available:
+2. Apply the schema **and** the account migration, either with the SQL Editor
+   ([`supabase/schema.sql`](supabase/schema.sql), then
+   [`supabase/migrations/20261024000002_accounts.sql`](supabase/migrations/20261024000002_accounts.sql)) or with
+   the CLI:
 
    ```bash
    npx supabase login
    npx supabase link --project-ref <project-ref>
-   npx supabase db push        # if you move schema.sql into supabase/migrations/
+   npx supabase db push
    ```
 
    The schema creates `items`, `votes`, `comments`, RLS (no public policies), and the
-   `tb_vote` / `tb_add_comment` / `tb_prune` functions. All access uses the service role on the server; the
-   browser never receives a database key.
-3. Copy the project URL and **service role** key into `.env.local`.
+   `tb_vote` / `tb_add_comment` / `tb_prune` functions. The accounts migration adds `tb_profiles`,
+   `tb_visits`, `tb_login_events`, the new-user trigger and `comments.author_id`. All access uses the service
+   role on the server; the browser never receives a database key.
+3. Copy the project URL, the **anon** key and the **service role** key into `.env.local`.
 4. Seed production:
 
    ```bash

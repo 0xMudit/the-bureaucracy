@@ -11,6 +11,8 @@ yarn-error.log*
 .env
 .env*.local
 .vercel
+.supabase-db-password
+supabase/.temp
 .data
 next-env.d.ts
 *.tsbuildinfo

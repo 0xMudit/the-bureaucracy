@@ -37,7 +37,7 @@ export function MainNav({ className }: { className?: string }) {
             key={item.href}
             href={item.href}
             className={cn(
-              "relative px-2 py-2 font-mono text-[11px] uppercase tracking-[0.14em] transition-colors sm:px-2.5",
+              "relative shrink-0 whitespace-nowrap px-2 py-2 font-mono text-[11px] uppercase tracking-[0.14em] transition-colors sm:px-2.5",
               active ? "text-foreground" : "text-muted-foreground hover:text-foreground",
             )}
           >

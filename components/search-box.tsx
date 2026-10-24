@@ -40,7 +40,7 @@ export function SearchBox({ className }: { className?: string }) {
           defaultValue={current}
           placeholder="Search the 24-hour wire"
           aria-label="Search stories"
-          className="h-8 w-full rounded-sm border border-border bg-card pl-8 pr-8 font-mono text-[11px] tracking-[0.02em] placeholder:text-muted-foreground/70 focus:border-foreground/40 focus:outline-none focus:ring-2 focus:ring-ring/30"
+          className="h-10 w-full rounded-sm border border-border bg-card pl-8 pr-8 font-mono text-base tracking-[0.02em] placeholder:text-muted-foreground/70 focus:border-foreground/40 focus:outline-none focus:ring-2 focus:ring-ring/30 sm:h-8 sm:text-[11px]"
         />
         {current ? (
           <button

@@ -101,6 +101,7 @@ export interface Comment {
   itemId: string;
   parentId: string | null;
   author: string;
+  authorId?: string | null;
   body: string;
   createdAt: string;
 }

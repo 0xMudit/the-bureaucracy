@@ -1,15 +1,18 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Check, ShieldAlert, X } from "lucide-react";
+import { AuthForm } from "@/components/auth-form";
 import { SubmitForm } from "@/components/submit-form";
+import { getSessionUser, safeNext } from "@/lib/auth";
 import { canWrite } from "@/lib/store";
+import { authConfigured } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "Submit a link",
+  title: "Log in",
   description:
-    "Put a policy report, judgment, government release or data story on The Bureaucracy's 24-hour wire.",
+    "Sign in to comment on The Bureaucracy, submit links to the 24-hour wire, and keep your place in the discussion.",
   alternates: { canonical: "/submit" },
 };
 
@@ -30,8 +33,78 @@ const BAD = [
   "Rumours, unverified social posts and screenshots",
 ];
 
-export default function SubmitPage() {
+const BENEFITS = [
+  "Comment on any story, and reply inside the thread.",
+  "Submit a report, judgment or release to the wire.",
+  "Keep your display name on everything you write.",
+  "Voting stays open to everyone — no account needed.",
+];
+
+export default async function SubmitPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
+  const params = await searchParams;
+  const next = safeNext(typeof params.next === "string" ? params.next : "/", "/");
+  const user = await getSessionUser();
   const writable = canWrite();
+  const configured = authConfigured();
+
+  if (!user) {
+    return (
+      <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6">
+        <div className="border-b-2 border-foreground pb-4">
+          <p className="font-mono text-[9px] uppercase tracking-[0.18em] text-primary">The desk</p>
+          <h1 className="display mt-1 text-[2.2rem] leading-none tracking-[-0.02em] sm:text-[2.8rem]">
+            Log in to the wire.
+          </h1>
+          <p className="mt-3 max-w-2xl text-[13.5px] leading-relaxed text-muted-foreground">
+            An account lets you comment, reply and put a story on the wire. Reading and voting stay free.
+          </p>
+        </div>
+
+        {!configured ? (
+          <p className="mt-5 flex items-start gap-2 border-l-2 border-amber-500 bg-amber-500/5 px-3 py-2 text-[12px] leading-relaxed text-amber-700 dark:text-amber-400">
+            <ShieldAlert className="mt-0.5 size-4 shrink-0" />
+            Accounts are not configured on this deployment yet. Add the Supabase anon key to enable sign-in.
+          </p>
+        ) : null}
+
+        <div className="mt-6 grid gap-8 md:grid-cols-[minmax(0,1fr)_300px]">
+          <section className="border border-border bg-card p-4 sm:p-5">
+            <AuthForm next={next} />
+          </section>
+
+          <aside className="space-y-5">
+            <section>
+              <h2 className="flex items-center gap-1.5 font-mono text-[9px] uppercase tracking-[0.16em] text-foreground">
+                <Check className="size-3.5 text-primary" /> With an account
+              </h2>
+              <ul className="mt-2 space-y-2">
+                {BENEFITS.map((item) => (
+                  <li key={item} className="flex gap-2 text-[12px] leading-relaxed text-muted-foreground">
+                    <span className="mt-1.5 size-1 shrink-0 rounded-full bg-primary" />
+                    {item}
+                  </li>
+                ))}
+              </ul>
+            </section>
+
+            <p className="border-l-2 border-border pl-3 text-[11px] leading-relaxed text-muted-foreground">
+              We only store your email, a display name and what you write. No newsletters, no third-party
+              trackers. Read the{" "}
+              <Link href="/about" className="underline hover:text-foreground">
+                method
+              </Link>{" "}
+              before dumping a list of links.
+            </p>
+          </aside>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6">
       <div className="border-b-2 border-foreground pb-4">
@@ -42,6 +115,13 @@ export default function SubmitPage() {
         <p className="mt-3 max-w-2xl text-[13.5px] leading-relaxed text-muted-foreground">
           Send a report that a civil servant should have read this morning. We fetch the page, clean the headline,
           score it against the syllabus, and open it for discussion.
+        </p>
+        <p className="mt-3 flex flex-wrap items-center gap-2 font-mono text-[9px] uppercase tracking-[0.12em] text-muted-foreground">
+          Signed in as <span className="text-foreground">{user.name}</span>
+          {user.role === "editor" ? <span className="text-primary">· editor</span> : null}
+          <Link href="/account" className="underline hover:text-foreground">
+            Account
+          </Link>
         </p>
       </div>
 
@@ -54,11 +134,11 @@ export default function SubmitPage() {
       ) : null}
 
       <div className="mt-6 grid gap-8 md:grid-cols-[minmax(0,1fr)_300px]">
-        <section className="border border-border bg-card p-4 sm:p-5">
+        <section className="min-w-0 border border-border bg-card p-4 sm:p-5">
           <SubmitForm disabled={!writable} />
         </section>
 
-        <aside className="space-y-5">
+        <aside className="min-w-0 space-y-5">
           <section>
             <h2 className="flex items-center gap-1.5 font-mono text-[9px] uppercase tracking-[0.16em] text-foreground">
               <Check className="size-3.5 text-primary" /> Belongs here

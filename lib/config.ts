@@ -13,6 +13,10 @@ export const SITE = {
         : "http://localhost:3000"),
   github: "https://github.com/0xMudit/the-bureaucracy",
   author: "0xMudit",
+  editor: {
+    name: "Muditya Raghav",
+    email: "0xmudit@gmail.com",
+  },
   keywords: [
     "UPSC", "current affairs", "civil services", "state PSC", "news aggregator",
     "polity", "economy", "environment", "government schemes", "PIB", "exam preparation",

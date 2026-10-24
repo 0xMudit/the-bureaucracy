@@ -21,7 +21,7 @@ export function TodayStamp() {
   }, []);
 
   return (
-    <span className="hidden font-mono text-[10px] uppercase tracking-[0.16em] text-muted-foreground lg:block">
+    <span className="block min-w-0 truncate font-mono text-[9px] uppercase tracking-[0.16em] text-muted-foreground sm:text-[10px] lg:text-[10px]">
       {label} · IST · {SITE.shortName}
     </span>
   );

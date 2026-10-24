@@ -56,6 +56,7 @@ export function rowToComment(row: Row): Comment {
     itemId: String(row.item_id),
     parentId: row.parent_id ? String(row.parent_id) : null,
     author: String(row.author ?? ""),
+    authorId: row.author_id ? String(row.author_id) : null,
     body: String(row.body ?? ""),
     createdAt: new Date(String(row.created_at)).toISOString(),
   };

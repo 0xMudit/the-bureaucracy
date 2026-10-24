@@ -54,6 +54,18 @@ export function SiteFooter() {
           <p className="text-xs text-muted-foreground">
             Masthead portrait: <em>VIVA CHE</em>, Jim Fitzpatrick (1968). Supplied by the editor.
           </p>
+          <p className="text-xs text-muted-foreground">
+            Editor —{" "}
+            <a
+              href={`mailto:${SITE.editor.email}`}
+              className="font-medium text-foreground underline decoration-border underline-offset-2 hover:text-primary"
+            >
+              {SITE.editor.name}
+            </a>{" "}
+            <a href={`mailto:${SITE.editor.email}`} className="hover:text-foreground">
+              ({SITE.editor.email})
+            </a>
+          </p>
           <div className="flex items-center gap-4 pt-1">
             <a
               href="/feed.xml"

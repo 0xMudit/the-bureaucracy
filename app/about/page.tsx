@@ -213,6 +213,18 @@ export default function AboutPage() {
           </a>
           .
         </p>
+        <p className="mt-2">
+          Editor —{" "}
+          <a
+            href={`mailto:${SITE.editor.email}`}
+            className="font-medium text-foreground underline decoration-primary/40 underline-offset-2 hover:text-primary"
+          >
+            {SITE.editor.name}
+          </a>{" "}
+          <a href={`mailto:${SITE.editor.email}`} className="hover:text-foreground">
+            ({SITE.editor.email})
+          </a>
+        </p>
       </section>
     </div>
   );

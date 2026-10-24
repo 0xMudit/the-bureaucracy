@@ -24,7 +24,7 @@ export function TopicFilter({ active, sort, q, counts, optional, paper }: TopicF
   };
 
   return (
-    <div className="flex gap-1.5 overflow-x-auto py-3 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+    <div className="flex min-w-0 max-w-full gap-1.5 overflow-x-auto py-3 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
       <Link
         href={href("all")}
         className={cn(

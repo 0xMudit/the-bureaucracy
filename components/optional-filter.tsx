@@ -28,7 +28,7 @@ export function OptionalFilter({ active, sort, q, topic, paper, counts }: Option
       <span className="shrink-0 font-mono text-[9px] uppercase tracking-[0.14em] text-muted-foreground">
         Optional
       </span>
-      <div className="flex gap-1.5 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+      <div className="flex min-w-0 flex-1 gap-1.5 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         <Link
           href={href("all")}
           className={cn(

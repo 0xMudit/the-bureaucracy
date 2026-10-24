@@ -51,7 +51,7 @@ export function FeedItemRow({ item, position, voted, canWrite }: FeedItemRowProp
           ) : null}
         </div>
 
-        <h3 className="font-display text-[1.3rem] leading-[1.2] tracking-[-0.01em] sm:text-[1.45rem]">
+        <h3 className="break-words font-display text-[1.3rem] leading-[1.2] tracking-[-0.01em] sm:text-[1.45rem]">
           <Link href={`/item/${item.id}`} data-item-link className="headline-link">
             {item.title}
           </Link>
@@ -67,7 +67,7 @@ export function FeedItemRow({ item, position, voted, canWrite }: FeedItemRowProp
         </h3>
 
         {item.summary ? (
-          <p className="mt-1 line-clamp-2 max-w-2xl text-[12.5px] leading-relaxed text-muted-foreground">
+          <p className="mt-1 line-clamp-2 max-w-2xl break-words text-[12.5px] leading-relaxed text-muted-foreground">
             {item.summary}
           </p>
         ) : null}

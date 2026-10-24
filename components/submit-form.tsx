@@ -29,7 +29,7 @@ export function SubmitForm({ disabled = false }: { disabled?: boolean }) {
             placeholder="https://example.com/report"
             required
             disabled={disabled}
-            className="h-10 rounded-sm bg-background pl-9 text-sm"
+            className="h-11 rounded-sm bg-background pl-9 text-base sm:h-10 sm:text-sm"
           />
         </div>
         <p className="text-[11px] leading-relaxed text-muted-foreground">
@@ -60,7 +60,7 @@ export function SubmitForm({ disabled = false }: { disabled?: boolean }) {
               maxLength={240}
               disabled={disabled}
               aria-invalid={Boolean(state.fieldErrors?.title)}
-              className="h-9 rounded-sm bg-background text-sm"
+              className="h-10 rounded-sm bg-background text-base sm:h-9 sm:text-sm"
             />
             {state.fieldErrors?.title ? (
               <p className="text-[11px] text-destructive">{state.fieldErrors.title}</p>
@@ -77,7 +77,7 @@ export function SubmitForm({ disabled = false }: { disabled?: boolean }) {
               maxLength={700}
               placeholder="A short excerpt or the factual context. Keep it attributable."
               disabled={disabled}
-              className="rounded-sm bg-background text-sm leading-relaxed"
+              className="rounded-sm bg-background text-base leading-relaxed sm:text-sm"
             />
           </div>
         </div>

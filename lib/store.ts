@@ -51,6 +51,11 @@ function getClient(): SupabaseClient | null {
   return client;
 }
 
+/** Service-role client for auth profiles, analytics and moderation. */
+export function serviceClient(): SupabaseClient | null {
+  return getClient();
+}
+
 export function storeMode(): StoreMode {
   if (supabaseConfigured()) return "supabase";
   if (process.env.VERCEL || process.env.NODE_ENV === "production") return "readonly";
@@ -231,6 +236,7 @@ export async function addComment(input: {
   parentId?: string | null;
   author: string;
   body: string;
+  authorId?: string | null;
 }): Promise<Comment> {
   const db = getClient();
   if (db) {
@@ -239,6 +245,7 @@ export async function addComment(input: {
       p_parent_id: input.parentId ?? null,
       p_author: input.author,
       p_body: input.body,
+      p_author_id: input.authorId ?? null,
     });
     if (error) throw new StoreError(error.message);
     const id = typeof data === "string" ? data : Array.isArray(data) ? String(data[0]) : null;
@@ -256,6 +263,7 @@ export async function addComment(input: {
     itemId: input.itemId,
     parentId: input.parentId ?? null,
     author: input.author,
+    authorId: input.authorId ?? null,
     body: input.body,
     createdAt: new Date().toISOString(),
   };

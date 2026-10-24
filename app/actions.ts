@@ -4,6 +4,7 @@ import { cookies, headers } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { analyze } from "@/lib/classify";
+import { getSessionUser } from "@/lib/auth";
 import { canonicalUrl } from "@/lib/rss";
 import { fetchPageMetadata } from "@/lib/page-meta";
 import { clientKey, rateLimit } from "@/lib/rate-limit";
@@ -14,7 +15,6 @@ import type { FeedItem } from "@/lib/types";
 import { hashId } from "@/lib/utils";
 
 const VOTER_COOKIE = "tb_voter";
-const AUTHOR_COOKIE = "tb_author";
 const YEAR = 60 * 60 * 24 * 365;
 
 async function getVoterId(create: boolean): Promise<string | null> {
@@ -70,10 +70,14 @@ export async function commentAction(_prev: CommentState, formData: FormData): Pr
   const itemId = String(formData.get("itemId") ?? "");
   const parentId = String(formData.get("parentId") ?? "") || null;
   const body = String(formData.get("body") ?? "").trim();
-  const author = String(formData.get("author") ?? "").trim().replace(/[<>]/g, "").slice(0, 32);
+
+  const user = await getSessionUser();
+  if (!user) return { ok: false, error: "Log in to join the discussion." };
+
+  const author = user.name.trim().replace(/[<>]/g, "").slice(0, 32);
 
   if (!itemId) return { ok: false, error: "Missing story." };
-  if (author.length < 2) return { ok: false, error: "Add a name (at least 2 characters).", field: "author" };
+  if (author.length < 2) return { ok: false, error: "Add a display name on your account first.", field: "author" };
   if (body.length < 3) return { ok: false, error: "Write at least a few words.", field: "body" };
   if (body.length > 1500) return { ok: false, error: "Keep it under 1,500 characters.", field: "body" };
   if (!canWrite()) {
@@ -81,15 +85,7 @@ export async function commentAction(_prev: CommentState, formData: FormData): Pr
   }
 
   try {
-    await addComment({ itemId, parentId, author, body });
-    const jar = await cookies();
-    jar.set(AUTHOR_COOKIE, author, {
-      httpOnly: false,
-      sameSite: "lax",
-      secure: process.env.NODE_ENV === "production",
-      path: "/",
-      maxAge: YEAR,
-    });
+    await addComment({ itemId, parentId, author, body, authorId: user.id });
     revalidatePath(`/item/${itemId}`);
     return { ok: true, stamp: Date.now() };
   } catch (error) {
@@ -107,6 +103,9 @@ export interface SubmitState {
 }
 
 export async function submitAction(_prev: SubmitState, formData: FormData): Promise<SubmitState> {
+  const user = await getSessionUser();
+  if (!user) return { error: "Log in to submit a link." };
+
   const rawUrl = String(formData.get("url") ?? "").trim();
   const manualTitle = String(formData.get("title") ?? "").trim();
   const manualSummary = String(formData.get("summary") ?? "").trim();

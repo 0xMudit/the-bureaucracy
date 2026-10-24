@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { CommentForm } from "@/components/comment-form";
 import type { CommentNode } from "@/lib/types";
 import { timeAgo } from "@/lib/utils";
@@ -14,12 +15,16 @@ function initials(name: string): string {
 function Node({
   node,
   itemId,
-  author,
+  authorName,
+  canComment,
+  loginHref,
   depth,
 }: {
   node: CommentNode;
   itemId: string;
-  author?: string;
+  authorName?: string;
+  canComment: boolean;
+  loginHref: string;
   depth: number;
 }) {
   return (
@@ -38,20 +43,37 @@ function Node({
           {node.body}
         </p>
         {depth < 4 ? (
-          <details className="group ml-8 mt-1">
-            <summary className="cursor-pointer list-none font-mono text-[9px] uppercase tracking-[0.12em] text-muted-foreground hover:text-primary">
-              Reply
-            </summary>
-            <div className="mt-2 border-l-2 border-border pl-3">
-              <CommentForm itemId={itemId} parentId={node.id} defaultAuthor={author} compact />
-            </div>
-          </details>
+          canComment ? (
+            <details className="group ml-8 mt-1">
+              <summary className="cursor-pointer list-none font-mono text-[9px] uppercase tracking-[0.12em] text-muted-foreground hover:text-primary">
+                Reply
+              </summary>
+              <div className="mt-2 border-l-2 border-border pl-3">
+                <CommentForm itemId={itemId} parentId={node.id} authorName={authorName} compact />
+              </div>
+            </details>
+          ) : (
+            <Link
+              href={loginHref}
+              className="ml-8 mt-1 inline-flex font-mono text-[9px] uppercase tracking-[0.12em] text-muted-foreground hover:text-primary"
+            >
+              Log in to reply
+            </Link>
+          )
         ) : null}
       </article>
       {node.children.length ? (
         <ul className="ml-3 sm:ml-4">
           {node.children.map((child) => (
-            <Node key={child.id} node={child} itemId={itemId} author={author} depth={depth + 1} />
+            <Node
+              key={child.id}
+              node={child}
+              itemId={itemId}
+              authorName={authorName}
+              canComment={canComment}
+              loginHref={loginHref}
+              depth={depth + 1}
+            />
           ))}
         </ul>
       ) : null}
@@ -62,11 +84,15 @@ function Node({
 export function CommentThread({
   nodes,
   itemId,
-  author,
+  authorName,
+  canComment,
+  loginHref,
 }: {
   nodes: CommentNode[];
   itemId: string;
-  author?: string;
+  authorName?: string;
+  canComment: boolean;
+  loginHref: string;
 }) {
   if (!nodes.length) {
     return (
@@ -78,7 +104,15 @@ export function CommentThread({
   return (
     <ul className="divide-y divide-border/60">
       {nodes.map((node) => (
-        <Node key={node.id} node={node} itemId={itemId} author={author} depth={0} />
+        <Node
+          key={node.id}
+          node={node}
+          itemId={itemId}
+          authorName={authorName}
+          canComment={canComment}
+          loginHref={loginHref}
+          depth={0}
+        />
       ))}
     </ul>
   );

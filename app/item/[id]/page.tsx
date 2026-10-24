@@ -8,6 +8,7 @@ import { VoteButton } from "@/components/vote-button";
 import { CommentForm } from "@/components/comment-form";
 import { CommentThread } from "@/components/comment-thread";
 import { buildCommentTree } from "@/lib/comments";
+import { getSessionUser } from "@/lib/auth";
 import { NEWS_WINDOW_MS, SITE } from "@/lib/config";
 import { buildFeed } from "@/lib/rank";
 import { PAPER_LABEL, priorityLabel } from "@/lib/taxonomy-extras";
@@ -64,7 +65,7 @@ export default async function ItemPage({ params, searchParams }: PageProps) {
 
   const jar = await cookies();
   const voterId = jar.get("tb_voter")?.value;
-  const author = jar.get("tb_author")?.value;
+  const user = await getSessionUser();
   const [voted, comments, all] = await Promise.all([getVotedIds(voterId), listComments(item.id), listItems()]);
   const tree = buildCommentTree(comments);
   const topic = item.primaryTopic ? TOPICS[item.primaryTopic] : null;
@@ -80,7 +81,7 @@ export default async function ItemPage({ params, searchParams }: PageProps) {
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-6 sm:px-6">
-      <div className="flex items-center justify-between gap-4">
+      <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1">
         <Link
           href="/"
           className="inline-flex items-center gap-1.5 font-mono text-[9.5px] uppercase tracking-[0.14em] text-muted-foreground hover:text-foreground"
@@ -104,7 +105,7 @@ export default async function ItemPage({ params, searchParams }: PageProps) {
       ) : null}
 
       <div className="mt-4 grid gap-10 lg:grid-cols-[minmax(0,1fr)_296px]">
-        <article>
+        <article className="min-w-0">
           <div className="flex gap-2 sm:gap-3">
             <VoteButton itemId={item.id} points={item.points} seedPoints={item.seedPoints} voted={voted.has(item.id)} canWrite={canWrite()} size="md" />
             <div className="min-w-0">
@@ -208,8 +209,18 @@ export default async function ItemPage({ params, searchParams }: PageProps) {
             </div>
 
             <div className="mt-4 border border-border bg-card p-4">
-              {canWrite() ? (
-                <CommentForm itemId={item.id} defaultAuthor={author} />
+              {canWrite() && user ? (
+                <CommentForm itemId={item.id} authorName={user.name} />
+              ) : canWrite() ? (
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <div className="flex items-start gap-2 text-[12.5px] leading-relaxed text-muted-foreground">
+                    <ShieldCheck className="mt-0.5 size-4 shrink-0 text-primary" />
+                    <p>Log in to join the discussion. Voting stays open to everyone.</p>
+                  </div>
+                  <Button asChild size="sm" className="h-8 shrink-0 rounded-sm font-mono text-[10px] uppercase tracking-[0.12em]">
+                    <Link href={`/submit?next=${encodeURIComponent(`/item/${item.id}#discussion`)}`}>Log in to comment</Link>
+                  </Button>
+                </div>
               ) : (
                 <div className="flex items-start gap-2 text-[12.5px] leading-relaxed text-muted-foreground">
                   <ShieldCheck className="mt-0.5 size-4 shrink-0 text-primary" />
@@ -225,12 +236,18 @@ export default async function ItemPage({ params, searchParams }: PageProps) {
             </div>
 
             <div className="mt-4">
-              <CommentThread nodes={tree} itemId={item.id} author={author} />
+              <CommentThread
+                nodes={tree}
+                itemId={item.id}
+                authorName={user?.name}
+                canComment={Boolean(user) && canWrite()}
+                loginHref={`/submit?next=${encodeURIComponent(`/item/${item.id}#discussion`)}`}
+              />
             </div>
           </section>
         </article>
 
-        <aside className="space-y-4 lg:sticky lg:top-4 lg:self-start">
+        <aside className="min-w-0 space-y-4 lg:sticky lg:top-4 lg:self-start">
           <section className="border border-border bg-card">
             <div className="border-b border-border px-3 py-2">
               <h2 className="font-mono text-[9px] uppercase tracking-[0.18em]">Syllabus file</h2>

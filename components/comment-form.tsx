@@ -12,13 +12,13 @@ const INITIAL: CommentState = { ok: false };
 export function CommentForm({
   itemId,
   parentId,
-  defaultAuthor,
+  authorName,
   compact = false,
   onDone,
 }: {
   itemId: string;
   parentId?: string | null;
-  defaultAuthor?: string;
+  authorName?: string;
   compact?: boolean;
   onDone?: () => void;
 }) {
@@ -37,27 +37,31 @@ export function CommentForm({
       <input type="hidden" name="itemId" value={itemId} />
       {parentId ? <input type="hidden" name="parentId" value={parentId} /> : null}
 
-      <div className={compact ? "flex gap-2" : "grid gap-2 sm:grid-cols-[180px_1fr]"}>
+      {authorName ? (
+        <p className="font-mono text-[9px] uppercase tracking-[0.12em] text-muted-foreground">
+          Posting as <span className="text-foreground">{authorName}</span>
+        </p>
+      ) : (
         <Input
           name="author"
-          defaultValue={defaultAuthor}
           placeholder="Your name"
           maxLength={32}
           required
           aria-label="Your name"
-          className="h-9 rounded-sm bg-background font-mono text-xs"
+          className="h-10 rounded-sm bg-background font-mono text-base sm:h-9 sm:text-xs"
         />
-        <Textarea
-          name="body"
-          placeholder={compact ? "Write a reply…" : "Add the angle you would take in an answer. Cite the article, a report or a judgment."}
-          required
-          minLength={3}
-          maxLength={1500}
-          rows={compact ? 3 : 4}
-          aria-label="Your comment"
-          className="min-h-20 rounded-sm bg-background text-sm leading-relaxed"
-        />
-      </div>
+      )}
+
+      <Textarea
+        name="body"
+        placeholder={compact ? "Write a reply…" : "Add the angle you would take in an answer. Cite the article, a report or a judgment."}
+        required
+        minLength={3}
+        maxLength={1500}
+        rows={compact ? 3 : 4}
+        aria-label="Your comment"
+        className="min-h-20 rounded-sm bg-background text-base leading-relaxed sm:text-sm"
+      />
 
       <div className="flex items-center justify-between gap-3">
         <p className="font-mono text-[8.5px] uppercase leading-relaxed tracking-[0.1em] text-muted-foreground">
