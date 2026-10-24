@@ -86,13 +86,14 @@ begin
 
   if v_voted then
     delete from public.votes where item_id = p_item_id and voter_id = p_voter_id;
-    update public.items set points = greatest(0, points - 1) where id = p_item_id;
+    -- Alias the table: a bare `points` here is ambiguous with the OUT parameter.
+    update public.items as i set points = greatest(0, i.points - 1) where i.id = p_item_id;
     v_voted := false;
   else
     insert into public.votes (item_id, voter_id)
     values (p_item_id, p_voter_id)
     on conflict do nothing;
-    update public.items set points = points + 1 where id = p_item_id;
+    update public.items as i set points = i.points + 1 where i.id = p_item_id;
     v_voted := true;
   end if;
 
