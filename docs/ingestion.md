@@ -65,7 +65,7 @@ Feeds that require a key, a paid plan or scraping the article body are out of sc
 
 | Endpoint | Auth | Purpose |
 | --- | --- | --- |
-| `POST /api/ingest` | `Authorization: Bearer $CRON_SECRET` (or `?secret=`) | Full fetch → upsert → prune cycle. `GET` also allowed for schedulers that only do GET. |
+| `POST /api/ingest` | `Authorization: Bearer $CRON_SECRET` | Full fetch → upsert → prune cycle. `GET` also allowed for schedulers that only do GET. |
 | `GET /api/pulse` | none (rate-limited) | Opportunistic refresh when the wire is stale; no-op when fresh or read-only. |
 
 The ingest response:

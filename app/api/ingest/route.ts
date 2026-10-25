@@ -13,10 +13,10 @@ function authorised(request: Request): { ok: boolean; reason?: string } {
       ? { ok: false, reason: "CRON_SECRET is not configured." }
       : { ok: true };
   }
+  // Header only. A `?secret=` fallback ends up in access logs, proxy logs and
+  // Referer headers; the scheduler already sends a bearer token.
   const header = request.headers.get("authorization");
   if (header === `Bearer ${secret}`) return { ok: true };
-  const url = new URL(request.url);
-  if (url.searchParams.get("secret") === secret) return { ok: true };
   return { ok: false, reason: "Unauthorised." };
 }
 

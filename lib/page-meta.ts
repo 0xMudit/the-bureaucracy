@@ -1,4 +1,7 @@
 import { decodeEntities, stripHtml } from "./rss";
+import { fetchPublic, readCapped } from "./net-guard";
+
+const MAX_PAGE_BYTES = 1_500_000;
 
 export interface PageMetadata {
   title: string;
@@ -29,9 +32,9 @@ export async function fetchPageMetadata(rawUrl: string): Promise<PageMetadata> {
   if (!/^https?:\/\//i.test(url)) url = `https://${url}`;
 
   try {
-    const res = await fetch(url, {
+    const { response: res, url: finalUrl } = await fetchPublic(url, {
       signal: controller.signal,
-      redirect: "follow",
+      maxBytes: MAX_PAGE_BYTES,
       headers: {
         "user-agent":
           "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126 Safari/537.36",
@@ -45,11 +48,12 @@ export async function fetchPageMetadata(rawUrl: string): Promise<PageMetadata> {
       throw new Error("That link is not an HTML article.");
     }
     const charset = type.match(/charset=([^;]+)/i)?.[1]?.trim() ?? "utf-8";
+    const bytes = await readCapped(res, MAX_PAGE_BYTES);
     let html: string;
     try {
-      html = new TextDecoder(charset).decode(await res.arrayBuffer()).slice(0, 800_000);
+      html = new TextDecoder(charset).decode(bytes);
     } catch {
-      html = await res.text();
+      html = new TextDecoder("utf-8").decode(bytes);
     }
 
     const jsonLd = html.match(/"headline"\s*:\s*"([^"]{10,300})"/i)?.[1];
@@ -65,7 +69,7 @@ export async function fetchPageMetadata(rawUrl: string): Promise<PageMetadata> {
 
     const siteName =
       meta(html, ["og:site_name"]) ||
-      new URL(res.url).hostname.replace(/^www\./, "");
+      finalUrl.hostname.replace(/^www\./, "");
 
     const published =
       meta(html, ["article:published_time", "datePublished", "og:published_time", "pubdate"]) ||
@@ -81,7 +85,7 @@ export async function fetchPageMetadata(rawUrl: string): Promise<PageMetadata> {
       description: stripHtml(description).slice(0, 700),
       siteName: stripHtml(siteName).slice(0, 60),
       publishedAt,
-      finalUrl: res.url,
+      finalUrl: finalUrl.toString(),
     };
   } finally {
     clearTimeout(timer);

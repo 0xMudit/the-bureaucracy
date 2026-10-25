@@ -34,10 +34,10 @@ Runs fetch → dedupe → upsert → prune. `GET` is accepted for schedulers tha
 curl -X POST https://the-bureaucracy.vercel.app/api/ingest \
   -H "Authorization: Bearer $CRON_SECRET"
 # or, for cron services that only support GET URLs:
-curl "https://the-bureaucracy.vercel.app/api/ingest?secret=$CRON_SECRET"
+curl -X POST "https://the-bureaucracy.vercel.app/api/ingest" -H "Authorization: Bearer $CRON_SECRET"
 ```
 
-Auth: `Authorization: Bearer $CRON_SECRET`, or `?secret=`. In development with no `CRON_SECRET` set, the
+Auth: `Authorization: Bearer $CRON_SECRET`. In development with no `CRON_SECRET` set, the
 endpoint is open. In production it refuses.
 
 | Status | Body |
