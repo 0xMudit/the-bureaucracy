@@ -1,13 +1,14 @@
 import { Tabs } from "expo-router";
-import { Bookmark, Library, Newspaper } from "lucide-react-native";
+import { BookOpen, Bookmark, Library, Newspaper } from "lucide-react-native";
 import React from "react";
 import { Platform, StyleSheet } from "react-native";
 import { useTheme } from "@/theme/ThemeProvider";
-import { fonts, spacing } from "@/theme/tokens";
+import { fonts } from "@/theme/tokens";
 
 /**
- * Three permanent destinations. There is no settings tab: the theme switch
- * lives in the masthead, where a reader actually reaches for it.
+ * Four permanent destinations: the wire, the daily five, the reader's own
+ * saves, and the syllabus. There is no settings tab; the account and theme live
+ * in the masthead, where a reader actually reaches for them.
  */
 export default function TabsLayout() {
   const { colors } = useTheme();
@@ -48,6 +49,15 @@ export default function TabsLayout() {
           title: "WIRE",
           tabBarIcon: ({ color, focused }) => (
             <Newspaper size={22} strokeWidth={focused ? 2.2 : 1.8} color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="brief"
+        options={{
+          title: "BRIEF",
+          tabBarIcon: ({ color, focused }) => (
+            <BookOpen size={22} strokeWidth={focused ? 2.2 : 1.8} color={color} />
           ),
         }}
       />

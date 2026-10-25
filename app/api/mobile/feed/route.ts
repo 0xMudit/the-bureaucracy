@@ -12,6 +12,7 @@ import {
   voterIdFor,
 } from "@/lib/mobile";
 import { buildFeed, filterItems, optionalCounts, topicCounts } from "@/lib/rank";
+import { deskFromSearch } from "@/lib/desk";
 import { OPTIONAL_ORDER, OPTIONALS, PAPERS, TOPICS } from "@/lib/taxonomy";
 import type { OptionalId, PaperId, SortKey, TopicId } from "@/lib/types";
 
@@ -53,6 +54,7 @@ export async function GET(request: Request) {
     : "all";
   const q = (params.get("q") ?? "").trim().slice(0, 80);
   const limit = clampLimit(params.get("limit"));
+  const desk = deskFromSearch(params);
 
   try {
     const all = await cachedItems();
@@ -60,7 +62,7 @@ export async function GET(request: Request) {
     const fresh = collapseDuplicates(all.filter((item) => new Date(item.publishedAt).getTime() >= cutoff));
 
     const query = { sort, topic, optional, paper, q, minScore: q ? undefined : FEED_MIN_SCORE };
-    const feed = buildFeed(fresh, { ...query, limit });
+    const feed = buildFeed(fresh, { ...query, limit }, Date.now(), desk);
     const scope = filterItems(fresh, { query });
 
     const topicScope = filterItems(fresh, { query: { ...query, topic: "all" as const } });

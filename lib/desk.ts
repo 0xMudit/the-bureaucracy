@@ -42,6 +42,32 @@ export function encodeDesk(desk: Desk): string {
   return encodeURIComponent(JSON.stringify(normalizeDesk(desk)));
 }
 
+/**
+ * The native app has no cookie jar, so its desk travels in query params. Any
+ * one of exam/stage/optional counts as "a desk was set"; with none, ranking
+ * stays neutral for a first-time reader.
+ */
+export function deskFromSearch(params: URLSearchParams): Desk | null {
+  // The app sends one JSON parameter, `desk`, so exam/stage/optional stay free
+  // for the feed's own filters.
+  const packed = params.get("desk");
+  if (packed) {
+    try {
+      const parsed = JSON.parse(packed) as Partial<Desk>;
+      if (parsed && typeof parsed === "object") return normalizeDesk(parsed);
+    } catch {
+      // Fall through to the individual parameters below.
+    }
+  }
+
+  if (!params.has("exam") && !params.has("stage") && !params.has("optional")) return null;
+  return normalizeDesk({
+    exam: (params.get("exam") ?? undefined) as ExamTrack | undefined,
+    stage: (params.get("stage") ?? undefined) as DeskStage | undefined,
+    optional: (params.get("optional") ?? undefined) as OptionalId | "all" | undefined,
+  });
+}
+
 export function deskSummary(desk: Desk): string {
   const bits = [desk.exam === "state" ? "State PSC" : "UPSC CSE"];
   if (desk.stage === "prelims") bits.push("Prelims");

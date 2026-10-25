@@ -1,9 +1,10 @@
-import { Moon, Search, Sun } from "lucide-react-native";
+import { Moon, Search, Sun, UserRound } from "lucide-react-native";
 import React, { useEffect, useRef } from "react";
 import { Animated, Pressable, Text, View } from "react-native";
 import { useTheme } from "@/theme/ThemeProvider";
 import { fonts, spacing, type as typography } from "@/theme/tokens";
 import { dateline } from "@/lib/time";
+import { useAuth } from "@/lib/auth";
 import { DoubleRule } from "./ui";
 
 function PulseDot() {
@@ -43,8 +44,15 @@ function PulseDot() {
  * The wordmark, the dateline and the two controls that matter. Deliberately
  * quiet: the masthead is a rule on a page, not a toolbar.
  */
-export function Masthead({ onSearch }: { onSearch: () => void }) {
+export function Masthead({
+  onSearch,
+  onAccount,
+}: {
+  onSearch: () => void;
+  onAccount: () => void;
+}) {
   const { colors, scheme, toggle } = useTheme();
+  const { session } = useAuth();
 
   return (
     <View>
@@ -92,6 +100,32 @@ export function Masthead({ onSearch }: { onSearch: () => void }) {
             style={({ pressed }) => ({ padding: 8, opacity: pressed ? 0.5 : 1 })}
           >
             <Search size={18} strokeWidth={1.9} color={colors.foreground} />
+          </Pressable>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={session ? "Your account" : "Sign in or create an account"}
+            onPress={onAccount}
+            hitSlop={8}
+            style={({ pressed }) => ({ padding: 8, opacity: pressed ? 0.5 : 1 })}
+          >
+            <View>
+              <UserRound size={18} strokeWidth={1.9} color={colors.foreground} />
+              {session ? (
+                <View
+                  style={{
+                    position: "absolute",
+                    right: -1,
+                    bottom: -1,
+                    width: 6,
+                    height: 6,
+                    borderRadius: 3,
+                    backgroundColor: colors.success,
+                    borderWidth: 1,
+                    borderColor: colors.background,
+                  }}
+                />
+              ) : null}
+            </View>
           </Pressable>
           <Pressable
             accessibilityRole="button"

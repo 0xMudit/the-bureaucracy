@@ -1,5 +1,5 @@
 import { useRouter } from "expo-router";
-import { ChevronRight, Library } from "lucide-react-native";
+import { ChevronRight, Library, Radar } from "lucide-react-native";
 import React, { useCallback, useMemo } from "react";
 import { Pressable, SectionList, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -16,9 +16,17 @@ import {
   TagList,
   WireSkeleton,
 } from "@/components/ui";
+import {
+  coverageLabel,
+  coverageRows,
+  coverageSummary,
+  COVERAGE_WINDOW_DAYS,
+  type CoverageRow,
+} from "@/lib/coverage";
 import { setFilters } from "@/lib/filters";
+import { useProgress } from "@/lib/progress";
 import { useTheme, type ThemeMode } from "@/theme/ThemeProvider";
-import { fonts, spacing, type as typography } from "@/theme/tokens";
+import { fonts, radius, spacing, type as typography } from "@/theme/tokens";
 
 type Row =
   | { kind: "topic"; topic: Topic }
@@ -29,6 +37,120 @@ interface Section {
   title: string;
   subtitle?: string;
   data: Row[];
+}
+
+function statusColor(status: CoverageRow["status"], colors: ReturnType<typeof useTheme>["colors"]): string {
+  if (status === "fresh") return colors.success;
+  if (status === "stale") return colors.warn;
+  if (status === "cold") return colors.primary;
+  return colors.border;
+}
+
+/**
+ * The long-term hook: a gap is more useful than a count, because it names the
+ * paper the reader is drifting away from.
+ */
+function CoverageCard({
+  topics,
+  onScope,
+}: {
+  topics: { id: string; label: string }[];
+  onScope: (topicId: string) => void;
+}) {
+  const { colors } = useTheme();
+  const progress = useProgress();
+  const rows = coverageRows(topics);
+  const summary = coverageSummary(rows);
+
+  if (progress.totalRead === 0) return null;
+  const weakest = rows
+    .filter((row) => row.status !== "fresh")
+    .slice(0, 3);
+
+  return (
+    <View
+      style={{
+        borderWidth: StyleSheet.hairlineWidth,
+        borderColor: colors.border,
+        backgroundColor: colors.card,
+        borderRadius: radius.sm,
+        padding: spacing.md,
+        marginTop: spacing.lg,
+      }}
+    >
+      <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+        <Radar size={13} color={colors.primary} strokeWidth={2} />
+        <Text style={[typography.kicker, { color: colors.primary, flex: 1 }]}>
+          COVERAGE · LAST {COVERAGE_WINDOW_DAYS} DAYS
+        </Text>
+        <Text style={[typography.meta, { color: colors.mutedForeground }]}>
+          {summary.touched}/{summary.total} TOUCHED
+        </Text>
+      </View>
+
+      <View style={{ flexDirection: "row", gap: 3, marginTop: spacing.sm }}>
+        {rows.map((row) => (
+          <View
+            key={row.id}
+            style={{
+              flex: 1,
+              height: 4,
+              backgroundColor: statusColor(row.status, colors),
+              opacity: row.status === "untouched" ? 0.45 : 1,
+            }}
+          />
+        ))}
+      </View>
+
+      {summary.worst ? (
+        <Text style={[typography.summary, { color: colors.mutedForeground, marginTop: spacing.sm }]}>
+          Coldest: {summary.worst.label} · {coverageLabel(summary.worst).toLowerCase()}. The gap is
+          the syllabus, not a failure.
+        </Text>
+      ) : (
+        <Text style={[typography.summary, { color: colors.success, marginTop: spacing.sm }]}>
+          Every theme touched in the last {COVERAGE_WINDOW_DAYS} days. Keep the rotation.
+        </Text>
+      )}
+
+      {weakest.length ? (
+        <View style={{ marginTop: spacing.sm }}>
+          {weakest.map((row) => (
+            <Pressable
+              key={row.id}
+              onPress={() => onScope(row.id)}
+              accessibilityRole="button"
+              accessibilityLabel={`Read the wire for ${row.label}`}
+              style={({ pressed }) => ({
+                flexDirection: "row",
+                alignItems: "center",
+                gap: spacing.sm,
+                paddingVertical: 7,
+                borderTopWidth: StyleSheet.hairlineWidth,
+                borderTopColor: colors.border,
+                opacity: pressed ? 0.55 : 1,
+              })}
+            >
+              <View
+                style={{
+                  width: 3,
+                  alignSelf: "stretch",
+                  backgroundColor: statusColor(row.status, colors),
+                }}
+              />
+              <View style={{ flex: 1 }}>
+                <Text style={[typography.ui, { color: colors.foreground }]}>{row.label}</Text>
+                <Text style={[typography.tag, { color: colors.mutedForeground, marginTop: 1 }]}>
+                  {row.reads} READ · {coverageLabel(row).toUpperCase()}
+                </Text>
+              </View>
+              <ChevronRight size={13} color={colors.border} strokeWidth={2.2} />
+            </Pressable>
+          ))}
+        </View>
+      ) : null}
+    </View>
+  );
 }
 
 function ThemePicker() {
@@ -226,6 +348,14 @@ export default function SyllabusScreen() {
         keyExtractor={(row) => (row.kind === "topic" ? `t:${row.topic.id}` : `o:${row.optional.id}`)}
         contentContainerStyle={{ paddingBottom: spacing.xxl + insets.bottom }}
         stickySectionHeadersEnabled={false}
+        ListHeaderComponent={
+          taxonomy.data ? (
+            <CoverageCard
+              topics={taxonomy.data.topics}
+              onScope={(topicId) => scopeTo({ topic: topicId })}
+            />
+          ) : undefined
+        }
         renderItem={renderRow}
         renderSectionHeader={({ section }) => (
           <View style={{ backgroundColor: colors.background, paddingTop: spacing.lg }}>

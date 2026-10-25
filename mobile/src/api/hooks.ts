@@ -1,8 +1,20 @@
 import { useMutation, useQuery, useQueryClient, type QueryClient } from "@tanstack/react-query";
 import * as Haptics from "expo-haptics";
-import { ApiError, getFeed, getStory, getTaxonomy, postVote } from "./client";
+import {
+  ApiError,
+  createCircle,
+  getBrief,
+  getCircles,
+  getFeed,
+  getStory,
+  getTaxonomy,
+  joinCircle,
+  postVote,
+  subscribeDigest,
+} from "./client";
 import type { FeedFilters, FeedResponse, StoryResponse } from "./types";
 import { getDeviceId } from "@/lib/device";
+import { useDesk } from "@/lib/desk";
 import { filterKey } from "@/lib/filters";
 
 /** Read once, keep forever: the id only changes on reinstall. */
@@ -18,10 +30,11 @@ export function useDeviceId() {
 
 export function useFeed(filters: FeedFilters, limit = 40) {
   const device = useDeviceId();
+  const desk = useDesk();
 
   return useQuery({
-    queryKey: ["feed", filterKey(filters), limit, device.data ?? "anonymous"],
-    queryFn: () => getFeed(filters, device.data ?? null, limit),
+    queryKey: ["feed", filterKey(filters), desk.signature, limit, device.data ?? "anonymous"],
+    queryFn: () => getFeed(filters, device.data ?? null, limit, desk.param),
     // Allow feed to load even if device ID isn't ready yet
     enabled: true,
     // The wire turns over on a 15-minute ingest cycle, so a minute of staleness
@@ -29,6 +42,60 @@ export function useFeed(filters: FeedFilters, limit = 40) {
     staleTime: 60_000,
     gcTime: 30 * 60_000,
     retry: (attempt, error) => error instanceof ApiError && error.retryable && attempt < 2,
+  });
+}
+
+/**
+ * Today's five, ranked for the desk. The server freezes the entries on first
+ * sight; the tab also caches them locally so a restart cannot move the finish
+ * line. One shared query means the wire hero and the brief tab agree.
+ */
+export function useBrief() {
+  const desk = useDesk();
+
+  return useQuery({
+    queryKey: ["brief", desk.signature],
+    queryFn: () => getBrief(desk.param),
+    staleTime: 5 * 60_000,
+    gcTime: 6 * 60 * 60_000,
+    retry: (attempt, error) => error instanceof ApiError && error.retryable && attempt < 2,
+  });
+}
+
+export function useCircles(enabled = true) {
+  return useQuery({
+    queryKey: ["circles"],
+    queryFn: () => getCircles(),
+    enabled,
+    staleTime: 30_000,
+    gcTime: 10 * 60_000,
+    retry: (attempt, error) => error instanceof ApiError && error.retryable && attempt < 1,
+  });
+}
+
+export function useCreateCircle() {
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: (name: string) => createCircle(name),
+    onSuccess: () => {
+      void client.invalidateQueries({ queryKey: ["circles"] });
+    },
+  });
+}
+
+export function useJoinCircle() {
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: (code: string) => joinCircle(code),
+    onSuccess: () => {
+      void client.invalidateQueries({ queryKey: ["circles"] });
+    },
+  });
+}
+
+export function useSubscribeDigest() {
+  return useMutation({
+    mutationFn: (email: string) => subscribeDigest(email),
   });
 }
 

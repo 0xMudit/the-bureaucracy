@@ -1,16 +1,17 @@
 import { useRouter } from "expo-router";
-import { Newspaper } from "lucide-react-native";
+import { ArrowRight, BookOpen, Flame, Newspaper } from "lucide-react-native";
 import React, { useCallback, useState } from "react";
 import {
   FlatList,
   Pressable,
   RefreshControl,
+  StyleSheet,
   Text,
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import type { FeedItem, SortKey } from "@/api/types";
-import { useFeed, useVote } from "@/api/hooks";
+import { useBrief, useFeed, useVote } from "@/api/hooks";
 import { ApiError } from "@/api/client";
 import { FeedRow } from "@/components/FeedRow";
 import { ChipRail, ScopeLine } from "@/components/FilterChips";
@@ -18,9 +19,10 @@ import { Masthead } from "@/components/Masthead";
 import { SortTabs } from "@/components/SortTabs";
 import { EmptyState, ErrorNote, Kicker, Screen, WireSkeleton } from "@/components/ui";
 import { useFeedFilters } from "@/lib/filters";
+import { istDateKey, useProgress } from "@/lib/progress";
 import { timeAgo } from "@/lib/time";
 import { useTheme } from "@/theme/ThemeProvider";
-import { spacing, type as typography } from "@/theme/tokens";
+import { radius, spacing, type as typography } from "@/theme/tokens";
 
 type Rail = "themes" | "optional";
 
@@ -80,6 +82,76 @@ function RailToggle({ rail, onChange }: { rail: Rail; onChange: (next: Rail) => 
   );
 }
 
+function BriefHero({ onOpen }: { onOpen: () => void }) {
+  const { colors } = useTheme();
+  const brief = useBrief();
+  const progress = useProgress();
+  const data = brief.data;
+
+  if (!data || data.dateKey !== istDateKey() || !data.entries.length) return null;
+
+  const total = data.entries.length;
+  const read = data.entries.filter((entry) => progress.readIds.has(entry.id)).length;
+  const done = read >= total;
+
+  return (
+    <Pressable
+      onPress={onOpen}
+      accessibilityRole="button"
+      accessibilityLabel="Open the daily brief"
+      style={({ pressed }) => ({
+        marginHorizontal: spacing.lg,
+        marginTop: spacing.md,
+        marginBottom: spacing.md,
+        borderWidth: StyleSheet.hairlineWidth,
+        borderColor: colors.border,
+        backgroundColor: colors.card,
+        borderRadius: radius.sm,
+        padding: spacing.md,
+        opacity: pressed ? 0.75 : 1,
+      })}
+    >
+      <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+        <BookOpen size={12} color={colors.primary} strokeWidth={2.2} />
+        <Text style={[typography.kicker, { color: colors.primary, flex: 1 }]}>THE DAILY BRIEF</Text>
+        <Text style={[typography.meta, { color: done ? colors.success : colors.mutedForeground }]}>
+          {done ? "FINISHED" : `${read}/${total}`}
+        </Text>
+      </View>
+      <Text
+        style={[
+          typography.display,
+          { color: colors.foreground, fontSize: 22, lineHeight: 24, marginTop: 6 },
+        ]}
+      >
+        {done ? "Today's five are done." : "Five stories. Eight minutes."}
+      </Text>
+      <Text style={[typography.summary, { color: colors.mutedForeground, marginTop: 3 }]}>
+        {done
+          ? "The retrieval check is waiting. Two questions, no notes."
+          : `${total - read} left · ${data.minutes} minutes · ranked for your desk`}
+      </Text>
+      <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.sm, marginTop: spacing.sm }}>
+        {progress.current > 0 ? (
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 3 }}>
+            <Flame size={11} color={colors.primary} strokeWidth={2} />
+            <Text style={[typography.meta, { color: colors.primary }]}>
+              {progress.current} DAY STREAK
+            </Text>
+          </View>
+        ) : (
+          <Text style={[typography.meta, { color: colors.mutedForeground }]}>START A STREAK</Text>
+        )}
+        <View style={{ flex: 1 }} />
+        <Text style={[typography.meta, { color: colors.foreground }]}>
+          {done ? "CHECK ANSWERS" : "OPEN THE BRIEF"}
+        </Text>
+        <ArrowRight size={12} color={colors.foreground} strokeWidth={2.2} />
+      </View>
+    </Pressable>
+  );
+}
+
 export default function WireScreen() {
   const { colors } = useTheme();
   const router = useRouter();
@@ -113,6 +185,7 @@ export default function WireScreen() {
 
   const header = data ? (
     <View style={{ paddingBottom: spacing.xs }}>
+      <BriefHero onOpen={() => router.push("/brief")} />
       <ScopeLine
         parts={[data.screen.title]}
         trailing={`${data.meta.count} ${data.meta.count === 1 ? "story" : "stories"}${
@@ -263,7 +336,10 @@ export default function WireScreen() {
 
   return (
     <Screen>
-      <Masthead onSearch={() => router.push("/search")} />
+      <Masthead
+        onSearch={() => router.push("/search")}
+        onAccount={() => router.push("/account")}
+      />
       <SortTabs active={filters.sort} onChange={onSort} />
       {body}
     </Screen>

@@ -9,13 +9,18 @@ import { Inter_500Medium } from "@expo-google-fonts/inter/500Medium";
 import { Inter_600SemiBold } from "@expo-google-fonts/inter/600SemiBold";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useFonts } from "expo-font";
-import { Stack } from "expo-router";
+import { Stack, useRouter, useSegments } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
 import React, { useEffect, useState } from "react";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { ApiError } from "@/api/client";
+import { AuthProvider } from "@/lib/auth";
+import { hydrateDesk, useDesk } from "@/lib/desk";
+import { installNotificationHandler } from "@/lib/notifications";
+import { hydrateProgress, noteVisit } from "@/lib/progress";
+import { hydrateRevision } from "@/lib/revision";
 import { hydrateSaved } from "@/lib/saved";
 import { ThemeProvider, useTheme } from "@/theme/ThemeProvider";
 
@@ -40,6 +45,18 @@ function createQueryClient() {
 
 function RootNavigator() {
   const { colors, scheme } = useTheme();
+  const { desk } = useDesk();
+  const segments = useSegments();
+  const router = useRouter();
+
+  // The desk gate runs once per cold start. It is a redirect rather than a
+  // conditional tree so deep links survive onboarding and land where they were
+  // headed afterwards.
+  useEffect(() => {
+    if (desk.onboarded) return;
+    if (segments[0] === "onboarding") return;
+    router.replace("/onboarding");
+  }, [desk.onboarded, segments, router]);
 
   return (
     <>
@@ -54,6 +71,12 @@ function RootNavigator() {
         <Stack.Screen name="(tabs)" />
         <Stack.Screen name="item/[id]" />
         <Stack.Screen name="search" options={{ presentation: "modal", animation: "fade" }} />
+        <Stack.Screen
+          name="onboarding"
+          options={{ animation: "fade", gestureEnabled: false }}
+        />
+        <Stack.Screen name="account" options={{ presentation: "modal", animation: "slide_from_bottom" }} />
+        <Stack.Screen name="circles" />
       </Stack>
     </>
   );
@@ -70,17 +93,28 @@ export default function RootLayout() {
     IBMPlexMono_500Medium,
   });
   const [queryClient] = useState(createQueryClient);
+  const [storageReady, setStorageReady] = useState(false);
 
-  const ready = fontsLoaded || Boolean(fontError);
+  const fontsReady = fontsLoaded || Boolean(fontError);
+
+  useEffect(() => {
+    // Every device store hydrates in parallel, then one visit is recorded. The
+    // tree does not mount until this finishes: rendering a zero streak and then
+    // replacing it with the real one looks like a bug, and signing in before
+    // hydration would overwrite the device with an empty remote state.
+    void (async () => {
+      await Promise.all([hydrateProgress(), hydrateSaved(), hydrateRevision(), hydrateDesk()]);
+      noteVisit();
+      installNotificationHandler();
+      setStorageReady(true);
+    })();
+  }, []);
+
+  const ready = fontsReady && storageReady;
 
   useEffect(() => {
     if (ready) void SplashScreen.hideAsync().catch(() => {});
   }, [ready]);
-
-  useEffect(() => {
-    // The reading list lives on the device; hydrate it once, at startup.
-    void hydrateSaved();
-  }, []);
 
   if (!ready) return null;
 
@@ -88,9 +122,11 @@ export default function RootLayout() {
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaProvider>
         <QueryClientProvider client={queryClient}>
-          <ThemeProvider>
-            <RootNavigator />
-          </ThemeProvider>
+          <AuthProvider>
+            <ThemeProvider>
+              <RootNavigator />
+            </ThemeProvider>
+          </AuthProvider>
         </QueryClientProvider>
       </SafeAreaProvider>
     </GestureHandlerRootView>

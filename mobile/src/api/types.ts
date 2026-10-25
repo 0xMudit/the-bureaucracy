@@ -179,3 +179,136 @@ export interface ApiFailure {
   error: string;
   retryAfter?: number;
 }
+
+/* ------------------------------- reader desk ------------------------------ */
+
+export type ExamTrack = "upsc" | "state";
+export type DeskStage = "all" | "prelims" | "mains";
+
+export interface Desk {
+  exam: ExamTrack;
+  stage: DeskStage;
+  optional: string | "all";
+}
+
+/* --------------------------------- brief ---------------------------------- */
+
+export interface QuizQuestion {
+  kind: "pyq" | "topic";
+  label: string;
+  prompt: string;
+  options: string[];
+  answerIndex: number;
+  explanation: string;
+  pyqId?: string;
+}
+
+export interface BriefEntry {
+  id: string;
+  title: string;
+  summary: string;
+  source: string;
+  publishedAt: string;
+  examScore: number;
+  priority: Priority;
+  topicId: string | null;
+  topicLabel: string;
+  paperLabel: string;
+  why: string;
+  hook: string;
+  quiz?: QuizQuestion;
+  /** Added by the brief route, used by native share and the archive. */
+  url?: string;
+}
+
+export interface BriefResponse {
+  version: number;
+  ok: true;
+  dateKey: string;
+  minutes: number;
+  size: number;
+  desk: Desk | null;
+  entries: BriefEntry[];
+  questions: QuizQuestion[];
+}
+
+/* ------------------------------ reader state ------------------------------ */
+
+export interface ReaderProgressPayload {
+  version: 2;
+  days: Record<string, string[]>;
+  joinedAt: string | null;
+  visits: number;
+  lastVisit: string | null;
+  topics: Record<string, string>;
+  quiz: Record<string, { correct: number; total: number }>;
+  briefDays: string[];
+}
+
+export interface ReaderSave {
+  id: string;
+  title: string;
+  kicker: string;
+  url: string;
+  source: string;
+  publishedAt: string;
+  primaryTopic: string | null;
+  topics: string[];
+  examScore: number;
+  priority: Priority;
+  primaryOptional: string | null;
+  savedAt?: string;
+}
+
+export interface ReaderState {
+  progress: ReaderProgressPayload;
+  saves: ReaderSave[];
+  updatedAt: string | null;
+}
+
+export interface ReaderStateResponse {
+  version: number;
+  ok: true;
+  state: ReaderState;
+}
+
+/* -------------------------------- circles --------------------------------- */
+
+export interface CircleMember {
+  name: string;
+  streak: number;
+  today: number;
+  isYou: boolean;
+}
+
+export interface CircleSummary {
+  id: string;
+  name: string;
+  inviteCode: string;
+  isOwner: boolean;
+  createdAt?: string;
+  members?: CircleMember[];
+}
+
+export interface CirclesResponse {
+  version: number;
+  ok: true;
+  today: string;
+  circles: CircleSummary[];
+}
+
+export interface CircleResponse {
+  version: number;
+  ok: true;
+  circle: CircleSummary;
+}
+
+/* -------------------------------- subscribe ------------------------------- */
+
+export interface SubscribeResponse {
+  ok: boolean;
+  already?: boolean;
+  pending?: boolean;
+  confirmUrl?: string;
+  error?: string;
+}

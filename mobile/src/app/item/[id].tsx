@@ -2,19 +2,23 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import {
   ArrowLeft,
   ArrowUpRight,
+  CheckCircle2,
+  Circle,
   Clock,
   ExternalLink,
   Gavel,
   Layers,
   MessageSquare,
   Newspaper,
+  Share2,
 } from "lucide-react-native";
-import React, { useCallback } from "react";
+import React, { useCallback, useEffect } from "react";
 import {
   Linking,
   Pressable,
   RefreshControl,
   ScrollView,
+  Share,
   StyleSheet,
   Text,
   View,
@@ -36,6 +40,7 @@ import {
   WireSkeleton,
 } from "@/components/ui";
 import { setFilters } from "@/lib/filters";
+import { useProgress } from "@/lib/progress";
 import { formatDate, timeAgo, timeLeft } from "@/lib/time";
 import { useTheme } from "@/theme/ThemeProvider";
 import { priorityColor, spacing, type as typography } from "@/theme/tokens";
@@ -62,6 +67,7 @@ export default function StoryScreen() {
   const story = useStory(id);
   const taxonomy = useTaxonomy();
   const vote = useVote();
+  const { readIds, markRead, toggleRead } = useProgress();
 
   const back = useCallback(() => {
     if (router.canGoBack()) router.back();
@@ -80,6 +86,28 @@ export default function StoryScreen() {
   const data = story.data;
   const item = data?.item;
   const error = story.error;
+  const read = item ? readIds.has(item.id) : false;
+
+  // Opening a story is the read signal. The toggle in the header can undo it,
+  // and the same mark is what completes the daily brief.
+  useEffect(() => {
+    if (!item) return;
+    markRead(item.id, item.primaryTopic);
+  }, [item, markRead]);
+
+  const share = useCallback(async () => {
+    if (!item) return;
+    const url = data?.webUrl ?? item.url;
+    try {
+      await Share.share({
+        title: item.title,
+        message: `${item.title}\n\n${url}\n\nvia The Bureaucracy`,
+        url,
+      });
+    } catch {
+      // The share sheet is a system surface; a dismissal is not an error.
+    }
+  }, [item, data?.webUrl]);
 
   let body: React.ReactNode;
 
@@ -192,7 +220,32 @@ export default function StoryScreen() {
               </View>
             </View>
 
-            <SaveButton item={item} size={18} />
+            <View style={{ alignItems: "center", gap: 12, paddingTop: 2 }}>
+              <SaveButton item={item} size={18} />
+              <Pressable
+                onPress={() => toggleRead(item.id, item.primaryTopic)}
+                hitSlop={10}
+                accessibilityRole="checkbox"
+                accessibilityState={{ checked: read }}
+                accessibilityLabel={read ? "Mark as unread" : "Mark as read"}
+                style={({ pressed }) => ({ opacity: pressed ? 0.5 : 1 })}
+              >
+                {read ? (
+                  <CheckCircle2 size={18} color={colors.success} strokeWidth={2} />
+                ) : (
+                  <Circle size={18} color={colors.mutedForeground} strokeWidth={1.7} />
+                )}
+              </Pressable>
+              <Pressable
+                onPress={() => void share()}
+                hitSlop={10}
+                accessibilityRole="button"
+                accessibilityLabel="Share this story"
+                style={({ pressed }) => ({ opacity: pressed ? 0.5 : 1 })}
+              >
+                <Share2 size={17} color={colors.mutedForeground} strokeWidth={1.9} />
+              </Pressable>
+            </View>
           </View>
 
           <View
@@ -277,6 +330,17 @@ export default function StoryScreen() {
               <RecordRow label="Source" value={item.source} />
               <RecordRow label="Tier" value={item.sourceTier} />
               <RecordRow label="Published" value={formatDate(item.publishedAt)} />
+              <RecordRow
+                label="Read"
+                value={read ? "Marked today" : "Not yet"}
+                icon={
+                  read ? (
+                    <CheckCircle2 size={11} color={colors.success} strokeWidth={2} />
+                  ) : (
+                    <Circle size={11} color={colors.mutedForeground} strokeWidth={2} />
+                  )
+                }
+              />
               <RecordRow
                 label="Expires"
                 value={timeLeft(data.expiresAt)}

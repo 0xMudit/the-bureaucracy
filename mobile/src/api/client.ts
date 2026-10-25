@@ -1,9 +1,16 @@
 import { Platform } from "react-native";
 import type {
   ApiFailure,
+  BriefResponse,
+  CircleResponse,
+  CirclesResponse,
   FeedFilters,
   FeedResponse,
+  ReaderStateResponse,
+  ReaderProgressPayload,
+  ReaderSave,
   StoryResponse,
+  SubscribeResponse,
   TaxonomyResponse,
   VoteResponse,
 } from "./types";
@@ -55,8 +62,23 @@ export class ApiError extends Error {
 
 const DEFAULT_TIMEOUT_MS = 12_000;
 
+/**
+ * The access token is held in memory and attached to every request that might
+ * need it. `AuthProvider` sets it on sign-in and clears it on sign-out; the
+ * public endpoints simply ignore the header.
+ */
+let authToken: string | null = null;
+
+export function setAuthToken(token: string | null): void {
+  authToken = token;
+}
+
+export function getAuthToken(): string | null {
+  return authToken;
+}
+
 interface RequestOptions {
-  method?: "GET" | "POST";
+  method?: "GET" | "POST" | "PUT" | "DELETE";
   body?: unknown;
   deviceId?: string | null;
   timeoutMs?: number;
@@ -76,6 +98,7 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<T
         accept: "application/json",
         ...(body ? { "content-type": "application/json" } : {}),
         ...(deviceId ? { "x-device-id": deviceId } : {}),
+        ...(authToken ? { authorization: `Bearer ${authToken}` } : {}),
       },
       ...(body ? { body: JSON.stringify(body) } : {}),
     });
@@ -128,6 +151,7 @@ export async function getFeed(
   filters: FeedFilters,
   deviceId?: string | null,
   limit = 40,
+  desk?: string | null,
 ): Promise<FeedResponse> {
   return request<FeedResponse>(
     `/api/mobile/feed${queryString({
@@ -137,9 +161,80 @@ export async function getFeed(
       paper: filters.paper,
       q: filters.q.trim(),
       limit,
+      desk: desk ?? undefined,
     })}`,
     { deviceId },
   );
+}
+
+export async function getBrief(desk?: string | null): Promise<BriefResponse> {
+  return request<BriefResponse>(
+    `/api/mobile/brief${queryString({ desk: desk ?? undefined })}`,
+    { timeoutMs: 15_000 },
+  );
+}
+
+/* ------------------------------ reader state ------------------------------ */
+
+export async function getReaderState(): Promise<ReaderStateResponse> {
+  return request<ReaderStateResponse>("/api/mobile/state");
+}
+
+export async function putReaderState(payload: {
+  progress?: ReaderProgressPayload;
+  saves?: ReaderSave[];
+}): Promise<ReaderStateResponse> {
+  return request<ReaderStateResponse>("/api/mobile/state", {
+    method: "PUT",
+    body: payload,
+    timeoutMs: 20_000,
+  });
+}
+
+/* ---------------------------------- push ---------------------------------- */
+
+export async function registerPush(input: {
+  token: string;
+  platform: string;
+  deviceId?: string | null;
+  desk?: unknown;
+}): Promise<{ ok: boolean; registered: boolean }> {
+  return request("/api/mobile/push", {
+    method: "POST",
+    body: input,
+    deviceId: input.deviceId ?? null,
+  });
+}
+
+export async function unregisterPush(token: string, deviceId?: string | null): Promise<void> {
+  await request("/api/mobile/push", { method: "DELETE", body: { token }, deviceId });
+}
+
+/* -------------------------------- circles --------------------------------- */
+
+export async function getCircles(): Promise<CirclesResponse> {
+  return request<CirclesResponse>("/api/mobile/circles", { timeoutMs: 15_000 });
+}
+
+export async function createCircle(name: string): Promise<CircleResponse> {
+  return request<CircleResponse>("/api/mobile/circles", { method: "POST", body: { name } });
+}
+
+export async function joinCircle(code: string): Promise<CircleResponse> {
+  return request<CircleResponse>("/api/mobile/circles/join", {
+    method: "POST",
+    body: { code },
+  });
+}
+
+/* -------------------------------- subscribe ------------------------------- */
+
+/**
+ * The digest lives on the web origin, not under `/api/mobile`, because the
+ * confirmation and unsubscribe links are browser pages.
+ */
+export async function subscribeDigest(email: string): Promise<SubscribeResponse> {
+  return request<SubscribeResponse>("/api/subscribe", { method: "POST", body: { email } });
 }
 
 export async function getStory(id: string, deviceId?: string | null): Promise<StoryResponse> {
