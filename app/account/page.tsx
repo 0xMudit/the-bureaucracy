@@ -1,4 +1,4 @@
-﻿import type { Metadata } from "next";
+import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { CheckCircle2, LayoutDashboard, LogOut, PenLine, ShieldCheck } from "lucide-react";
@@ -64,8 +64,8 @@ export default async function AccountPage({
       </div>
 
       {!user.onboardedAt ? (
-        <div className="mt-5 flex flex-wrap items-center justify-between gap-2 border-l-2 border-amber-500 bg-amber-500/5 px-3 py-2">
-          <p className="text-[12px] leading-relaxed text-amber-800 dark:text-amber-300">
+        <div className="mt-5 flex flex-wrap items-center justify-between gap-2 border-l-2 border-warning bg-warning/10 px-3 py-2">
+          <p className="text-[12px] leading-relaxed text-warning">
             {user.onboardSkippedAt
               ? "You skipped the byline setup. Choose an avatar and username when you have a minute."
               : "Finish your byline setup to put a face to your comments."}
@@ -79,7 +79,7 @@ export default async function AccountPage({
       {justVerified ? (
         <p
           role="status"
-          className="mt-5 flex items-start gap-2 border-l-2 border-emerald-600 bg-emerald-600/5 px-3 py-2 text-[12px] leading-relaxed text-emerald-700 dark:text-emerald-400"
+          className="mt-5 flex items-start gap-2 border-l-2 border-success bg-success/10 px-3 py-2 text-[12px] leading-relaxed text-success"
         >
           <CheckCircle2 className="mt-0.5 size-4 shrink-0" />
           Address confirmed. Your byline is open â€” comment, reply and file stories.
@@ -89,7 +89,7 @@ export default async function AccountPage({
       {passwordChanged ? (
         <p
           role="status"
-          className="mt-5 flex items-start gap-2 border-l-2 border-emerald-600 bg-emerald-600/5 px-3 py-2 text-[12px] leading-relaxed text-emerald-700 dark:text-emerald-400"
+          className="mt-5 flex items-start gap-2 border-l-2 border-success bg-success/10 px-3 py-2 text-[12px] leading-relaxed text-success"
         >
           <CheckCircle2 className="mt-0.5 size-4 shrink-0" />
           Password changed. Other devices were signed out.
@@ -99,7 +99,7 @@ export default async function AccountPage({
       {emailChanged ? (
         <p
           role="status"
-          className="mt-5 flex items-start gap-2 border-l-2 border-emerald-600 bg-emerald-600/5 px-3 py-2 text-[12px] leading-relaxed text-emerald-700 dark:text-emerald-400"
+          className="mt-5 flex items-start gap-2 border-l-2 border-success bg-success/10 px-3 py-2 text-[12px] leading-relaxed text-success"
         >
           <CheckCircle2 className="mt-0.5 size-4 shrink-0" />
           Email address confirmed and updated.
@@ -117,7 +117,7 @@ export default async function AccountPage({
         <div className="border border-border bg-card px-4 py-3">
           <p className="font-mono text-[8.5px] uppercase tracking-[0.14em] text-muted-foreground">Email</p>
           <p className="mt-1 flex items-center gap-1.5 text-[13px] font-medium">
-            <CheckCircle2 className="size-3.5 text-emerald-600" /> Verified
+            <CheckCircle2 className="size-3.5 text-success" /> Verified
           </p>
         </div>
         <div className="border border-border bg-card px-4 py-3">

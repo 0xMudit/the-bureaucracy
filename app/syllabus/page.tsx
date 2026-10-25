@@ -89,7 +89,7 @@ export default async function SyllabusPage() {
                           className="inline-flex items-center gap-1.5 border border-border bg-background px-2 py-1 font-mono text-[9px] uppercase tracking-[0.08em] text-muted-foreground hover:border-primary/40 hover:text-primary"
                         >
                           {topic.label}
-                          <span className="text-muted-foreground/60">{counts.get(topic.id) ?? 0}</span>
+                          <span className="text-muted-foreground">{counts.get(topic.id) ?? 0}</span>
                         </Link>
                       ))}
                     </div>

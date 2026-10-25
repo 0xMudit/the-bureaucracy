@@ -109,7 +109,7 @@ function Feedback({ state }: { state: SettingsState }) {
   }
   if (state.ok) {
     return (
-      <p role="status" className="flex items-center gap-1.5 border-l-2 border-emerald-600 bg-emerald-600/5 px-2.5 py-2 text-xs leading-relaxed text-emerald-700 dark:text-emerald-400">
+      <p role="status" className="flex items-center gap-1.5 border-l-2 border-success bg-success/10 px-2.5 py-2 text-xs leading-relaxed text-success">
         <CheckCircle2 className="size-3.5 shrink-0" /> {state.ok}
       </p>
     );

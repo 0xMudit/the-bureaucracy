@@ -84,7 +84,7 @@ export function CommentBody({
       </p>
       <div className="ml-8 mt-1 flex flex-wrap items-center gap-x-4 gap-y-1">
         {editedAt && !deleted ? (
-          <span className="font-mono text-[8.5px] uppercase tracking-[0.1em] text-muted-foreground/70">
+          <span className="font-mono text-[8.5px] uppercase tracking-[0.1em] text-muted-foreground">
             edited {timeAgo(editedAt)} · {timeAgo(createdAt)}
           </span>
         ) : null}

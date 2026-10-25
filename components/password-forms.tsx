@@ -19,8 +19,8 @@ export function ForgotPasswordForm({ email = "" }: { email?: string }) {
 
   if (state.sent) {
     return (
-      <div className="border-l-2 border-emerald-600 bg-emerald-600/5 px-3 py-3" role="status" aria-live="polite">
-        <p className="flex items-center gap-1.5 font-mono text-[9px] uppercase tracking-[0.14em] text-emerald-700 dark:text-emerald-400">
+      <div className="border-l-2 border-success bg-success/10 px-3 py-3" role="status" aria-live="polite">
+        <p className="flex items-center gap-1.5 font-mono text-[9px] uppercase tracking-[0.14em] text-success">
           <CheckCircle2 className="size-3.5" /> Check your inbox
         </p>
         <p className="mt-1.5 text-[11.5px] leading-relaxed text-muted-foreground">

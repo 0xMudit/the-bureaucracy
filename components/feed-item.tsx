@@ -43,7 +43,7 @@ export function FeedItemRow({ item, position, viewerReaction, canWrite }: FeedIt
       <div className="min-w-0 flex-1">
         <div className="mb-1 flex items-center gap-2">
           {position ? (
-            <span className="stat-tick font-mono text-[10px] tabular-nums text-muted-foreground/70">
+            <span className="stat-tick font-mono text-[10px] tabular-nums text-muted-foreground">
               {String(position).padStart(2, "0")}
             </span>
           ) : null}
@@ -72,7 +72,7 @@ export function FeedItemRow({ item, position, viewerReaction, canWrite }: FeedIt
             target="_blank"
             rel="noreferrer noopener"
             aria-label={`Open at ${item.source}`}
-            className="ml-1.5 inline-flex translate-y-[-1px] text-muted-foreground/60 hover:text-primary"
+            className="ml-1.5 inline-flex translate-y-[-1px] text-muted-foreground hover:text-primary"
           >
             <ArrowUpRight className="size-3.5" />
           </a>
@@ -142,7 +142,7 @@ export function FeedItemRow({ item, position, viewerReaction, canWrite }: FeedIt
           <span aria-hidden>·</span>
           <span className="inline-flex items-center gap-1" title="Syllabus relevance score">
             <span className="text-primary/80">{item.examScore}</span>
-            <span className="text-muted-foreground/70">relevance</span>
+            <span className="text-muted-foreground">relevance</span>
           </span>
           <ReadBadge itemId={item.id} />
         </div>

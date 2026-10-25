@@ -49,7 +49,7 @@ export function FeedTabs({ sort, topic, q, optional, paper }: FeedTabsProps) {
           ) : null}
         </Link>
       ))}
-      <span className="ml-auto hidden pr-2 font-mono text-[9px] uppercase tracking-[0.12em] text-muted-foreground/70 sm:block">
+      <span className="ml-auto hidden pr-2 font-mono text-[9px] uppercase tracking-[0.12em] text-muted-foreground sm:block">
         Decay 1.8 · 24h window
       </span>
     </nav>

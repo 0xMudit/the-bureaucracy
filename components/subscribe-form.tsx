@@ -94,7 +94,7 @@ export function SubscribeForm() {
           value={email}
           onChange={(event) => setEmail(event.target.value)}
           placeholder="you@example.com"
-          className="min-w-0 flex-1 border border-border bg-background px-3 py-2.5 font-sans text-sm text-foreground outline-none placeholder:text-muted-foreground/60 focus:border-primary"
+          className="min-w-0 flex-1 border border-border bg-background px-3 py-2.5 font-sans text-sm text-foreground outline-none placeholder:text-muted-foreground focus:border-primary"
         />
         <button
           type="submit"

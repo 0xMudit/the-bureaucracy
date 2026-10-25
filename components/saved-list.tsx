@@ -76,7 +76,7 @@ export function SavedList() {
           const topic = item.primaryTopic ? TOPICS[item.primaryTopic as keyof typeof TOPICS] : null;
           return (
             <li key={item.id} className="flex gap-3 py-4">
-              <span className="stat-tick mt-1 w-5 shrink-0 font-mono text-[9px] text-muted-foreground/70">
+              <span className="stat-tick mt-1 w-5 shrink-0 font-mono text-[9px] text-muted-foreground">
                 {String(index + 1).padStart(2, "0")}
               </span>
               <div className="min-w-0 flex-1">

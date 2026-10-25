@@ -148,7 +148,7 @@ export default async function AdminUsersPage({
       {ok && OK[ok] ? (
         <p
           role="status"
-          className="mt-4 flex items-start gap-2 border-l-2 border-emerald-600 bg-emerald-600/5 px-3 py-2 text-[12px] leading-relaxed text-emerald-700 dark:text-emerald-400"
+          className="mt-4 flex items-start gap-2 border-l-2 border-success bg-success/10 px-3 py-2 text-[12px] leading-relaxed text-success"
         >
           <CheckCircle2 className="mt-0.5 size-4 shrink-0" /> {OK[ok]}
         </p>
@@ -326,7 +326,7 @@ export default async function AdminUsersPage({
                                 size="sm"
                                 variant={suspended ? "outline" : "ghost"}
                                 className={`h-8 rounded-sm px-2 font-mono text-[8.5px] uppercase tracking-[0.08em] ${
-                                  suspended ? "text-emerald-700 dark:text-emerald-400" : "text-destructive"
+                                  suspended ? "text-success" : "text-destructive"
                                 }`}
                               >
                                 {suspended ? <CheckCircle2 className="size-3" /> : <Ban className="size-3" />}

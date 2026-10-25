@@ -60,7 +60,7 @@ export function OptionalFilter({ active, sort, q, topic, paper, counts }: Option
               <span
                 className={cn(
                   "ml-1 tabular-nums",
-                  active === id ? "text-primary-foreground/70" : "text-muted-foreground/60",
+                  active === id ? "text-primary-foreground/85" : "text-muted-foreground",
                 )}
               >
                 {count}

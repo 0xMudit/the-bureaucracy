@@ -84,7 +84,7 @@ export function ReactionBar({
         title={canWrite ? "Dislike (D)" : "Reactions connect once the database is configured"}
         className={cn(
           "group/dislike flex w-full flex-col items-center rounded-sm leading-none transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
-          state.reaction === "dislike" ? "text-primary" : "text-muted-foreground/70 hover:text-primary",
+          state.reaction === "dislike" ? "text-primary" : "text-muted-foreground hover:text-primary",
           (!canWrite || pending) && "cursor-not-allowed opacity-60",
         )}
       >

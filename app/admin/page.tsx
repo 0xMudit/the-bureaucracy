@@ -1,4 +1,4 @@
-﻿import type { Metadata } from "next";
+import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowUpRight, Clock, LogIn, MessageSquare, ShieldCheck, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -242,7 +242,7 @@ export default async function AdminPage() {
           </div>
           <div className="mt-1.5 flex gap-1">
             {days.map((day) => (
-              <span key={day.key} className="flex-1 text-center font-mono text-[7.5px] uppercase text-muted-foreground/70">
+              <span key={day.key} className="flex-1 text-center font-mono text-[7.5px] uppercase text-muted-foreground">
                 {day.label.split(" ")[0]}
               </span>
             ))}

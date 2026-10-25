@@ -97,7 +97,7 @@ export function StreakCard() {
                   <span
                     className={cn(
                       "font-mono text-[8px] uppercase",
-                      isToday ? "text-foreground" : "text-muted-foreground/70",
+                      isToday ? "text-foreground" : "text-muted-foreground",
                     )}
                   >
                     {day.label}

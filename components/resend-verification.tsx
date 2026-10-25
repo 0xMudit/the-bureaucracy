@@ -28,7 +28,7 @@ export function ResendVerification({
       <p
         role="status"
         aria-live="polite"
-        className="flex items-start gap-2 border-l-2 border-emerald-600 bg-emerald-600/5 px-2.5 py-2 text-xs leading-relaxed text-emerald-700 dark:text-emerald-400"
+        className="flex items-start gap-2 border-l-2 border-success bg-success/10 px-2.5 py-2 text-xs leading-relaxed text-success"
       >
         <CheckCircle2 className="mt-0.5 size-4 shrink-0" />
         <span>

@@ -127,7 +127,7 @@ export default async function ItemPage({ params, searchParams }: PageProps) {
         </p>
       ) : null}
       {low ? (
-        <p className="mt-4 border-l-2 border-amber-500 bg-amber-500/5 px-3 py-2 text-xs text-amber-700 dark:text-amber-400">
+        <p className="mt-4 border-l-2 border-warning bg-warning/10 px-3 py-2 text-xs text-warning">
           This submission scored low on syllabus relevance. It is visible here but will not rank on the front page.
         </p>
       ) : null}

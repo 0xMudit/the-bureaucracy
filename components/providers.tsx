@@ -6,6 +6,8 @@ import { AutoRefresh } from "@/components/auto-refresh";
 import { KeyboardShortcuts } from "@/components/keyboard-shortcuts";
 import { CommandMenu } from "@/components/command-menu";
 import { OpeningSequence } from "@/components/opening-sequence";
+import { ThemeColorSync } from "@/components/theme-color-sync";
+import { PwaRegister } from "@/components/pwa-register";
 
 export function Providers({ children }: { children: React.ReactNode }) {
   return (
@@ -19,6 +21,8 @@ export function Providers({ children }: { children: React.ReactNode }) {
     >
       <OpeningSequence />
       {children}
+      <ThemeColorSync />
+      <PwaRegister />
       <CommandMenu />
       <Toaster />
       <AutoRefresh />

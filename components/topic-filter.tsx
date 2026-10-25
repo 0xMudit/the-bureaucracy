@@ -52,7 +52,7 @@ export function TopicFilter({ active, sort, q, counts, optional, paper }: TopicF
             )}
           >
             {topic.label}
-            <span className={cn("ml-1 tabular-nums", active === id ? "text-primary-foreground/70" : "text-muted-foreground/60")}>
+            <span className={cn("ml-1 tabular-nums", active === id ? "text-primary-foreground/85" : "text-muted-foreground")}>
               {count || "0"}
             </span>
           </Link>

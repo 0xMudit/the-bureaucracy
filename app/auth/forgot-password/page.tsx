@@ -73,7 +73,7 @@ export default async function ForgotPasswordPage({
             {configured ? (
               <ForgotPasswordForm />
             ) : (
-              <p className="border-l-2 border-amber-500 bg-amber-500/5 px-2.5 py-2 text-xs leading-relaxed text-amber-700 dark:text-amber-400">
+              <p className="border-l-2 border-warning bg-warning/10 px-2.5 py-2 text-xs leading-relaxed text-warning">
                 Accounts are not configured on this deployment yet.
               </p>
             )}

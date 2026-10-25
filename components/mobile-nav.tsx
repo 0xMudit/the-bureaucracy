@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
-import { LayoutDashboard, LogIn, LogOut, Menu, PenLine, UserRound } from "lucide-react";
+import { LayoutDashboard, LogIn, LogOut, Menu, Monitor, Moon, PenLine, Sun, UserRound } from "lucide-react";
+import { useTheme } from "next-themes";
 import { signOutAction } from "@/app/auth/actions";
 import { GithubMark } from "@/components/github-mark";
 import { Button } from "@/components/ui/button";
@@ -15,6 +16,12 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { SITE } from "@/lib/config";
+
+const THEME_CHOICES = [
+  { value: "light", label: "Light", Icon: Sun },
+  { value: "dark", label: "Dark", Icon: Moon },
+  { value: "system", label: "Auto", Icon: Monitor },
+] as const;
 
 const LINKS = [
   { href: "/#brief", label: "Today's five" },
@@ -37,6 +44,10 @@ export interface MobileNavUser {
 
 export function MobileNav({ user }: { user: MobileNavUser | null }) {
   const [open, setOpen] = useState(false);
+  const { theme, setTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+
   return (
     <Sheet open={open} onOpenChange={setOpen}>
       <SheetTrigger asChild>
@@ -84,6 +95,34 @@ export function MobileNav({ user }: { user: MobileNavUser | null }) {
           ) : null}
         </nav>
         <div className="mt-auto space-y-3 p-4">
+          <div>
+            <p className="mb-1.5 font-mono text-[9px] uppercase tracking-[0.16em] text-muted-foreground">
+              Reading mode
+            </p>
+            <div
+              role="group"
+              aria-label="Reading mode"
+              className="grid grid-cols-3 gap-1 rounded-lg border border-border bg-muted p-1"
+            >
+              {THEME_CHOICES.map(({ value, label, Icon }) => {
+                const active = mounted && theme === value;
+                return (
+                  <button
+                    key={value}
+                    type="button"
+                    aria-pressed={active}
+                    onClick={() => setTheme(value)}
+                    className={`flex flex-col items-center gap-1 rounded-md px-2 py-2 text-[10px] font-medium transition-colors focus-ring ${
+                      active ? "bg-background text-foreground shadow-xs" : "text-muted-foreground hover:text-foreground"
+                    }`}
+                  >
+                    <Icon className="size-4" aria-hidden />
+                    {label}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
           {user ? (
             <form action={signOutAction}>
               <Button type="submit" variant="outline" className="w-full">

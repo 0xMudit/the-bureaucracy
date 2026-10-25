@@ -23,6 +23,7 @@ import { Badge } from "@/components/ui/badge";
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "@/components/ui/breadcrumb";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   ChartContainer,
   ChartLegend,
@@ -38,7 +39,9 @@ import { Field, FieldDescription, FieldGroup, FieldLabel } from "@/components/ui
 import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Progress } from "@/components/ui/progress";
+import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Separator } from "@/components/ui/separator";
 import {
   Sidebar,
   SidebarContent,
@@ -51,9 +54,11 @@ import {
   SidebarProvider,
 } from "@/components/ui/sidebar";
 import { Switch } from "@/components/ui/switch";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 const chartConfig = {
   read: { label: "Stories read", color: "var(--chart-1)" },
@@ -254,6 +259,77 @@ export default function DesignSystemPage() {
                   <Check /> Mark one more read
                 </Button>
               </div>
+            </div>
+          </div>
+        </Section>
+
+        <Section
+          title="Primitives & loading"
+          description="Cards group a reading decision, separators keep dense lists breathable, skeletons mirror the finished layout, and tooltips explain icon-only controls without stealing focus."
+        >
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            <Card>
+              <CardHeader>
+                <CardTitle>Today&apos;s five</CardTitle>
+                <CardDescription>Finite by design: five stories, eight minutes.</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <Skeleton className="h-4 w-4/5" />
+                <Skeleton className="h-4 w-2/3" />
+                <Separator />
+                <div className="flex items-center justify-between text-xs text-muted-foreground">
+                  <span>07:00 IST</span>
+                  <Badge variant="secondary">Queued</Badge>
+                </div>
+              </CardContent>
+              <CardFooter className="justify-between">
+                <span className="font-mono text-[10px] uppercase tracking-[0.14em] text-muted-foreground">Desk copy</span>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button variant="ghost" size="icon-sm" aria-label="Brief delivery details">
+                        <Bell />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent side="top">One push per morning, two at most per day.</TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </CardFooter>
+            </Card>
+
+            <div className="surface p-5">
+              <p className="kicker">Skeleton rhythm</p>
+              <div className="mt-4 space-y-4" aria-hidden>
+                <div className="flex items-center gap-3">
+                  <Skeleton className="size-9 rounded-full" />
+                  <div className="flex-1 space-y-2">
+                    <Skeleton className="h-3 w-1/2" />
+                    <Skeleton className="h-3 w-1/3" />
+                  </div>
+                </div>
+                <Skeleton className="h-24 w-full" />
+                <Skeleton className="h-3 w-full" />
+                <Skeleton className="h-3 w-5/6" />
+              </div>
+              <p className="mt-4 text-xs leading-relaxed text-muted-foreground">
+                Skeletons reuse the same borders and radii, so the page never jumps when the wire lands.
+              </p>
+            </div>
+
+            <div className="surface p-5">
+              <p className="kicker">Overflow</p>
+              <ScrollArea className="mt-3 h-56 rounded-lg border border-border">
+                <div className="space-y-0 p-4">
+                  {Array.from({ length: 12 }).map((_, index) => (
+                    <div key={index}>
+                      <p className="text-sm font-medium">Filed under GS-{["I", "II", "III", "IV"][index % 4]}</p>
+                      <p className="text-xs text-muted-foreground">A scrollable list keeps the page height honest.</p>
+                      <Separator className="my-2.5" />
+                    </div>
+                  ))}
+                </div>
+                <ScrollBar orientation="vertical" />
+              </ScrollArea>
             </div>
           </div>
         </Section>

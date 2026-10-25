@@ -73,7 +73,7 @@ export async function SiteHeader() {
                   <UserAvatar name={user.name} id={user.id} config={user.avatar} size={32} />
                   {!user.onboardedAt ? (
                     <span
-                      className="absolute -right-0.5 -top-0.5 size-2.5 rounded-full border-2 border-background bg-amber-500"
+                      className="absolute -right-0.5 -top-0.5 size-2.5 rounded-full border-2 border-background bg-warning"
                       aria-hidden
                     />
                   ) : null}

@@ -29,7 +29,7 @@ export function SiteFooter() {
             A reading room for people preparing to run the state. Only the last {NEWS_WINDOW_HOURS} hours of
             policy news, ranked by what the syllabus actually asks.
           </p>
-          <p className="mt-4 max-w-sm font-mono text-[9px] uppercase leading-relaxed tracking-[0.14em] text-muted-foreground/80">
+          <p className="mt-4 max-w-sm font-mono text-[9px] uppercase leading-relaxed tracking-[0.14em] text-muted-foreground">
             Not affiliated with UPSC, any state PSC, or the Government of India. Always verify notifications on
             the commission&apos;s own website.
           </p>

@@ -60,7 +60,7 @@ export function CoverageMap() {
                     "shrink-0 font-mono text-[8.5px] uppercase tracking-[0.08em]",
                     row.status === "untouched" || row.status === "cold"
                       ? "text-primary"
-                      : "text-muted-foreground/80",
+                      : "text-muted-foreground",
                   )}
                 >
                   {gapLabel(row)}
@@ -74,7 +74,7 @@ export function CoverageMap() {
               </div>
             </Link>
           ))}
-          <p className="pt-0.5 font-mono text-[8px] uppercase tracking-[0.1em] text-muted-foreground/80">
+          <p className="pt-0.5 font-mono text-[8px] uppercase tracking-[0.1em] text-muted-foreground">
             Widest gap first · last 14 days · on this device
           </p>
         </div>
