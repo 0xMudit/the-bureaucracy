@@ -119,13 +119,13 @@ export function Masthead({ onSearch }: { onSearch: () => void }) {
           alignItems: "center",
           justifyContent: "space-between",
           paddingHorizontal: spacing.lg,
-          paddingTop: 6,
-          paddingBottom: 4,
+          paddingTop: 8,
+          paddingBottom: 6,
         }}
       >
-        <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+        <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
           <PulseDot />
-          <Text style={[typography.meta, { color: colors.primary }]}>Live · 24-hour wire</Text>
+          <Text style={[typography.meta, { color: colors.primary, letterSpacing: 1.4 }]}>LIVE • 24H WIRE</Text>
         </View>
         <Text style={[typography.meta, { color: colors.mutedForeground }]}>{dateline()}</Text>
       </View>

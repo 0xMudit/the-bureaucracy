@@ -28,3 +28,7 @@ yarn-error.*
 # Generated
 *.tsbuildinfo
 .expo-export/
+
+# Generated native projects (Expo prebuild / continuous native generation)
+/android/
+/ios/

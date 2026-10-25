@@ -199,7 +199,7 @@ export default function SavedScreen() {
               This list never leaves the phone. A story that drops out of the 24-hour window is
               removed from it automatically.
             </Text>
-          ) : null
+          ) : undefined
         }
       />
     </Screen>

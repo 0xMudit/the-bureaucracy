@@ -7,12 +7,12 @@
     "icon": "./assets/icon.png",
     "scheme": "bureaucracy",
     "userInterfaceStyle": "automatic",
-    "newArchEnabled": true,
-    "backgroundColor": "#F8F5EF",
-    "primaryColor": "#BD191D",
+    "backgroundColor": "#0F0D0B",
+    "primaryColor": "#FF3B30",
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "app.thebureaucracy.mobile"
+      "bundleIdentifier": "app.thebureaucracy.mobile",
+      "infoPlist": {}
     },
     "android": {
       "package": "app.thebureaucracy.mobile",
@@ -20,7 +20,7 @@
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#F8F5EF"
       },
-      "edgeToEdgeEnabled": true
+      "permissions": []
     },
     "plugins": [
       "expo-router",

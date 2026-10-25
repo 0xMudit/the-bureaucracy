@@ -37,15 +37,23 @@ export function FeedRow({
       accessibilityRole="button"
       accessibilityLabel={item.title}
       onPress={onOpen}
+      android_ripple={{ color: colors.accent }}
       style={({ pressed }) => ({
         flexDirection: "row",
-        paddingRight: spacing.sm,
+        paddingRight: spacing.md,
         paddingVertical: spacing.lg,
-        paddingLeft: spacing.xs,
-        borderBottomWidth: StyleSheet.hairlineWidth,
-        borderBottomColor: colors.border,
-        backgroundColor: pressed ? colors.muted : "transparent",
-        opacity: pressed ? 0.92 : 1,
+        paddingLeft: spacing.sm,
+        marginHorizontal: spacing.sm,
+        marginVertical: spacing.xs,
+        borderRadius: 12,
+        backgroundColor: pressed ? colors.accent : colors.card,
+        borderWidth: 1,
+        borderColor: pressed ? colors.primary : colors.border,
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: pressed ? 2 : 4 },
+        shadowOpacity: pressed ? 0.25 : 0.4,
+        shadowRadius: pressed ? 6 : 10,
+        elevation: pressed ? 3 : 6,
       })}
     >
       <VoteButton
@@ -94,12 +102,12 @@ export function FeedRow({
           ) : null}
         </View>
 
-        <Text style={[type.headline, { color: colors.foreground }]}>{item.title}</Text>
+        <Text style={[type.headline, { color: colors.foreground, fontSize: 22, lineHeight: 26 }]} numberOfLines={3}>{item.title}</Text>
 
         {item.summary ? (
           <Text
             numberOfLines={2}
-            style={[type.summary, { color: colors.mutedForeground, marginTop: 4 }]}
+            style={[type.summary, { color: colors.mutedForeground, marginTop: 6 }]}
           >
             {item.summary}
           </Text>

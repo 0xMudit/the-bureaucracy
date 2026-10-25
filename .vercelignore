@@ -1,0 +1,15 @@
+# The Expo client is a separate build (EAS / local). Vercel only builds the
+# Next.js backend that both the web app and the mobile app talk to.
+#
+# The leading slash matters: without it, `mobile/` also matches
+# app/api/mobile/ and every mobile endpoint 404s in production.
+/mobile/
+
+# Previous prototype, kept on disk for reference only.
+/.legacy/
+
+# Local tooling and agent state.
+/.gstack/
+/.freebuff/
+/.data/
+/supabase/.temp/

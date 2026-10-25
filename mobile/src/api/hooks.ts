@@ -21,8 +21,9 @@ export function useFeed(filters: FeedFilters, limit = 40) {
 
   return useQuery({
     queryKey: ["feed", filterKey(filters), limit, device.data ?? "anonymous"],
-    queryFn: () => getFeed(filters, device.data, limit),
-    enabled: Boolean(device.data),
+    queryFn: () => getFeed(filters, device.data ?? null, limit),
+    // Allow feed to load even if device ID isn't ready yet
+    enabled: true,
     // The wire turns over on a 15-minute ingest cycle, so a minute of staleness
     // is invisible to the reader and saves a round trip on every tab switch.
     staleTime: 60_000,

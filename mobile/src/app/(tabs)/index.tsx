@@ -169,7 +169,7 @@ export default function WireScreen() {
     </View>
   ) : null;
 
-  let body: React.ReactNode;
+  let body: any = undefined;
 
   if (!data && feed.isLoading) {
     body = <WireSkeleton rows={6} />;
@@ -191,8 +191,8 @@ export default function WireScreen() {
       <FlatList
         data={data.items}
         keyExtractor={(item) => item.id}
-        ListHeaderComponent={header}
-        contentContainerStyle={{ paddingBottom: spacing.xxl + insets.bottom }}
+        ListHeaderComponent={header || undefined}
+        contentContainerStyle={{ paddingBottom: spacing.xxxl + insets.bottom, paddingTop: spacing.sm }}
         refreshControl={
           <RefreshControl
             refreshing={feed.isRefetching && !feed.isLoading}
@@ -202,19 +202,25 @@ export default function WireScreen() {
             progressBackgroundColor={colors.card}
           />
         }
-        renderItem={({ item }) => (
+        renderItem={({ item, index }) => (
           <FeedRow
             item={item}
             voted={data.votedIds.includes(item.id)}
             canWrite={data.meta.canWrite}
             onVote={() => {
-              if (data.meta.canWrite) vote.mutate(item.id);
+              if (data.meta.canWrite) {
+                vote.mutate(item.id);
+              }
             }}
             onOpen={() => openStory(item)}
           />
         )}
         onEndReached={onEndReached}
         onEndReachedThreshold={0.5}
+        removeClippedSubviews={true}
+        maxToRenderPerBatch={10}
+        windowSize={5}
+        initialNumToRender={8}
         ListEmptyComponent={
           <EmptyState
             icon={<Newspaper size={26} color={colors.mutedForeground} strokeWidth={1.5} />}
@@ -247,12 +253,12 @@ export default function WireScreen() {
                   : "The wire turns over every 24 hours. Older stories are deleted, not archived."}
               </Text>
             </View>
-          ) : null
+          ) : undefined
         }
       />
     );
   } else {
-    body = null;
+    body = undefined as any;
   }
 
   return (

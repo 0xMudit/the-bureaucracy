@@ -5,10 +5,10 @@ import { useTheme } from "@/theme/ThemeProvider";
 import { spacing, type as typography } from "@/theme/tokens";
 
 const SORTS: { id: SortKey; label: string }[] = [
-  { id: "top", label: "Top" },
-  { id: "new", label: "New" },
-  { id: "best", label: "Best" },
-  { id: "discussed", label: "Discussed" },
+  { id: "top", label: "TOP" },
+  { id: "new", label: "NEW" },
+  { id: "best", label: "BEST" },
+  { id: "discussed", label: "TRENDING" },
 ];
 
 /** Four ways to read the same 24 hours, matching the web's feed tabs. */
@@ -42,8 +42,8 @@ export function SortTabs({
               style={[
                 typography.meta,
                 {
-                  color: selected ? colors.foreground : colors.mutedForeground,
-                  letterSpacing: 0.8,
+                  color: selected ? colors.primary : colors.mutedForeground,
+                  letterSpacing: 1.2,
                 },
               ]}
             >
