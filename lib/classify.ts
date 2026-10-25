@@ -155,8 +155,6 @@ export function analyze(
   const body = summary.replace(/\s+/g, " ").slice(0, 4000);
   const t = ` ${title.toLowerCase()} `;
   const b = ` ${body.toLowerCase()} `;
-  const full = `${t} ${b}`;
-
   const prepHit = PREP_NOISE.find((p) => t.includes(p) || b.includes(p));
   const lowSignal = LOW_SIGNAL.find((p) => t.includes(p));
   const examSpam =

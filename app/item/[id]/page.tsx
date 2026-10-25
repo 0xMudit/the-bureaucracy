@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import { cookies } from "next/headers";
 import { ArrowLeft, ArrowUpRight, Clock, ExternalLink, Gavel, Layers, Rss, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { VoteButton } from "@/components/vote-button";
+import { ReactionBar } from "@/components/reaction-bar";
 import { CommentForm } from "@/components/comment-form";
 import { CommentThread } from "@/components/comment-thread";
 import { BriefNext } from "@/components/brief-next";
@@ -23,7 +23,8 @@ import { istDateKey } from "@/lib/progress";
 import { PAPER_LABEL, priorityLabel } from "@/lib/taxonomy-extras";
 import { OPTIONALS, TOPICS } from "@/lib/taxonomy";
 import { cachedComments, cachedItem, cachedItems } from "@/lib/cached";
-import { canWrite, getVotedIds } from "@/lib/store";
+import { canWrite } from "@/lib/store";
+import { getCommentLikeStates, getReactionStates, viewerActor } from "@/lib/social";
 import type { FeedItem } from "@/lib/types";
 import { formatDate, timeAgo, timeUntil } from "@/lib/utils";
 
@@ -74,10 +75,22 @@ export default async function ItemPage({ params, searchParams }: PageProps) {
   if (!item) notFound();
 
   const jar = await cookies();
-  const voterId = jar.get("tb_voter")?.value;
   const desk = parseDesk(jar.get(DESK_COOKIE)?.value);
   const user = await getSessionUser();
-  const [voted, comments, all] = await Promise.all([getVotedIds(voterId), cachedComments(item.id), cachedItems()]);
+  const [comments, all, viewer] = await Promise.all([cachedComments(item.id), cachedItems(), viewerActor()]);
+  const [reactions, commentLikes] = await Promise.all([
+    getReactionStates(viewer, [item.id]),
+    getCommentLikeStates(
+      viewer,
+      comments.map((comment) => comment.id),
+    ),
+  ]);
+  const reaction = reactions[item.id] ?? {
+    reaction: null,
+    saved: false,
+    likes: item.likeCount ?? 0,
+    dislikes: item.dislikeCount ?? 0,
+  };
   const tree = buildCommentTree(comments);
   const topic = item.primaryTopic ? TOPICS[item.primaryTopic] : null;
   const paper = topic ? PAPER_LABEL[topic.paper] : "Current affairs";
@@ -122,7 +135,7 @@ export default async function ItemPage({ params, searchParams }: PageProps) {
       <div className="mt-4 grid gap-10 lg:grid-cols-[minmax(0,1fr)_296px]">
         <article className="min-w-0">
           <div className="flex gap-2 sm:gap-3">
-            <VoteButton itemId={item.id} points={item.points} seedPoints={item.seedPoints} voted={voted.has(item.id)} canWrite={canWrite()} size="md" />
+            <ReactionBar itemId={item.id} initial={reaction} canWrite={canWrite()} size="md" />
             <div className="min-w-0">
               {item.kicker ? <p className="kicker">{item.kicker}</p> : null}
               <h1 className="display mt-1.5 text-[2rem] leading-[1.05] tracking-[-0.02em] sm:text-[2.7rem]">
@@ -269,6 +282,8 @@ export default async function ItemPage({ params, searchParams }: PageProps) {
                 authorName={user?.name}
                 canComment={Boolean(user) && canWrite()}
                 canReport={canWrite()}
+                likes={commentLikes}
+                viewerId={user?.id}
                 loginHref={`/login?next=${encodeURIComponent(`/item/${item.id}#discussion`)}`}
               />
             </div>

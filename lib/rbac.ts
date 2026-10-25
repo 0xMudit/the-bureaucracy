@@ -1,13 +1,13 @@
-/**
+﻿/**
  * Role-based access control.
  *
- * Roles are stored in `tb_profiles.role` and read on every request (never from
+ * Roles are stored in `profiles.role` and read on every request (never from
  * the JWT), so changing a role takes effect on the next page load. Permissions
  * are checked on the server in pages, server actions and route handlers; the UI
  * only hides what the server would refuse anyway.
  */
 
-export type Role = "reader" | "editor" | "admin";
+export type Role = "user" | "editor" | "admin";
 
 export type Permission =
   | "account.self"
@@ -21,16 +21,16 @@ export type Permission =
   | "role.assign"
   | "audit.view";
 
-export const ROLES: readonly Role[] = ["reader", "editor", "admin"] as const;
+export const ROLES: readonly Role[] = ["user", "editor", "admin"] as const;
 
 export const ROLE_RANK: Record<Role, number> = {
-  reader: 0,
+  user: 0,
   editor: 1,
   admin: 2,
 };
 
 const PERMISSIONS: Record<Role, readonly Permission[]> = {
-  reader: ["account.self", "vote.cast", "comment.write", "link.submit"],
+  user: ["account.self", "vote.cast", "comment.write", "link.submit"],
   editor: [
     "account.self",
     "vote.cast",
@@ -55,9 +55,9 @@ const PERMISSIONS: Record<Role, readonly Permission[]> = {
 };
 
 export const ROLE_META: Record<Role, { label: string; description: string }> = {
-  reader: {
+  user: {
     label: "Reader",
-    description: "Comment, reply, vote and file links. No desk access.",
+    description: "Comment, react, follow and file links. No desk access.",
   },
   editor: {
     label: "Editor",
@@ -74,11 +74,14 @@ export function isRole(value: unknown): value is Role {
 }
 
 export function normalizeRole(value: unknown): Role {
-  return isRole(value) ? value : "reader";
+  // `reader` is the pre-social-graph name. Keep old rows readable while the
+  // database migration rolls forward.
+  if (value === "reader") return "user";
+  return isRole(value) ? value : "user";
 }
 
 export function permissionsFor(role: Role): readonly Permission[] {
-  return PERMISSIONS[role] ?? PERMISSIONS.reader;
+  return PERMISSIONS[role] ?? PERMISSIONS.user;
 }
 
 export function hasPermission(role: Role, permission: Permission): boolean {

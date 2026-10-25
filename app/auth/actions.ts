@@ -61,6 +61,7 @@ export async function signInAction(_prev: AuthState, formData: FormData): Promis
   const limit = await rateLimit(`login:${clientKey(await headers())}`, 15, 10 * 60_000);
   if (!limit.ok) return { error: "Too many sign-in attempts. Wait a few minutes and try again." };
 
+  let needsOnboarding = false;
   try {
     const supabase = await createSupabaseServer();
     const { data, error } = await supabase.auth.signInWithPassword({ email, password });
@@ -90,8 +91,8 @@ export async function signInAction(_prev: AuthState, formData: FormData): Promis
     const db = serviceClient();
     if (db && data.user) {
       const { data: profile } = await db
-        .from("tb_profiles")
-        .select("role, status")
+        .from("profiles")
+        .select("role, status, onboarded_at")
         .eq("id", data.user.id)
         .maybeSingle();
 
@@ -103,19 +104,23 @@ export async function signInAction(_prev: AuthState, formData: FormData): Promis
       // The auth trigger normally creates this row. If a project was migrated
       // mid-flight, create it here so the reader is never stranded.
       if (!profile) {
-        await db.from("tb_profiles").upsert(
+        await db.from("profiles").upsert(
           {
             id: data.user.id,
             email,
             display_name: String(data.user.user_metadata?.display_name ?? email.split("@")[0] ?? "Reader").slice(0, 48),
+            username: `reader_${data.user.id.replace(/-/g, "").slice(0, 8)}`,
           },
           { onConflict: "id", ignoreDuplicates: true },
         );
+        needsOnboarding = true;
+      } else if (!profile.onboarded_at) {
+        needsOnboarding = true;
       }
 
       // An address in ADMIN_EMAILS is always an admin. Keep the row truthful.
       if (isAdminEmail(email) && profile?.role !== "admin") {
-        await db.from("tb_profiles").update({ role: "admin" }).eq("id", data.user.id);
+        await db.from("profiles").update({ role: "admin" }).eq("id", data.user.id);
       }
     }
 
@@ -125,6 +130,7 @@ export async function signInAction(_prev: AuthState, formData: FormData): Promis
   }
 
   revalidatePath("/", "layout");
+  if (needsOnboarding) redirect(`/welcome?next=${encodeURIComponent(next)}`);
   redirect(next);
 }
 
@@ -178,18 +184,19 @@ export async function signUpAction(_prev: AuthState, formData: FormData): Promis
       const db = serviceClient();
       if (db) {
         await db
-          .from("tb_profiles")
+          .from("profiles")
           .upsert(
             {
               id: data.user.id,
               email,
               display_name: name,
-              role: isAdminEmail(email) ? "admin" : "reader",
+              username: `reader_${data.user.id.replace(/-/g, "").slice(0, 8)}`,
+              role: isAdminEmail(email) ? "admin" : "user",
             },
             { onConflict: "id", ignoreDuplicates: true },
           );
         if (isAdminEmail(email)) {
-          await db.from("tb_profiles").update({ role: "admin" }).eq("id", data.user.id);
+          await db.from("profiles").update({ role: "admin" }).eq("id", data.user.id);
         }
         await logAuthEvent({ userId: data.user.id, email, kind: "signup" });
       }
@@ -245,3 +252,4 @@ export async function signOutAction(): Promise<void> {
   revalidatePath("/", "layout");
   redirect("/");
 }
+

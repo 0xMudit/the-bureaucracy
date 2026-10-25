@@ -24,6 +24,7 @@ const LINKS = [
   { href: "/?sort=discussed", label: "Discussed" },
   { href: "/syllabus", label: "Syllabus map" },
   { href: "/optional", label: "Optional subjects" },
+  { href: "/following", label: "Following" },
   { href: "/saved", label: "Saved" },
   { href: "/about", label: "How ranking works" },
 ];
@@ -31,7 +32,7 @@ const LINKS = [
 export interface MobileNavUser {
   name: string;
   email: string;
-  role: "reader" | "editor" | "admin";
+  role: "user" | "editor" | "admin";
 }
 
 export function MobileNav({ user }: { user: MobileNavUser | null }) {
@@ -70,7 +71,7 @@ export function MobileNav({ user }: { user: MobileNavUser | null }) {
               >
                 <UserRound className="size-4 text-muted-foreground" /> {user.name}
               </Link>
-              {user.role !== "reader" ? (
+              {user.role !== "user" ? (
                 <Link
                   href="/admin"
                   onClick={() => setOpen(false)}

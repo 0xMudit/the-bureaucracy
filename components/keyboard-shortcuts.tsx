@@ -54,9 +54,15 @@ export function KeyboardShortcuts() {
       if (key === "o" || key === "enter") {
         event.preventDefault();
         current.querySelector<HTMLAnchorElement>("[data-item-link]")?.click();
-      } else if (key === "v") {
+      } else if (key === "l") {
         event.preventDefault();
-        current.querySelector<HTMLButtonElement>("[data-vote-button]")?.click();
+        current.querySelector<HTMLButtonElement>("[data-like-button]")?.click();
+      } else if (key === "d") {
+        event.preventDefault();
+        current.querySelector<HTMLButtonElement>("[data-dislike-button]")?.click();
+      } else if (key === "c") {
+        event.preventDefault();
+        current.querySelector<HTMLAnchorElement>("[data-comment-link]")?.click();
       } else if (key === "s") {
         event.preventDefault();
         current.querySelector<HTMLButtonElement>("[data-save-button]")?.click();

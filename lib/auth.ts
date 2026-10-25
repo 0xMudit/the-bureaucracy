@@ -1,6 +1,7 @@
-import { cache } from "react";
+﻿import { cache } from "react";
 import { cookies } from "next/headers";
 import { SITE } from "@/lib/config";
+import { normalizeAvatarConfig, type AvatarConfig } from "@/lib/avatar";
 import { hasPermission, normalizeRole, type Permission, type Role } from "@/lib/rbac";
 import { serviceClient } from "@/lib/store";
 import { authConfigured, createSupabaseServer } from "@/lib/supabase/server";
@@ -12,6 +13,10 @@ export interface SessionUser {
   email: string;
   name: string;
   role: Role;
+  username: string | null;
+  avatar: AvatarConfig | null;
+  onboardedAt: string | null;
+  onboardSkippedAt: string | null;
 }
 
 /** Emails that are always treated as editors, on top of the database role. */
@@ -49,7 +54,7 @@ export const getSessionUser = cache(async (): Promise<SessionUser | null> => {
   let userId: string;
   let email: string;
   try {
-    // No Supabase session cookie means no user — skip the auth round trip
+    // No Supabase session cookie means no user â€” skip the auth round trip
     // entirely for anonymous readers.
     const jar = await cookies();
     const hasSession = jar.getAll().some(({ name }) => name.startsWith("sb-") && name.includes("-auth-token"));
@@ -66,26 +71,41 @@ export const getSessionUser = cache(async (): Promise<SessionUser | null> => {
     return null;
   }
 
-  let profile: { display_name: string | null; role: string | null; status: string | null } | null = null;
+  let profile: {
+    display_name: string | null;
+    role: string | null;
+    status: string | null;
+    username: string | null;
+    avatar_config: unknown;
+    onboarded_at: string | null;
+    onboard_skipped_at: string | null;
+  } | null = null;
   const fallbackName = email ? email.split("@")[0].replace(/[._-]+/g, " ") : "Reader";
 
   const db = serviceClient();
   if (db) {
     const { data } = await db
-      .from("tb_profiles")
-      .select("display_name, role, status")
+      .from("profiles")
+      .select("display_name, role, status, username, avatar_config, onboarded_at, onboard_skipped_at")
       .eq("id", userId)
       .maybeSingle();
     profile = data;
 
     // Self-heal accounts created before the trigger existed (or by an admin
     // API call that bypassed it). The insert is idempotent and never promotes.
+    // `username` is not-null after the social migration, so generate one here
+    // rather than allowing a stranded account.
     if (!profile) {
       try {
         await db
-          .from("tb_profiles")
+          .from("profiles")
           .upsert(
-            { id: userId, email, display_name: fallbackName.slice(0, 48) },
+            {
+              id: userId,
+              email,
+              display_name: fallbackName.slice(0, 48),
+              username: `reader_${userId.replace(/-/g, "").slice(0, 8)}`,
+            },
             { onConflict: "id", ignoreDuplicates: true },
           );
       } catch {
@@ -105,6 +125,10 @@ export const getSessionUser = cache(async (): Promise<SessionUser | null> => {
     email,
     name: profile?.display_name?.trim() || fallbackName,
     role,
+    username: profile?.username ?? null,
+    avatar: normalizeAvatarConfig(profile?.avatar_config),
+    onboardedAt: profile?.onboarded_at ?? null,
+    onboardSkippedAt: profile?.onboard_skipped_at ?? null,
   };
 });
 
@@ -128,7 +152,7 @@ export async function logAuthEvent(input: {
     });
     if (input.userId) {
       await db
-        .from("tb_profiles")
+        .from("profiles")
         .update({ last_seen_at: new Date().toISOString() })
         .eq("id", input.userId);
     }
@@ -149,3 +173,4 @@ export function safeNext(value: string | null | undefined, fallback = "/"): stri
   if (/^\/%2f|^\/%5c/i.test(next)) return fallback;
   return next;
 }
+

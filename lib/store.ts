@@ -101,7 +101,7 @@ export async function listItems(): Promise<FeedItem[]> {
     const { data, error } = await db
       .from("items")
       .select(
-        "id,title,kicker,url,source,source_url,source_tier,summary,published_at,fetched_at,topics,primary_topic,exam_score,priority,keywords,optionals,primary_optional,points,seed_points,comment_count",
+        "id,title,kicker,url,source,source_url,source_tier,summary,published_at,fetched_at,topics,primary_topic,exam_score,priority,keywords,optionals,primary_optional,points,seed_points,comment_count,like_count,dislike_count,save_count,image_url,image_source,image_attribution,summary_bullets,exam_angle,cluster_id,archived_at",
       )
       .gte("published_at", new Date(Date.now() - 26 * 3_600_000).toISOString())
       .order("published_at", { ascending: false })

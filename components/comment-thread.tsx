@@ -1,5 +1,7 @@
 import Link from "next/link";
+import { CommentBody } from "@/components/comment-body";
 import { CommentForm } from "@/components/comment-form";
+import { CommentLikeButton } from "@/components/comment-like-button";
 import { ReportButton } from "@/components/report-button";
 import type { CommentNode } from "@/lib/types";
 import { timeAgo } from "@/lib/utils";
@@ -21,6 +23,8 @@ function Node({
   canReport,
   loginHref,
   depth,
+  likes,
+  viewerId,
 }: {
   node: CommentNode;
   itemId: string;
@@ -29,6 +33,8 @@ function Node({
   canReport: boolean;
   loginHref: string;
   depth: number;
+  likes: Record<string, { liked: boolean; likes: number }>;
+  viewerId?: string;
 }) {
   return (
     <li className={depth > 0 ? "border-l border-border/70 pl-3 sm:pl-4" : ""}>
@@ -42,11 +48,22 @@ function Node({
             {timeAgo(node.createdAt)}
           </span>
         </div>
-        <p className="mt-1.5 whitespace-pre-wrap break-words pl-8 text-[13.5px] leading-relaxed text-foreground/90">
-          {node.body}
-        </p>
+        <CommentBody
+          commentId={node.id}
+          body={node.body}
+          createdAt={node.createdAt}
+          editedAt={node.editedAt}
+          deletedAt={node.deletedAt}
+          canEdit={Boolean(viewerId && node.authorId === viewerId)}
+        />
         <div className="ml-8 mt-1 flex flex-wrap items-center gap-x-4 gap-y-1">
-          {depth < 4 ? (
+          <CommentLikeButton
+            commentId={node.id}
+            initialLiked={likes[node.id]?.liked ?? false}
+            initialLikes={likes[node.id]?.likes ?? node.likeCount ?? 0}
+            disabled={Boolean(node.deletedAt)}
+          />
+          {depth < 1 ? (
             canComment ? (
               <details className="open:w-full">
                 <summary className="cursor-pointer list-none font-mono text-[9px] uppercase tracking-[0.12em] text-muted-foreground hover:text-primary">
@@ -80,6 +97,8 @@ function Node({
               canReport={canReport}
               loginHref={loginHref}
               depth={depth + 1}
+              likes={likes}
+              viewerId={viewerId}
             />
           ))}
         </ul>
@@ -95,6 +114,8 @@ export function CommentThread({
   canComment,
   canReport,
   loginHref,
+  likes = {},
+  viewerId,
 }: {
   nodes: CommentNode[];
   itemId: string;
@@ -102,6 +123,8 @@ export function CommentThread({
   canComment: boolean;
   canReport: boolean;
   loginHref: string;
+  likes?: Record<string, { liked: boolean; likes: number }>;
+  viewerId?: string;
 }) {
   if (!nodes.length) {
     return (
@@ -122,6 +145,8 @@ export function CommentThread({
           canReport={canReport}
           loginHref={loginHref}
           depth={0}
+          likes={likes}
+          viewerId={viewerId}
         />
       ))}
     </ul>

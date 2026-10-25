@@ -45,7 +45,7 @@ export async function setRoleAction(formData: FormData): Promise<void> {
   if (!db) back({ error: "db" });
 
   const { data: target } = await db
-    .from("tb_profiles")
+    .from("profiles")
     .select("id, email, role")
     .eq("id", userId)
     .maybeSingle();
@@ -55,23 +55,23 @@ export async function setRoleAction(formData: FormData): Promise<void> {
   if (current === role) back({ ok: "role" });
 
   // An address in ADMIN_EMAILS resolves to admin on every request. Letting the
-  // register show "reader" while the account keeps the desk would be a lie.
+  // register show "user" while the account keeps the desk would be a lie.
   if (isAdminEmail(target.email) && role !== "admin") back({ error: "managed" });
 
   // Never remove the last way back into the console.
   if (current === "admin" && role !== "admin") {
     const { count } = await db
-      .from("tb_profiles")
+      .from("profiles")
       .select("id", { count: "exact", head: true })
       .eq("role", "admin")
       .eq("status", "active");
     if ((count ?? 0) <= 1) back({ error: "last_admin" });
   }
 
-  const { error } = await db.from("tb_profiles").update({ role }).eq("id", target.id);
+  const { error } = await db.from("profiles").update({ role }).eq("id", target.id);
   if (error) back({ error: "db" });
 
-  await record(db, actor, { id: target.id, email: target.email }, "role.assign", `${current} → ${role}`);
+  await record(db, actor, { id: target.id, email: target.email }, "role.assign", `${current} â†’ ${role}`);
 
   revalidatePath("/admin/users");
   revalidatePath("/admin");
@@ -91,7 +91,7 @@ export async function setStatusAction(formData: FormData): Promise<void> {
   if (!db) back({ error: "db" });
 
   const { data: target } = await db
-    .from("tb_profiles")
+    .from("profiles")
     .select("id, email, role, status")
     .eq("id", userId)
     .maybeSingle();
@@ -103,7 +103,7 @@ export async function setStatusAction(formData: FormData): Promise<void> {
 
   if (status === "suspended" && target.role === "admin") {
     const { count } = await db
-      .from("tb_profiles")
+      .from("profiles")
       .select("id", { count: "exact", head: true })
       .eq("role", "admin")
       .eq("status", "active");
@@ -111,7 +111,7 @@ export async function setStatusAction(formData: FormData): Promise<void> {
   }
 
   const { error } = await db
-    .from("tb_profiles")
+    .from("profiles")
     .update({
       status,
       suspended_at: status === "suspended" ? new Date().toISOString() : null,
@@ -128,7 +128,7 @@ export async function setStatusAction(formData: FormData): Promise<void> {
     actor,
     { id: target.id, email: target.email },
     status === "suspended" ? "user.suspend" : "user.reactivate",
-    `${target.status ?? "active"} → ${status}`,
+    `${target.status ?? "active"} â†’ ${status}`,
   );
 
   revalidatePath("/admin/users");
@@ -149,7 +149,7 @@ export async function revokeSessionsAction(formData: FormData): Promise<void> {
   if (!db) back({ error: "db" });
 
   const { data: target } = await db
-    .from("tb_profiles")
+    .from("profiles")
     .select("id, email")
     .eq("id", userId)
     .maybeSingle();
@@ -163,3 +163,4 @@ export async function revokeSessionsAction(formData: FormData): Promise<void> {
   revalidatePath("/admin/users");
   back({ ok: "revoked" });
 }
+

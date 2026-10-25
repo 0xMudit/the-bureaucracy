@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { Bookmark, BookmarkCheck } from "lucide-react";
 import { toast } from "sonner";
+import { saveAction } from "@/app/social-actions";
 import { readSaved, SAVED_EVENT, writeSaved, type SavedItem } from "@/lib/saved";
 import { cn } from "@/lib/utils";
 
@@ -33,9 +34,12 @@ export function SaveButton({ item, className }: { item: SavedItem; className?: s
       writeSaved([{ ...item, savedAt: new Date().toISOString() }, ...current].slice(0, 100));
       setSaved(true);
       toast.success("Saved for revision", {
-        description: "It comes back on day 1, 3, 7 and 30. Stored on this device only.",
+        description: "It comes back on day 1, 3, 7 and 30. Synced to your account when signed in.",
       });
     }
+    // The browser copy keeps saved stories usable offline; the database copy
+    // is the source of truth for the account and public-profile count.
+    void saveAction(item.id);
   };
 
   return (

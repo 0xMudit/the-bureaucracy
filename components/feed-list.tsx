@@ -2,16 +2,18 @@ import Link from "next/link";
 import { Inbox, PenLine } from "lucide-react";
 import { FeedItemRow } from "@/components/feed-item";
 import { Button } from "@/components/ui/button";
-import type { FeedItem } from "@/lib/types";
+import type { FeedItem, ViewerReaction } from "@/lib/types";
 
 interface FeedListProps {
   items: FeedItem[];
-  voted: Set<string>;
+  reactions: Record<string, ViewerReaction>;
   canWrite: boolean;
   query?: string;
 }
 
-export function FeedList({ items, voted, canWrite, query }: FeedListProps) {
+const EMPTY_REACTION: ViewerReaction = { reaction: null, saved: false, likes: 0, dislikes: 0 };
+
+export function FeedList({ items, reactions, canWrite, query }: FeedListProps) {
   if (!items.length) {
     return (
       <div className="flex flex-col items-center justify-center border-b border-border/70 px-6 py-20 text-center">
@@ -45,7 +47,7 @@ export function FeedList({ items, voted, canWrite, query }: FeedListProps) {
           key={item.id}
           item={item}
           position={index + 1}
-          voted={voted.has(item.id)}
+          viewerReaction={reactions[item.id] ?? { ...EMPTY_REACTION, likes: item.likeCount ?? 0, dislikes: item.dislikeCount ?? 0 }}
           canWrite={canWrite}
         />
       ))}

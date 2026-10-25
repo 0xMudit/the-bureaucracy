@@ -97,7 +97,7 @@ export default async function AdminUsersPage({
   const canAssign = userCan(actor, "role.assign");
 
   let query = db
-    .from("tb_profiles")
+    .from("profiles")
     .select(
       "id, email, display_name, role, status, created_at, last_seen_at, verified_at, suspended_at",
       { count: "exact" },
@@ -112,10 +112,10 @@ export default async function AdminUsersPage({
 
   const [listRes, totalRes, editorRes, adminRes, suspendedRes] = await Promise.all([
     query,
-    db.from("tb_profiles").select("id", { count: "exact", head: true }),
-    db.from("tb_profiles").select("id", { count: "exact", head: true }).eq("role", "editor"),
-    db.from("tb_profiles").select("id", { count: "exact", head: true }).eq("role", "admin"),
-    db.from("tb_profiles").select("id", { count: "exact", head: true }).eq("status", "suspended"),
+    db.from("profiles").select("id", { count: "exact", head: true }),
+    db.from("profiles").select("id", { count: "exact", head: true }).eq("role", "editor"),
+    db.from("profiles").select("id", { count: "exact", head: true }).eq("role", "admin"),
+    db.from("profiles").select("id", { count: "exact", head: true }).eq("status", "suspended"),
   ]);
 
   const profiles = (listRes.data ?? []) as ProfileRow[];
@@ -276,7 +276,7 @@ export default async function AdminUsersPage({
                       ) : (
                         <span className="inline-flex flex-wrap items-center gap-1 font-mono text-[9px] uppercase tracking-[0.08em]">
                           {envManaged || profile.role === "admin" ? <ShieldCheck className="size-3 text-primary" /> : null}
-                          {roleLabel(envManaged ? "admin" : isRole(profile.role) ? profile.role : "reader")}
+                          {roleLabel(envManaged ? "admin" : isRole(profile.role) ? profile.role : "user")}
                           {envManaged ? <span className="text-[7.5px] text-muted-foreground">env</span> : null}
                         </span>
                       )}
@@ -363,3 +363,4 @@ export default async function AdminUsersPage({
     </div>
   );
 }
+

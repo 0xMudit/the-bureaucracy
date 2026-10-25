@@ -59,7 +59,7 @@ export default async function SubmitPage({
         </p>
         <p className="mt-3 flex flex-wrap items-center gap-2 font-mono text-[9px] uppercase tracking-[0.12em] text-muted-foreground">
           Signed in as <span className="text-foreground">{user.name}</span>
-          {user.role !== "reader" ? <span className="text-primary">· {user.role}</span> : null}
+          {user.role !== "user" ? <span className="text-primary">· {user.role}</span> : null}
           <Link href="/account" className="underline hover:text-foreground">
             Account
           </Link>

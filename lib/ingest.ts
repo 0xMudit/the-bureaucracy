@@ -7,11 +7,6 @@ import { seedPoints } from "./rank";
 import type { FeedItem, IngestResult, SourceTier } from "./types";
 import { hashId } from "./utils";
 
-interface BuildOptions {
-  now?: Date;
-  maxAgeDays?: number;
-}
-
 function cleanSourceName(name: string, url: string): string {
   const trimmed = name.trim();
   if (/^https?:\/\//i.test(trimmed)) {

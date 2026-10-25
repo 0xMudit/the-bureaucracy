@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+﻿import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowUpRight, Clock, LogIn, MessageSquare, ShieldCheck, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -120,17 +120,17 @@ export default async function AdminPage() {
       .order("created_at", { ascending: false })
       .limit(1000),
     db
-      .from("tb_profiles")
+      .from("profiles")
       .select("id, email, display_name, role, created_at, last_seen_at", { count: "exact" })
       .order("created_at", { ascending: false })
       .limit(250),
     db.from("comments").select("id, item_id, author, body, created_at").order("created_at", { ascending: false }).limit(8),
-    db.from("tb_profiles").select("id", { count: "exact", head: true }).gte("created_at", weekAgo),
+    db.from("profiles").select("id", { count: "exact", head: true }).gte("created_at", weekAgo),
     db.from("items").select("id", { count: "exact", head: true }),
     db.from("tb_visits").select("id", { count: "exact", head: true }),
-    db.from("tb_profiles").select("id", { count: "exact", head: true }).eq("role", "editor"),
-    db.from("tb_profiles").select("id", { count: "exact", head: true }).eq("role", "admin"),
-    db.from("tb_profiles").select("id", { count: "exact", head: true }).eq("status", "suspended"),
+    db.from("profiles").select("id", { count: "exact", head: true }).eq("role", "editor"),
+    db.from("profiles").select("id", { count: "exact", head: true }).eq("role", "admin"),
+    db.from("profiles").select("id", { count: "exact", head: true }).eq("status", "suspended"),
   ]);
 
   const visits = (visitsRes.data ?? []) as { path: string; visitor_id: string | null; user_id: string | null; created_at: string }[];
@@ -187,7 +187,7 @@ export default async function AdminPage() {
               <span className="absolute inline-flex size-full animate-ping rounded-full bg-primary opacity-60" />
               <span className="relative inline-flex size-1.5 rounded-full bg-primary" />
             </span>
-            Private · live
+            Private Â· live
           </p>
           <h1 className="display mt-1 text-[2.2rem] leading-none tracking-[-0.02em] sm:text-[2.8rem]">
             The editor&apos;s desk.
@@ -210,12 +210,12 @@ export default async function AdminPage() {
 
       <div className="mt-5 grid grid-cols-2 gap-2 sm:grid-cols-4">
         <Stat label="Visitors today" value={uniqueToday} hint={`${visitsToday.length} views`} accent />
-        <Stat label="Visitors · 7d" value={uniqueWeek} hint={`${signedInVisits} signed-in views`} />
+        <Stat label="Visitors Â· 7d" value={uniqueWeek} hint={`${signedInVisits} signed-in views`} />
         <Stat label="Logins today" value={loginsToday.length} hint={`${loginsWeek.length} this week`} />
-        <Stat label="Accounts" value={profilesRes.count ?? profiles.length} hint={`${newProfilesRes.count ?? 0} new · ${signupsWeek.length} joins/wk`} />
-        <Stat label="Page views · 7d" value={visitsWeek.length} hint={`${totalsRes.count ?? 0} all time`} />
+        <Stat label="Accounts" value={profilesRes.count ?? profiles.length} hint={`${newProfilesRes.count ?? 0} new Â· ${signupsWeek.length} joins/wk`} />
+        <Stat label="Page views Â· 7d" value={visitsWeek.length} hint={`${totalsRes.count ?? 0} all time`} />
         <Stat label="Stories on wire" value={itemsRes.count ?? 0} hint="Last 24 hours" />
-        <Stat label="Comments · 7d" value={comments.filter((comment) => comment.created_at >= weekAgo).length} hint="Latest shown below" />
+        <Stat label="Comments Â· 7d" value={comments.filter((comment) => comment.created_at >= weekAgo).length} hint="Latest shown below" />
         <Stat label="Editors" value={editorsRes.count ?? 0} hint="Role in database" />
         <Stat label="Admins" value={adminsRes.count ?? 0} hint="Role in database" accent />
         <Stat label="Suspended" value={suspendedRes.count ?? 0} hint="Cannot sign in" />
@@ -223,7 +223,7 @@ export default async function AdminPage() {
 
       <section className="mt-6 border border-border bg-card">
         <div className="flex items-center justify-between border-b border-border px-3 py-2">
-          <h2 className="font-mono text-[9px] uppercase tracking-[0.18em]">Traffic · 14 days</h2>
+          <h2 className="font-mono text-[9px] uppercase tracking-[0.18em]">Traffic Â· 14 days</h2>
           <span className="font-mono text-[8.5px] uppercase tracking-[0.1em] text-muted-foreground">
             {visits.length} views recorded
           </span>
@@ -254,7 +254,7 @@ export default async function AdminPage() {
         <section className="border border-border bg-card">
           <div className="flex items-center justify-between border-b border-border px-3 py-2">
             <h2 className="flex items-center gap-1.5 font-mono text-[9px] uppercase tracking-[0.18em]">
-              <Clock className="size-3 text-primary" /> Top pages · 7d
+              <Clock className="size-3 text-primary" /> Top pages Â· 7d
             </h2>
             <span className="font-mono text-[8.5px] uppercase tracking-[0.1em] text-muted-foreground">
               {pathCounts.size} paths
@@ -290,7 +290,7 @@ export default async function AdminPage() {
               <LogIn className="size-3 text-primary" /> Recent sign-ins
             </h2>
             <span className="font-mono text-[8.5px] uppercase tracking-[0.1em] text-muted-foreground">
-              {logins.length} events · 14d
+              {logins.length} events Â· 14d
             </span>
           </div>
           <ul className="divide-y divide-border/60">
@@ -300,7 +300,7 @@ export default async function AdminPage() {
                   <span className="min-w-0">
                     <span className="block truncate text-[12px] font-medium">{event.email ?? "unknown"}</span>
                     <span className="font-mono text-[8.5px] uppercase tracking-[0.1em] text-muted-foreground">
-                      {event.kind} · {timeAgo(event.created_at)}
+                      {event.kind} Â· {timeAgo(event.created_at)}
                     </span>
                   </span>
                   <span
@@ -433,9 +433,10 @@ export default async function AdminPage() {
       </section>
 
       <p className="mt-4 font-mono text-[8.5px] uppercase leading-relaxed tracking-[0.1em] text-muted-foreground">
-        Visits are stored without IP addresses — a rotating browser id, the path and the referrer. Visits are
+        Visits are stored without IP addresses â€” a rotating browser id, the path and the referrer. Visits are
         deleted after 90 days, login events after 180, and the limiter keeps only live counters.
       </p>
     </div>
   );
 }
+

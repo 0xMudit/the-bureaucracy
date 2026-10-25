@@ -10,6 +10,7 @@ const NAV = [
   { href: "/?sort=best", label: "Best", sort: "best" },
   { href: "/syllabus", label: "Syllabus" },
   { href: "/optional", label: "Optionals" },
+  { href: "/following", label: "Following" },
   { href: "/saved", label: "Saved" },
   { href: "/about", label: "Method" },
 ];
@@ -27,6 +28,8 @@ export function MainNav({ className }: { className?: string }) {
             ? pathname === "/syllabus"
             : item.href === "/optional"
               ? pathname === "/optional"
+            : item.href === "/following"
+              ? pathname === "/following" || pathname.startsWith("/u/")
             : item.href === "/saved"
               ? pathname === "/saved"
               : item.href === "/about"

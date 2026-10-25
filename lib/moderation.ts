@@ -1,4 +1,4 @@
-import { serviceClient } from "./store";
+﻿import { serviceClient } from "./store";
 
 /**
  * Server-side comment moderation.
@@ -197,6 +197,7 @@ export async function authorEmail(authorId: string | null): Promise<string | nul
   if (!authorId) return null;
   const db = serviceClient();
   if (!db) return null;
-  const { data } = await db.from("tb_profiles").select("email").eq("id", authorId).maybeSingle();
+  const { data } = await db.from("profiles").select("email").eq("id", authorId).maybeSingle();
   return data?.email ? String(data.email) : null;
 }
+

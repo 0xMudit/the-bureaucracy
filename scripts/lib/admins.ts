@@ -1,4 +1,4 @@
-import { createClient } from "@supabase/supabase-js";
+﻿import { createClient } from "@supabase/supabase-js";
 import { SITE } from "../../lib/config";
 
 /** Emails that are always promoted to admin: ADMIN_EMAILS plus the editor. */
@@ -33,7 +33,7 @@ export async function syncAdminRoles({ dryRun = false } = {}): Promise<AdminSync
   const db = createClient(url, key, { auth: { persistSession: false, autoRefreshToken: false } });
   const emails = adminEmails();
 
-  const { data, error } = await db.from("tb_profiles").select("id, email, role").limit(2000);
+  const { data, error } = await db.from("profiles").select("id, email, role").limit(2000);
   if (error) return { promoted: [], skipped: error.message };
 
   const targets = (data ?? []).filter(
@@ -47,7 +47,7 @@ export async function syncAdminRoles({ dryRun = false } = {}): Promise<AdminSync
   if (dryRun || !targets.length) return { promoted, skipped: null };
 
   const { error: updateError } = await db
-    .from("tb_profiles")
+    .from("profiles")
     .update({ role: "admin" })
     .in(
       "id",
@@ -57,3 +57,4 @@ export async function syncAdminRoles({ dryRun = false } = {}): Promise<AdminSync
   if (updateError) return { promoted: [], skipped: updateError.message };
   return { promoted, skipped: null };
 }
+

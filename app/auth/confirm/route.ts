@@ -58,6 +58,13 @@ export async function GET(request: NextRequest) {
 
     const target = new URL(destination, request.url);
     const url = request.nextUrl.clone();
+    if (type === "signup") {
+      // A fresh account gets the one-time profile setup before it lands on the
+      // page it originally asked for.
+      url.pathname = "/welcome";
+      url.search = `?next=${encodeURIComponent(`${target.pathname}${target.search}`)}`;
+      return NextResponse.redirect(url);
+    }
     url.pathname = target.pathname;
     url.search = target.search;
     if (!isRecovery && !isEmailChange && target.pathname === "/account" && !url.searchParams.has("verified")) {

@@ -1,10 +1,11 @@
-"use server";
+﻿"use server";
 
 import { headers } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { getSessionUser, isAdminEmail } from "@/lib/auth";
 import { SITE } from "@/lib/config";
+import { cleanDisplayName, normalizeUsername, parseAvatarJson, RESERVED_USERNAMES } from "@/lib/profile";
 import { clientKey, rateLimit } from "@/lib/rate-limit";
 import { createSupabaseServer } from "@/lib/supabase/server";
 import { serviceClient } from "@/lib/store";
@@ -14,6 +15,8 @@ export interface SettingsState {
   ok?: string;
 }
 
+export type ProfileState = SettingsState;
+
 export interface DeleteState {
   error?: string;
 }
@@ -22,6 +25,53 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 function cleanName(value: string): string {
   return value.replace(/[<>\u0000-\u001f\u007f]/g, " ").replace(/\s+/g, " ").trim().slice(0, 48);
+}
+
+export async function updateProfileAction(_prev: ProfileState, formData: FormData): Promise<ProfileState> {
+  const user = await getSessionUser();
+  if (!user) return { error: "Sign in again to change your profile." };
+
+  const name = cleanDisplayName(String(formData.get("name") ?? ""));
+  const username = normalizeUsername(String(formData.get("username") ?? ""));
+  const avatar = parseAvatarJson(formData.get("avatar"));
+  const bio = String(formData.get("bio") ?? "").replace(/[<>\u0000-\u001f\u007f]/g, " ").replace(/\s+/g, " ").trim().slice(0, 160);
+
+  if (name.length < 2) return { error: "Use at least 2 characters for the display name." };
+  if (username.length < 3 || username.length > 32) {
+    return { error: "Usernames need 3–32 letters, numbers or underscores." };
+  }
+  if (RESERVED_USERNAMES.has(username)) return { error: "That username is reserved. Try another." };
+  if (!avatar) return { error: "Choose an avatar before saving." };
+
+  const db = serviceClient();
+  if (!db) return { error: "The database is not connected on this deployment." };
+
+  const { error } = await db
+    .from("profiles")
+    .update({
+      display_name: name,
+      username,
+      avatar_config: avatar,
+      bio: bio || null,
+      onboarded_at: user.onboardedAt ?? new Date().toISOString(),
+      onboard_skipped_at: null,
+    })
+    .eq("id", user.id);
+
+  if (error) {
+    if (error.code === "23505") return { error: "That username is taken. Try another." };
+    return { error: "The profile could not be saved. Try again." };
+  }
+
+  try {
+    const supabase = await createSupabaseServer();
+    await supabase.auth.updateUser({ data: { display_name: name } });
+  } catch {
+    // The profile is authoritative; metadata is a convenience.
+  }
+
+  revalidatePath("/", "layout");
+  return { ok: "Profile saved. Your new byline is live." };
 }
 
 export async function updateNameAction(_prev: SettingsState, formData: FormData): Promise<SettingsState> {
@@ -34,7 +84,7 @@ export async function updateNameAction(_prev: SettingsState, formData: FormData)
   const db = serviceClient();
   if (!db) return { error: "The database is not connected on this deployment." };
 
-  const { error } = await db.from("tb_profiles").update({ display_name: name }).eq("id", user.id);
+  const { error } = await db.from("profiles").update({ display_name: name }).eq("id", user.id);
   if (error) return { error: "The display name could not be saved." };
 
   // Keep auth metadata in step with the profile so future sessions agree.
@@ -164,7 +214,7 @@ export async function deleteAccountAction(_prev: DeleteState, formData: FormData
 
   if (user.role === "admin") {
     const { count } = await db
-      .from("tb_profiles")
+      .from("profiles")
       .select("id", { count: "exact", head: true })
       .eq("role", "admin")
       .eq("status", "active");
@@ -199,3 +249,4 @@ export async function signOutEverywhereAction(): Promise<void> {
   revalidatePath("/", "layout");
   redirect("/");
 }
+

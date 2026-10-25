@@ -1,22 +1,22 @@
 import Link from "next/link";
 import { ArrowUpRight, MessageSquare } from "lucide-react";
-import { VoteButton } from "@/components/vote-button";
+import { ReactionBar } from "@/components/reaction-bar";
 import { SaveButton } from "@/components/save-button";
 import { ReadBadge } from "@/components/reading-loop";
 import { OPTIONALS, TOPICS } from "@/lib/taxonomy";
 import { payoffFor } from "@/lib/taxonomy-extras";
 import { matchPyq } from "@/lib/pyq";
-import type { FeedItem } from "@/lib/types";
+import type { FeedItem, ViewerReaction } from "@/lib/types";
 import { cn, timeAgo } from "@/lib/utils";
 
 interface FeedItemRowProps {
   item: FeedItem;
   position?: number;
-  voted: boolean;
+  viewerReaction: ViewerReaction;
   canWrite: boolean;
 }
 
-export function FeedItemRow({ item, position, voted, canWrite }: FeedItemRowProps) {
+export function FeedItemRow({ item, position, viewerReaction, canWrite }: FeedItemRowProps) {
   const topic = item.primaryTopic ? TOPICS[item.primaryTopic] : null;
   const pyq = matchPyq(item);
   const savedItem = {
@@ -38,7 +38,7 @@ export function FeedItemRow({ item, position, voted, canWrite }: FeedItemRowProp
       data-feed-item
       className="feed-row relative flex gap-2 px-1 py-4 sm:gap-3 sm:px-2"
     >
-      <VoteButton itemId={item.id} points={item.points} seedPoints={item.seedPoints} voted={voted} canWrite={canWrite} />
+      <ReactionBar itemId={item.id} initial={viewerReaction} canWrite={canWrite} />
 
       <div className="min-w-0 flex-1">
         <div className="mb-1 flex items-center gap-2">
@@ -133,6 +133,7 @@ export function FeedItemRow({ item, position, voted, canWrite }: FeedItemRowProp
           <span aria-hidden>·</span>
           <Link
             href={`/item/${item.id}#discussion`}
+            data-comment-link
             className="inline-flex items-center gap-1 hover:text-foreground"
           >
             <MessageSquare className="size-3" />

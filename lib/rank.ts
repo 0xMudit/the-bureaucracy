@@ -52,9 +52,16 @@ export function rankScore(item: FeedItem, now = Date.now(), desk?: Desk | null):
   return base * relevance * authority * freshness * deskTilt(item, desk);
 }
 
-/** Community votes plus the syllabus-relevance baseline the story arrives with. */
+/**
+ * The community signal shown to readers: likes carry the weight, a comment is
+ * worth more than a like because it costs something, and a dislike removes a
+ * little of the noise. Seed points keep an unread story visible.
+ */
 export function totalPoints(item: FeedItem): number {
-  return item.points + item.seedPoints;
+  const likes = item.likeCount ?? item.points;
+  const dislikes = item.dislikeCount ?? 0;
+  const comments = item.commentCount ?? 0;
+  return Math.max(0, item.seedPoints + likes + comments * 1.35 - dislikes * 0.55);
 }
 
 /** Starting points keep a story visible before the first human vote. */
@@ -106,7 +113,6 @@ export interface FilterOptions {
 }
 
 export function filterItems(items: FeedItem[], { query, now = Date.now() }: FilterOptions): FeedItem[] {
-  const sort = query.sort ?? "top";
   const days = query.days ?? 1;
   const cutoff = now - days * 86_400_000;
   const q = query.q?.trim().toLowerCase();
@@ -135,8 +141,43 @@ export function buildFeed(
 ): RankedItem[] {
   const filtered = filterItems(items, { query, now });
   const ranked = sortItems(filtered, query.sort ?? "top", now, desk);
-  const diverse = query.limit && (query.sort ?? "top") === "top" ? diversify(ranked, query.limit, 5) : ranked;
+  const balanced = query.sort === "top" || !query.sort ? topicDiverse(ranked, 5) : ranked;
+  const diverse = query.limit && (query.sort ?? "top") === "top" ? diversify(balanced, query.limit, 5) : balanced;
   return query.limit ? diverse.slice(0, query.limit) : diverse;
+}
+
+/**
+ * The first five are the "today's five" promise, so they should not all be the
+ * same story type. Keep the ranking order, but if the head repeats a topic,
+ * promote the next distinct story from the tail.
+ */
+export function topicDiverse(items: RankedItem[], headSize = 5): RankedItem[] {
+  if (items.length <= headSize) return items;
+  const head: RankedItem[] = [];
+  const used = new Set<string>();
+  const deferred: RankedItem[] = [];
+
+  for (const item of items) {
+    if (head.length >= headSize) break;
+    const key = item.primaryTopic ?? "general";
+    if (!used.has(key)) {
+      head.push(item);
+      used.add(key);
+    } else {
+      deferred.push(item);
+    }
+  }
+
+  const chosen = new Set(head.map((item) => item.id));
+  for (const item of items) {
+    if (head.length >= headSize) break;
+    if (!chosen.has(item.id)) {
+      head.push(item);
+      chosen.add(item.id);
+    }
+  }
+
+  return [...head, ...items.filter((item) => !chosen.has(item.id))];
 }
 
 /** Interleave sources so one prolific publisher cannot dominate the front page. */

@@ -7,14 +7,97 @@ import {
   changePasswordAction,
   deleteAccountAction,
   updateNameAction,
+  updateProfileAction,
   type DeleteState,
+  type ProfileState,
   type SettingsState,
 } from "@/app/account/actions";
+import { AvatarPicker } from "@/components/avatar-picker";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import type { AvatarConfig } from "@/lib/avatar";
 
 const INITIAL: SettingsState = {};
+const PROFILE_INITIAL: ProfileState = {};
 const DELETE_INITIAL: DeleteState = {};
+
+export function ProfileSettingsForm({
+  name,
+  username,
+  avatar,
+  bio,
+  userId,
+}: {
+  name: string;
+  username: string;
+  avatar: AvatarConfig | null;
+  bio: string;
+  userId: string;
+}) {
+  const [state, action, pending] = useActionState(updateProfileAction, PROFILE_INITIAL);
+
+  return (
+    <form action={action} className="space-y-4">
+      <AvatarPicker initial={avatar} name={name} userId={userId} />
+
+      <div className="grid gap-3 sm:grid-cols-2">
+        <label className="block">
+          <span className="mb-1 block font-mono text-[9px] uppercase tracking-[0.14em] text-muted-foreground">
+            Display name
+          </span>
+          <Input
+            name="name"
+            defaultValue={name}
+            required
+            minLength={2}
+            maxLength={48}
+            autoComplete="name"
+            className="h-11 rounded-sm bg-background text-base sm:h-10 sm:text-sm"
+          />
+        </label>
+        <label className="block">
+          <span className="mb-1 block font-mono text-[9px] uppercase tracking-[0.14em] text-muted-foreground">
+            Username
+          </span>
+          <span className="flex items-center rounded-sm border border-input bg-background focus-within:ring-2 focus-within:ring-ring">
+            <span className="pl-3 font-mono text-sm text-muted-foreground">@</span>
+            <Input
+              name="username"
+              defaultValue={username}
+              required
+              minLength={3}
+              maxLength={32}
+              pattern="[a-zA-Z0-9_]{3,32}"
+              autoComplete="username"
+              className="h-11 border-0 bg-transparent px-2 text-base shadow-none focus-visible:ring-0 sm:h-10 sm:text-sm"
+            />
+          </span>
+        </label>
+      </div>
+
+      <label className="block">
+        <span className="mb-1 block font-mono text-[9px] uppercase tracking-[0.14em] text-muted-foreground">
+          Bio <span className="normal-case tracking-normal">(optional, 160 characters)</span>
+        </span>
+        <Textarea
+          name="bio"
+          defaultValue={bio}
+          rows={3}
+          maxLength={160}
+          placeholder="Optional. Your optional subject, state, or what you are preparing for."
+          className="rounded-sm bg-background text-base sm:text-sm"
+        />
+      </label>
+
+      <Feedback state={state} />
+      <Button type="submit" disabled={pending} className="h-10 rounded-sm font-mono text-[10px] uppercase tracking-[0.12em]">
+        {pending ? <Loader2 className="size-3.5 animate-spin" /> : <Save className="size-3.5" />}
+        Save profile
+      </Button>
+    </form>
+  );
+}
 
 function Feedback({ state }: { state: SettingsState }) {
   if (state.error) {

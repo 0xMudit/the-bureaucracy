@@ -200,6 +200,10 @@ export async function fetchPublic(
     });
 
     if (!REDIRECT_CODES.has(response.status)) {
+      const declared = Number(response.headers.get("content-length"));
+      if (Number.isFinite(declared) && declared > maxBytes) {
+        throw unsupported("That response is too large to read safely.");
+      }
       return { response, url: current };
     }
 

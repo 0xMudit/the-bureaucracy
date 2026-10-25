@@ -24,6 +24,16 @@ export type OptionalId =
 
 export type Priority = "high" | "medium" | "low";
 
+export type ReactionKind = "like" | "dislike" | null;
+
+/** The viewer-specific half of a story reaction, separate from cached rank data. */
+export interface ViewerReaction {
+  reaction: ReactionKind;
+  saved: boolean;
+  likes: number;
+  dislikes: number;
+}
+
 export type ExamTrack = "upsc" | "state";
 
 /** What the reader is actually writing. Drives the desk tilt on the feed. */
@@ -120,6 +130,16 @@ export interface FeedItem {
   points: number;
   seedPoints: number;
   commentCount: number;
+  likeCount?: number;
+  dislikeCount?: number;
+  saveCount?: number;
+  imageUrl?: string | null;
+  imageSource?: string | null;
+  imageAttribution?: string | null;
+  summaryBullets?: string[];
+  examAngle?: string | null;
+  clusterId?: string | null;
+  archivedAt?: string | null;
 }
 
 export interface RankedItem extends FeedItem {
@@ -147,6 +167,9 @@ export interface Comment {
   authorId?: string | null;
   body: string;
   createdAt: string;
+  editedAt?: string | null;
+  deletedAt?: string | null;
+  likeCount?: number;
 }
 
 export interface CommentNode extends Comment {

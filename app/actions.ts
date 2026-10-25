@@ -10,7 +10,8 @@ import { fetchPageMetadata } from "@/lib/page-meta";
 import { clientKey, rateLimit } from "@/lib/rate-limit";
 import { seedPoints } from "@/lib/rank";
 import { isOfficialDomain } from "@/lib/sources";
-import { addComment, canWrite, itemExistsByUrl, StoreError, upsertItems, vote } from "@/lib/store";
+import { addComment, canWrite, itemExistsByUrl, serviceClient, StoreError, upsertItems, vote } from "@/lib/store";
+import { notify } from "@/lib/social";
 import type { FeedItem } from "@/lib/types";
 import { hashId } from "@/lib/utils";
 
@@ -99,7 +100,23 @@ export async function commentAction(_prev: CommentState, formData: FormData): Pr
   }
 
   try {
-    await addComment({ itemId, parentId, author, body, authorId: user.id });
+    const comment = await addComment({ itemId, parentId, author, body, authorId: user.id });
+    if (parentId) {
+      const db = serviceClient();
+      const { data: parent } = db
+        ? await db.from("comments").select("author_id").eq("id", parentId).maybeSingle()
+        : { data: null };
+      if (parent?.author_id && parent.author_id !== user.id) {
+        await notify({
+          userId: String(parent.author_id),
+          kind: "reply",
+          title: `${author} replied to you`,
+          body: body.slice(0, 140),
+          url: `/item/${itemId}#comment-${comment.id}`,
+          data: { commentId: comment.id, itemId },
+        });
+      }
+    }
     revalidatePath(`/item/${itemId}`);
     revalidateTag("comments", { expire: 0 });
     revalidateTag("items", { expire: 30 });

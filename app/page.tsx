@@ -19,7 +19,8 @@ import { istDateKey } from "@/lib/progress";
 import { SORT_COPY } from "@/lib/feed-copy";
 import { FEED_MIN_SCORE, NEWS_WINDOW_MS } from "@/lib/config";
 import { cachedItems } from "@/lib/cached";
-import { canWrite, getVotedIds } from "@/lib/store";
+import { canWrite } from "@/lib/store";
+import { getReactionStates, viewerActor } from "@/lib/social";
 import { OPTIONAL_ORDER, OPTIONALS, PAPERS, TOPICS } from "@/lib/taxonomy";
 import type { OptionalId, PaperId, SortKey, TopicId } from "@/lib/types";
 import { timeAgo } from "@/lib/utils";
@@ -73,8 +74,11 @@ export default async function HomePage({
   };
   const feed = buildFeed(fresh, { ...baseQuery, limit: 40 }, Date.now(), desk);
   const scope = filterItems(fresh, { query: baseQuery });
-  const voterId = jar.get("tb_voter")?.value;
-  const voted = await getVotedIds(voterId);
+  const viewer = await viewerActor();
+  const reactions = await getReactionStates(
+    viewer,
+    feed.map((item) => item.id),
+  );
 
   const defaultView = !q && topic === "all" && optional === "all" && paper === "all";
   const showBrief = defaultView && sort !== "new";
@@ -199,11 +203,11 @@ export default async function HomePage({
             </a>
           </div>
 
-          <FeedList items={feed} voted={voted} canWrite={canWrite()} query={q} />
+          <FeedList items={feed} reactions={reactions} canWrite={canWrite()} query={q} />
 
           <div className="mt-5 flex items-center justify-between gap-4 border border-dashed border-border px-4 py-3">
             <p className="font-mono text-[9.5px] uppercase leading-relaxed tracking-[0.12em] text-muted-foreground">
-              The wire turns over every 24 hours. Older stories are deleted, not archived.
+              The wire turns over every 24 hours. Older stories are archived, never silently deleted.
             </p>
             <Link
               href="/submit"

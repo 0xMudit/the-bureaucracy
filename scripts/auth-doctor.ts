@@ -1,4 +1,4 @@
-import { config } from "dotenv";
+﻿import { config } from "dotenv";
 config({ path: ".env.local" });
 config();
 
@@ -27,12 +27,12 @@ const problems: string[] = [];
 const notes: string[] = [];
 
 function ok(label: string, detail = "") {
-  console.log(`  ✓ ${label}${detail ? ` — ${detail}` : ""}`);
+  console.log(`  âœ“ ${label}${detail ? ` â€” ${detail}` : ""}`);
 }
 
 function bad(label: string, detail = "") {
   problems.push(label);
-  console.log(`  ✗ ${label}${detail ? ` — ${detail}` : ""}`);
+  console.log(`  âœ— ${label}${detail ? ` â€” ${detail}` : ""}`);
 }
 
 async function main() {
@@ -44,7 +44,7 @@ async function main() {
     process.env.SUPABASE_ANON_KEY;
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL;
 
-  console.log("\n  The Bureaucracy · account doctor\n");
+  console.log("\n  The Bureaucracy Â· account doctor\n");
 
   if (!url) bad("NEXT_PUBLIC_SUPABASE_URL is missing");
   if (!serviceKey) bad("SUPABASE_SERVICE_ROLE_KEY is missing");
@@ -63,18 +63,18 @@ async function main() {
   });
 
   const { data: profiles, error: profileError } = await db
-    .from("tb_profiles")
+    .from("profiles")
     .select("id, email, display_name, role, status, verified_at")
     .limit(2000);
 
   if (profileError) {
-    bad("tb_profiles is not readable with the expected columns", profileError.message);
+    bad("profiles is not readable with the expected columns", profileError.message);
     console.log("\n  Apply supabase/migrations before running the doctor.\n");
     process.exit(1);
   }
 
   const rows = (profiles ?? []) as Profile[];
-  ok("tb_profiles schema", `${rows.length} profile(s)`);
+  ok("profiles schema", `${rows.length} profile(s)`);
 
   for (const table of ["tb_admin_events", "tb_login_events", "tb_visits"]) {
     const { count, error } = await db.from(table).select("id", { count: "exact", head: true });
@@ -105,7 +105,7 @@ async function main() {
   const suspended = rows.filter((profile) => profile.status === "suspended");
   const unverified = rows.filter((profile) => !profile.verified_at);
   ok("active admins", String(admins.length));
-  if (!admins.length) bad("no active admin — the console cannot be entered");
+  if (!admins.length) bad("no active admin â€” the console cannot be entered");
 
   for (const email of adminEmails()) {
     const profile = rows.find((row) => row.email.toLowerCase() === email);
@@ -122,7 +122,7 @@ async function main() {
   if (unverified.length) notes.push(`${unverified.length} profile(s) without verified_at`);
 
   console.log("");
-  for (const note of notes) console.log(`  · ${note}`);
+  for (const note of notes) console.log(`  Â· ${note}`);
 
   if (problems.length) {
     console.log(`\n  ${problems.length} problem(s) found.\n`);
@@ -133,6 +133,7 @@ async function main() {
 }
 
 main().catch((error) => {
-  console.error(`\n  ✗ ${error instanceof Error ? error.message : String(error)}\n`);
+  console.error(`\n  âœ— ${error instanceof Error ? error.message : String(error)}\n`);
   process.exit(1);
 });
+
