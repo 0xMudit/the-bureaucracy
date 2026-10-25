@@ -62,7 +62,7 @@ export async function changePasswordAction(_prev: SettingsState, formData: FormD
   if (password !== confirm) return { error: "The two new passwords do not match." };
   if (password === current) return { error: "Choose a password different from the current one." };
 
-  const limit = rateLimit(`password:${clientKey(await headers())}`, 5, 30 * 60_000);
+  const limit = await rateLimit(`password:${clientKey(await headers())}`, 5, 30 * 60_000);
   if (!limit.ok) return { error: "Too many attempts. Wait a few minutes and try again." };
 
   try {
@@ -102,7 +102,7 @@ export async function changeEmailAction(_prev: SettingsState, formData: FormData
   if (email === user.email.toLowerCase()) return { error: "That is already the address on this account." };
   if (!current) return { error: "Enter your current password to prove it is you." };
 
-  const limit = rateLimit(`email:${clientKey(await headers())}`, 3, 60 * 60_000);
+  const limit = await rateLimit(`email:${clientKey(await headers())}`, 3, 60 * 60_000);
   if (!limit.ok) {
     return { error: `Too many email changes. Try again in ${Math.ceil(limit.retryAfter / 60)} minute(s).` };
   }
@@ -156,7 +156,7 @@ export async function deleteAccountAction(_prev: DeleteState, formData: FormData
   if (!current) return { error: "Enter your password to confirm." };
   if (confirm !== "DELETE") return { error: "Type DELETE to confirm." };
 
-  const limit = rateLimit(`delete:${clientKey(await headers())}`, 3, 60 * 60_000);
+  const limit = await rateLimit(`delete:${clientKey(await headers())}`, 3, 60 * 60_000);
   if (!limit.ok) return { error: "Too many attempts. Wait a few minutes and try again." };
 
   const db = serviceClient();

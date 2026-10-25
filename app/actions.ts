@@ -49,7 +49,7 @@ export async function voteAction(itemId: string): Promise<VoteResult> {
   const jar = await cookies();
   if (!jar.get(VOTER_COOKIE)?.value) {
     const headerList = await headers();
-    const limit = rateLimit(`vote:${clientKey(headerList)}`, 40, 10 * 60_000);
+    const limit = await rateLimit(`vote:${clientKey(headerList)}`, 40, 10 * 60_000);
     if (!limit.ok) return { ok: false, error: "Easy there. Try again in a few minutes." };
   }
   const voterId = await getVoterId(true);
@@ -83,7 +83,7 @@ export async function commentAction(_prev: CommentState, formData: FormData): Pr
   if (!user) return { ok: false, error: "Log in to join the discussion." };
   if (!userCan(user, "comment.write")) return { ok: false, error: "This account is not allowed to comment." };
 
-  const limit = rateLimit(`comment:${user.id}`, 12, 60 * 60_000);
+  const limit = await rateLimit(`comment:${user.id}`, 12, 60 * 60_000);
   if (!limit.ok) {
     return { ok: false, error: `That is a lot of comments. Try again in ${Math.ceil(limit.retryAfter / 60)} minute(s).` };
   }
@@ -140,7 +140,7 @@ export async function submitAction(_prev: SubmitState, formData: FormData): Prom
   }
 
   const headerList = await headers();
-  const limit = rateLimit(`submit:${clientKey(headerList)}`, 5, 60 * 60_000);
+  const limit = await rateLimit(`submit:${clientKey(headerList)}`, 5, 60 * 60_000);
   if (!limit.ok) {
     return { error: `Submission limit reached. Try again in ${Math.ceil(limit.retryAfter / 60)} minutes.` };
   }

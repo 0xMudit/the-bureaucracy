@@ -22,7 +22,7 @@ export async function POST(request: Request) {
   const agent = headerList.get("user-agent") ?? "";
   if (BOT_RE.test(agent)) return Response.json({ ok: true, skipped: "bot" });
 
-  const limit = rateLimit(`track:${clientKey(headerList)}`, 90, 60_000);
+  const limit = await rateLimit(`track:${clientKey(headerList)}`, 90, 60_000);
   if (!limit.ok) return Response.json({ ok: false, skipped: "rate" }, { status: 429 });
 
   const db = serviceClient();

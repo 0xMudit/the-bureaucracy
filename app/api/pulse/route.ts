@@ -24,7 +24,7 @@ export async function GET(request: Request) {
     return Response.json({ ok: false, reason: "read-only" }, { status: 503 });
   }
 
-  const limit = rateLimit(`pulse:${clientKey(request.headers)}`, 4, COOLDOWN_MS);
+  const limit = await rateLimit(`pulse:${clientKey(request.headers)}`, 4, COOLDOWN_MS);
   if (!limit.ok) {
     return Response.json(
       { ok: false, reason: "rate-limited" },

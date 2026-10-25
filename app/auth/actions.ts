@@ -58,7 +58,7 @@ export async function signInAction(_prev: AuthState, formData: FormData): Promis
   if (!password) return { error: "Enter your password." };
   if (!authConfigured()) return { error: "Accounts are not configured on this deployment yet." };
 
-  const limit = rateLimit(`login:${clientKey(await headers())}`, 15, 10 * 60_000);
+  const limit = await rateLimit(`login:${clientKey(await headers())}`, 15, 10 * 60_000);
   if (!limit.ok) return { error: "Too many sign-in attempts. Wait a few minutes and try again." };
 
   try {
@@ -139,7 +139,7 @@ export async function signUpAction(_prev: AuthState, formData: FormData): Promis
   if (password.length < 8) return { error: "Use at least 8 characters for the password." };
   if (!authConfigured()) return { error: "Accounts are not configured on this deployment yet." };
 
-  const signupLimit = rateLimit(`signup:${clientKey(await headers())}`, 5, 60 * 60_000);
+  const signupLimit = await rateLimit(`signup:${clientKey(await headers())}`, 5, 60 * 60_000);
   if (!signupLimit.ok) return { error: "Too many accounts created from this connection. Try again later." };
 
   try {
@@ -208,7 +208,7 @@ export async function resendVerificationAction(_prev: ResendState, formData: For
   if (!EMAIL_RE.test(email)) return { error: "Enter a valid email address." };
   if (!authConfigured()) return { error: "Accounts are not configured on this deployment yet." };
 
-  const limit = rateLimit(`resend:${clientKey(await headers())}`, 3, 10 * 60_000);
+  const limit = await rateLimit(`resend:${clientKey(await headers())}`, 3, 10 * 60_000);
   if (!limit.ok) {
     return { error: `Too many requests. Try again in ${Math.ceil(limit.retryAfter / 60)} minute(s).` };
   }

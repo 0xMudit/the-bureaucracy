@@ -1,5 +1,5 @@
 import { mobileError, mobileJson, preflight, readDeviceId, voterIdFor } from "@/lib/mobile";
-import { rateLimit } from "@/lib/rate-limit";
+import { rateLimit, hashKey } from "@/lib/rate-limit";
 import { canWrite, StoreError, vote } from "@/lib/store";
 
 export const dynamic = "force-dynamic";
@@ -22,7 +22,7 @@ export async function POST(request: Request) {
     return mobileError(400, "A valid x-device-id header is required.");
   }
 
-  const limit = rateLimit(`mobile:vote:${deviceId}`, 30, 60_000);
+  const limit = await rateLimit(`mobile:vote:${hashKey(deviceId)}`, 30, 60_000);
   if (!limit.ok) {
     return mobileJson(
       { ok: false, error: "Too many votes. Try again shortly.", retryAfter: limit.retryAfter },

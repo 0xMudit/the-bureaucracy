@@ -29,7 +29,7 @@ export async function requestPasswordResetAction(_prev: ForgotState, formData: F
   if (!EMAIL_RE.test(email)) return { error: "Enter a valid email address." };
   if (!authConfigured()) return { error: "Accounts are not configured on this deployment yet." };
 
-  const limit = rateLimit(`forgot:${clientKey(await headers())}`, 3, 15 * 60_000);
+  const limit = await rateLimit(`forgot:${clientKey(await headers())}`, 3, 15 * 60_000);
   if (!limit.ok) {
     return { error: `Too many reset requests. Try again in ${Math.ceil(limit.retryAfter / 60)} minute(s).` };
   }
@@ -67,7 +67,7 @@ export async function resetPasswordAction(_prev: ResetState, formData: FormData)
     return { error: "This reset link has expired. Request a new one and try again." };
   }
 
-  const limit = rateLimit(`reset:${clientKey(await headers())}`, 5, 30 * 60_000);
+  const limit = await rateLimit(`reset:${clientKey(await headers())}`, 5, 30 * 60_000);
   if (!limit.ok) return { error: "Too many attempts. Wait a few minutes and try again." };
 
   try {
