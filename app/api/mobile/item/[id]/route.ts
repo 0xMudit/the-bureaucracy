@@ -1,9 +1,10 @@
 import { cachedComments, cachedItem, cachedItems } from "@/lib/cached";
 import { SITE, NEWS_WINDOW_MS } from "@/lib/config";
 import { buildCommentTree, countComments } from "@/lib/comments";
-import { enrichItem, mobileError, mobileJson, preflight, readDeviceId, slimCommentTree, voterIdFor } from "@/lib/mobile";
+import { enrichItem, mobileError, mobileJson, preflight, readDeviceId, slimCommentTree } from "@/lib/mobile";
 import { buildFeed } from "@/lib/rank";
-import { canWrite, getVotedIds } from "@/lib/store";
+import { getReactionStates } from "@/lib/social";
+import { canWrite } from "@/lib/store";
 
 export const dynamic = "force-dynamic";
 
@@ -42,15 +43,25 @@ export async function GET(request: Request, { params }: RouteContext) {
     );
 
     const deviceId = readDeviceId(request);
-    const voted = deviceId ? await getVotedIds(voterIdFor(deviceId)) : new Set<string>();
+    const reactions = await getReactionStates(
+      deviceId ? { key: `device:${deviceId}`, userId: null } : null,
+      [item.id],
+    );
+    const state = reactions[item.id];
 
     return mobileJson({
       ok: true,
-      item: enrichItem(item),
+      item: {
+        ...enrichItem(item),
+        likeCount: state?.likes ?? item.likeCount ?? 0,
+        dislikeCount: state?.dislikes ?? item.dislikeCount ?? 0,
+        reaction: state?.reaction ?? null,
+      },
       related: related.map((entry) => enrichItem(entry, entry.position, entry.rankScore)),
       comments: slimCommentTree(tree),
       commentCount: countComments(tree),
-      voted: voted.has(item.id),
+      // Retained for older installed clients; new builds read `item.reaction`.
+      voted: state?.reaction === "like",
       canWrite: canWrite(),
       discussion: {
         writable: canWrite(),

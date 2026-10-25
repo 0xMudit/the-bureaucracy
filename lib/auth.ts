@@ -17,6 +17,7 @@ export interface SessionUser {
   avatar: AvatarConfig | null;
   onboardedAt: string | null;
   onboardSkippedAt: string | null;
+  publicSaves: boolean;
 }
 
 /** Emails that are always treated as editors, on top of the database role. */
@@ -79,6 +80,7 @@ export const getSessionUser = cache(async (): Promise<SessionUser | null> => {
     avatar_config: unknown;
     onboarded_at: string | null;
     onboard_skipped_at: string | null;
+    public_saves: boolean | null;
   } | null = null;
   const fallbackName = email ? email.split("@")[0].replace(/[._-]+/g, " ") : "Reader";
 
@@ -86,7 +88,7 @@ export const getSessionUser = cache(async (): Promise<SessionUser | null> => {
   if (db) {
     const { data } = await db
       .from("profiles")
-      .select("display_name, role, status, username, avatar_config, onboarded_at, onboard_skipped_at")
+      .select("display_name, role, status, username, avatar_config, onboarded_at, onboard_skipped_at, public_saves")
       .eq("id", userId)
       .maybeSingle();
     profile = data;
@@ -129,6 +131,7 @@ export const getSessionUser = cache(async (): Promise<SessionUser | null> => {
     avatar: normalizeAvatarConfig(profile?.avatar_config),
     onboardedAt: profile?.onboarded_at ?? null,
     onboardSkippedAt: profile?.onboard_skipped_at ?? null,
+    publicSaves: profile?.public_saves !== false,
   };
 });
 

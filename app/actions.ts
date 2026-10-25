@@ -1,6 +1,6 @@
 "use server";
 
-import { cookies, headers } from "next/headers";
+import { headers } from "next/headers";
 import { revalidatePath, revalidateTag } from "next/cache";
 import { redirect } from "next/navigation";
 import { analyze } from "@/lib/classify";
@@ -10,63 +10,10 @@ import { fetchPageMetadata } from "@/lib/page-meta";
 import { clientKey, rateLimit } from "@/lib/rate-limit";
 import { seedPoints } from "@/lib/rank";
 import { isOfficialDomain } from "@/lib/sources";
-import { addComment, canWrite, itemExistsByUrl, serviceClient, StoreError, upsertItems, vote } from "@/lib/store";
+import { addComment, canWrite, itemExistsByUrl, serviceClient, StoreError, upsertItems } from "@/lib/store";
 import { notify } from "@/lib/social";
 import type { FeedItem } from "@/lib/types";
 import { hashId } from "@/lib/utils";
-
-const VOTER_COOKIE = "tb_voter";
-const YEAR = 60 * 60 * 24 * 365;
-
-async function getVoterId(create: boolean): Promise<string | null> {
-  const jar = await cookies();
-  const existing = jar.get(VOTER_COOKIE)?.value;
-  if (existing) return existing;
-  if (!create) return null;
-  const id = crypto.randomUUID();
-  jar.set(VOTER_COOKIE, id, {
-    httpOnly: true,
-    sameSite: "lax",
-    secure: process.env.NODE_ENV === "production",
-    path: "/",
-    maxAge: YEAR,
-  });
-  return id;
-}
-
-export type VoteResult = { ok: true; points: number; voted: boolean } | { ok: false; error: string };
-
-export async function voteAction(itemId: string): Promise<VoteResult> {
-  if (!canWrite()) {
-    return { ok: false, error: "Voting is disabled until the database is connected." };
-  }
-
-  // Voting is open to anonymous readers by product design. A signed-in
-  // account still has to hold the permission, so a future restricted role
-  // (e.g. a read-only auditor) cannot vote.
-  const user = await getSessionUser();
-  if (user && !userCan(user, "vote.cast")) return { ok: false, error: "This account is not allowed to vote." };
-
-  const jar = await cookies();
-  if (!jar.get(VOTER_COOKIE)?.value) {
-    const headerList = await headers();
-    const limit = await rateLimit(`vote:${clientKey(headerList)}`, 40, 10 * 60_000);
-    if (!limit.ok) return { ok: false, error: "Easy there. Try again in a few minutes." };
-  }
-  const voterId = await getVoterId(true);
-  if (!voterId) return { ok: false, error: "Could not identify this browser." };
-
-  try {
-    const result = await vote(itemId, voterId);
-    revalidatePath("/");
-    revalidatePath(`/item/${itemId}`);
-    revalidateTag("items", { expire: 30 });
-    return { ok: true, ...result };
-  } catch (error) {
-    if (error instanceof StoreError) return { ok: false, error: error.message };
-    return { ok: false, error: "The vote could not be recorded." };
-  }
-}
 
 export interface CommentState {
   ok: boolean;

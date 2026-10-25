@@ -8,7 +8,7 @@ import { ArticleImage } from "@/components/article-image";
 import { BulletList } from "@/components/rich-text";
 import { ReactionBar } from "@/components/reaction-bar";
 import { CommentForm } from "@/components/comment-form";
-import { CommentThread } from "@/components/comment-thread";
+import { DiscussionLive } from "@/components/discussion-live";
 import { BriefNext } from "@/components/brief-next";
 import { ReadButton, ReadingProgress } from "@/components/reading-loop";
 import { PrelimsReveal } from "@/components/prelims-reveal";
@@ -312,7 +312,7 @@ export default async function ItemPage({ params, searchParams }: PageProps) {
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <div className="flex items-start gap-2 text-[12.5px] leading-relaxed text-muted-foreground">
                     <ShieldCheck className="mt-0.5 size-4 shrink-0 text-primary" />
-                    <p>Log in to join the discussion. Voting stays open to everyone.</p>
+                    <p>Log in to join the discussion. Likes and dislikes stay open to everyone.</p>
                   </div>
                   <Button asChild size="sm" className="h-8 shrink-0 rounded-sm font-mono text-[10px] uppercase tracking-[0.12em]">
                     <Link href={`/login?next=${encodeURIComponent(`/item/${item.id}#discussion`)}`}>Log in to comment</Link>
@@ -333,8 +333,8 @@ export default async function ItemPage({ params, searchParams }: PageProps) {
             </div>
 
             <div className="mt-4">
-              <CommentThread
-                nodes={tree}
+              <DiscussionLive
+                initialNodes={tree}
                 itemId={item.id}
                 authorName={user?.name}
                 canComment={Boolean(user) && canWrite()}

@@ -26,10 +26,10 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { ApiError } from "@/api/client";
-import { useStory, useTaxonomy, useVote } from "@/api/hooks";
+import { useStory, useTaxonomy, useReact } from "@/api/hooks";
 import { CommentThread } from "@/components/CommentThread";
+import { ReactionBar } from "@/components/ReactionBar";
 import { SaveButton } from "@/components/SaveButton";
-import { VoteButton } from "@/components/VoteButton";
 import {
   ActionButton,
   EmptyState,
@@ -67,7 +67,7 @@ export default function StoryScreen() {
 
   const story = useStory(id);
   const taxonomy = useTaxonomy();
-  const vote = useVote();
+  const react = useReact();
   const { readIds, markRead, toggleRead } = useProgress();
 
   const back = useCallback(() => {
@@ -151,12 +151,12 @@ export default function StoryScreen() {
       >
         <View style={{ paddingHorizontal: spacing.lg, paddingTop: spacing.md }}>
           <View style={{ flexDirection: "row", gap: spacing.sm }}>
-            <VoteButton
-              points={item.points}
-              seedPoints={item.seedPoints}
-              voted={data.voted}
-              onVote={() => {
-                if (data.canWrite) vote.mutate(item.id);
+            <ReactionBar
+              likes={item.likeCount ?? 0}
+              dislikes={item.dislikeCount ?? 0}
+              reaction={item.reaction ?? null}
+              onReact={(kind) => {
+                if (data.canWrite) react.mutate({ itemId: item.id, kind });
               }}
               disabled={!data.canWrite}
               size="md"

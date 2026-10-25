@@ -11,7 +11,7 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import type { FeedItem, SortKey } from "@/api/types";
-import { useBrief, useFeed, useVote } from "@/api/hooks";
+import { useBrief, useFeed, useReact } from "@/api/hooks";
 import { ApiError } from "@/api/client";
 import { FeedRow } from "@/components/FeedRow";
 import { ChipRail, ScopeLine } from "@/components/FilterChips";
@@ -161,7 +161,7 @@ export default function WireScreen() {
   const [limit, setLimit] = useState(PAGE);
 
   const feed = useFeed(filters, limit);
-  const vote = useVote();
+  const react = useReact();
   const data = feed.data;
 
   const openStory = useCallback(
@@ -278,11 +278,10 @@ export default function WireScreen() {
         renderItem={({ item, index }) => (
           <FeedRow
             item={item}
-            voted={data.votedIds.includes(item.id)}
             canWrite={data.meta.canWrite}
-            onVote={() => {
+            onReact={(kind) => {
               if (data.meta.canWrite) {
-                vote.mutate(item.id);
+                react.mutate({ itemId: item.id, kind });
               }
             }}
             onOpen={() => openStory(item)}

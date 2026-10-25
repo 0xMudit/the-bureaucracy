@@ -104,11 +104,11 @@ export default function TermsPage() {
         </p>
       </Section>
 
-      <Section title="6. Votes">
+      <Section title="6. Reactions">
         <p>
-          One vote per person per story. Votes are counted as a number; there is no public list of who voted and
-          no leaderboard. Automated or coordinated vote manipulation, including scripting the API, is prohibited
-          and may be reversed.
+          One like or dislike per person per story, and the two are mutually exclusive. Reacting again removes the
+          reaction. Counts are public numbers; there is no list of who reacted and no leaderboard. Automated or
+          coordinated reaction manipulation, including scripting the API, is prohibited and may be reversed.
         </p>
       </Section>
 

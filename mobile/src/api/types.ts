@@ -187,6 +187,15 @@ export interface VoteResponse {
   voted: boolean;
 }
 
+export interface ReactionResponse {
+  version: number;
+  ok: true;
+  itemId: string;
+  likes: number;
+  dislikes: number;
+  reaction: "like" | "dislike" | null;
+}
+
 export interface ApiFailure {
   version: number;
   ok: false;

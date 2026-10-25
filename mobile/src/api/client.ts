@@ -9,10 +9,10 @@ import type {
   ReaderStateResponse,
   ReaderProgressPayload,
   ReaderSave,
+  ReactionResponse,
   StoryResponse,
   SubscribeResponse,
   TaxonomyResponse,
-  VoteResponse,
 } from "./types";
 
 /**
@@ -245,10 +245,14 @@ export async function getTaxonomy(): Promise<TaxonomyResponse> {
   return request<TaxonomyResponse>("/api/mobile/taxonomy", { timeoutMs: 15_000 });
 }
 
-export async function postVote(itemId: string, deviceId: string): Promise<VoteResponse> {
-  return request<VoteResponse>("/api/mobile/vote", {
+export async function postReaction(
+  itemId: string,
+  kind: "like" | "dislike",
+  deviceId: string,
+): Promise<ReactionResponse> {
+  return request<ReactionResponse>("/api/mobile/react", {
     method: "POST",
-    body: { itemId },
+    body: { itemId, kind },
     deviceId,
   });
 }

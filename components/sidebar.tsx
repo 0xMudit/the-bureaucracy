@@ -90,11 +90,11 @@ export function Sidebar({ topicCounts, sources, total, latestFetchedAt }: Sideba
       <section className="border-l-2 border-primary bg-accent/40 px-4 py-4">
         <p className="font-mono text-[9px] uppercase tracking-[0.16em] text-primary">How ranking works</p>
         <p className="mt-2 font-mono text-[10.5px] leading-relaxed text-foreground/90">
-          (points + 1) / (age + 2)<sup>1.8</sup> × syllabus relevance × source authority
+          (seed + likes + 1.35·comments − 0.55·dislikes + 1) / (age + 2)<sup>1.8</sup> × relevance × authority
         </p>
         <p className="mt-2 text-[11.5px] leading-relaxed text-muted-foreground">
-          Reader votes decide attention. The syllabus decides whether it belongs. Older stories sink, and the
-          whole feed turns over every 24 hours.
+          Likes and comments decide attention. The syllabus decides whether it belongs. Older stories sink,
+          and the whole feed turns over every 24 hours.
         </p>
         <Link
           href="/about"

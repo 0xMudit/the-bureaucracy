@@ -74,6 +74,17 @@ export async function updateProfileAction(_prev: ProfileState, formData: FormDat
   return { ok: "Profile saved. Your new byline is live." };
 }
 
+export async function updateVisibilityAction(formData: FormData): Promise<void> {
+  const user = await getSessionUser();
+  if (!user) return;
+  const db = serviceClient();
+  if (!db) return;
+  const publicSaves = String(formData.get("publicSaves") ?? "") === "on";
+  await db.from("profiles").update({ public_saves: publicSaves }).eq("id", user.id);
+  revalidatePath("/account");
+  revalidatePath(`/u/${user.username ?? ""}`);
+}
+
 export async function updateNameAction(_prev: SettingsState, formData: FormData): Promise<SettingsState> {
   const user = await getSessionUser();
   if (!user) return { error: "Sign in again to change your display name." };

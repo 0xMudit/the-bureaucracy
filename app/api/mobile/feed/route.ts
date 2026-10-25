@@ -2,14 +2,14 @@ import { cachedItems } from "@/lib/cached";
 import { FEED_MIN_SCORE, NEWS_WINDOW_HOURS, NEWS_WINDOW_MS, SITE } from "@/lib/config";
 import { SORT_COPY, parseSort } from "@/lib/feed-copy";
 import { collapseDuplicates } from "@/lib/dedupe";
-import { canWrite, getVotedIds } from "@/lib/store";
+import { canWrite } from "@/lib/store";
+import { getReactionStates } from "@/lib/social";
 import {
   enrichItem,
   mobileError,
   mobileJson,
   preflight,
   readDeviceId,
-  voterIdFor,
 } from "@/lib/mobile";
 import { buildFeed, filterItems, optionalCounts, topicCounts } from "@/lib/rank";
 import { deskFromSearch } from "@/lib/desk";
@@ -68,9 +68,12 @@ export async function GET(request: Request) {
     const topicScope = filterItems(fresh, { query: { ...query, topic: "all" as const } });
     const optionalScope = filterItems(fresh, { query: { ...query, optional: "all" as const } });
 
-    // Voted state is per device, not per account — the wire is open to readers.
+    // Reaction state is per device, not per account — the wire is open to readers.
     const deviceId = readDeviceId(request);
-    const voted = deviceId ? await getVotedIds(voterIdFor(deviceId)) : new Set<string>();
+    const reactions = await getReactionStates(
+      deviceId ? { key: `device:${deviceId}`, userId: null } : null,
+      feed.map((item) => item.id),
+    );
 
     const latestFetchedAt =
       scope.length > 0
@@ -111,7 +114,15 @@ export async function GET(request: Request) {
         mode: sort,
         modeLabel: copy.title,
       },
-      items: feed.map((item) => enrichItem(item, item.position, item.rankScore)),
+      items: feed.map((item) => {
+        const state = reactions[item.id];
+        return {
+          ...enrichItem(item, item.position, item.rankScore),
+          likeCount: state?.likes ?? item.likeCount ?? 0,
+          dislikeCount: state?.dislikes ?? item.dislikeCount ?? 0,
+          reaction: state?.reaction ?? null,
+        };
+      }),
       counts: {
         topics: topicCounts(topicScope),
         optionals: optionalCounts(optionalScope),
@@ -125,7 +136,8 @@ export async function GET(request: Request) {
         canWrite: canWrite(),
         siteUrl: SITE.url,
       },
-      votedIds: [...voted],
+      // Retained for older installed clients; new builds read `reaction`.
+      votedIds: feed.filter((item) => reactions[item.id]?.reaction === "like").map((item) => item.id),
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : "The wire could not be read.";

@@ -1,5 +1,7 @@
 import { normalizeAvatarConfig, type AvatarConfig } from "./avatar";
+import { rowToItem } from "./rows";
 import { serviceClient } from "./store";
+import type { FeedItem } from "./types";
 
 export interface PublicProfile {
   id: string;
@@ -10,6 +12,7 @@ export interface PublicProfile {
   followerCount: number;
   followingCount: number;
   joinedAt: string | null;
+  publicSaves: boolean;
 }
 
 export interface DiscussionEntry {
@@ -35,6 +38,7 @@ type ProfileRow = {
   follower_count: number | null;
   following_count: number | null;
   created_at: string | null;
+  public_saves?: boolean | null;
 };
 
 function toProfile(row: ProfileRow): PublicProfile {
@@ -47,6 +51,7 @@ function toProfile(row: ProfileRow): PublicProfile {
     followerCount: Number(row.follower_count ?? 0),
     followingCount: Number(row.following_count ?? 0),
     joinedAt: row.created_at ? new Date(String(row.created_at)).toISOString() : null,
+    publicSaves: row.public_saves !== false,
   };
 }
 
@@ -55,7 +60,7 @@ export async function getProfileByUsername(username: string): Promise<PublicProf
   if (!db) return null;
   const { data } = await db
     .from("profiles")
-    .select("id,display_name,username,avatar_config,bio,follower_count,following_count,created_at")
+    .select("id,display_name,username,avatar_config,bio,follower_count,following_count,created_at,public_saves")
     .ilike("username", username)
     .eq("status", "active")
     .maybeSingle();
@@ -67,7 +72,7 @@ export async function getProfileById(id: string): Promise<PublicProfile | null> 
   if (!db) return null;
   const { data } = await db
     .from("profiles")
-    .select("id,display_name,username,avatar_config,bio,follower_count,following_count,created_at")
+    .select("id,display_name,username,avatar_config,bio,follower_count,following_count,created_at,public_saves")
     .eq("id", id)
     .eq("status", "active")
     .maybeSingle();
@@ -88,10 +93,32 @@ export async function listFollowingProfiles(userId: string): Promise<PublicProfi
   if (!db) return [];
   const { data } = await db
     .from("profiles")
-    .select("id,display_name,username,avatar_config,bio,follower_count,following_count,created_at")
+    .select("id,display_name,username,avatar_config,bio,follower_count,following_count,created_at,public_saves")
     .in("id", ids)
     .eq("status", "active");
   return ((data ?? []) as ProfileRow[]).map(toProfile);
+}
+
+/** Saved stories a reader has chosen to publish on their desk (default on). */
+export async function listProfileSaves(userId: string, limit = 8): Promise<FeedItem[]> {
+  const db = serviceClient();
+  if (!db) return [];
+  const { data: saves } = await db
+    .from("saves")
+    .select("item_id,created_at")
+    .eq("user_id", userId)
+    .order("created_at", { ascending: false })
+    .limit(limit);
+  const ids = [...new Set((saves ?? []).map((row) => String(row.item_id)))];
+  if (!ids.length) return [];
+  const { data } = await db
+    .from("items")
+    .select("id,title,kicker,url,source,source_url,source_tier,summary,published_at,fetched_at,topics,primary_topic,exam_score,priority,keywords,optionals,primary_optional,points,seed_points,comment_count,like_count,dislike_count,image_url,image_source,image_attribution,summary_bullets,exam_angle,gs_paper,prelims_fact,mains_angle,syllabus_hint,india_relevant,ai_relevance,ai_provider,cluster_id,archived_at")
+    .in("id", ids);
+  const order = new Map(ids.map((id, index) => [id, index]));
+  return ((data ?? []) as Record<string, unknown>[])
+    .map(rowToItem)
+    .sort((a, b) => (order.get(a.id) ?? 99) - (order.get(b.id) ?? 99));
 }
 
 export async function listSuggestedReaders(userId: string, limit = 5): Promise<PublicProfile[]> {

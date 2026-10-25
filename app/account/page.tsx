@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { CheckCircle2, LayoutDashboard, LogOut, PenLine, ShieldCheck } from "lucide-react";
-import { signOutEverywhereAction } from "@/app/account/actions";
+import { signOutEverywhereAction, updateVisibilityAction } from "@/app/account/actions";
 import { signOutAction } from "@/app/auth/actions";
 import {
   ChangeEmailForm,
@@ -175,6 +175,29 @@ export default async function AccountPage({
               bio={String(profile?.bio ?? "")}
               userId={user.id}
             />
+
+            <form
+              action={updateVisibilityAction}
+              className="mt-5 flex flex-wrap items-center justify-between gap-3 border-t border-border pt-4"
+            >
+              <label className="flex items-start gap-2 text-[12px] leading-relaxed">
+                <input
+                  type="checkbox"
+                  name="publicSaves"
+                  defaultChecked={user.publicSaves}
+                  className="mt-0.5 size-4 accent-[var(--primary)]"
+                />
+                <span>
+                  <span className="font-medium text-foreground">Show my saved stories publicly</span>
+                  <span className="mt-0.5 block text-[11px] text-muted-foreground">
+                    Your revision shelf appears on your public desk when this is on.
+                  </span>
+                </span>
+              </label>
+              <Button type="submit" variant="outline" className="h-8 rounded-sm font-mono text-[9px] uppercase tracking-[0.1em]">
+                Save visibility
+              </Button>
+            </form>
           </div>
 
           <div className="grid gap-4 md:grid-cols-2">

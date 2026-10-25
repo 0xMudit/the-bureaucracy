@@ -72,14 +72,6 @@ export function enrichItem(item: FeedItem, position?: number, rankScore?: number
   };
 }
 
-/**
- * Vote identity on mobile. Device ids are namespaced so they can never collide
- * with the web's `tb_voter` cookie values in the same votes table.
- */
-export function voterIdFor(deviceId: string): string {
-  return `m_${deviceId}`;
-}
-
 const DEVICE_ID = /^[A-Za-z0-9_-]{8,64}$/;
 
 export function readDeviceId(request: Request): string | null {

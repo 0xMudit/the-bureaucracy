@@ -3,8 +3,8 @@ import React from "react";
 import { Image, Pressable, StyleSheet, Text, View } from "react-native";
 import type { FeedItem } from "@/api/types";
 import { timeAgo } from "@/lib/time";
+import { ReactionBar } from "./ReactionBar";
 import { SaveButton } from "./SaveButton";
-import { VoteButton } from "./VoteButton";
 import { useTheme } from "@/theme/ThemeProvider";
 import { priorityColor, spacing, type } from "@/theme/tokens";
 
@@ -18,14 +18,12 @@ function Dot({ color }: { color: string }) {
  */
 export function FeedRow({
   item,
-  voted,
-  onVote,
+  onReact,
   onOpen,
   canWrite,
 }: {
   item: FeedItem;
-  voted: boolean;
-  onVote: () => void;
+  onReact: (kind: "like" | "dislike") => void;
   onOpen: () => void;
   canWrite: boolean;
 }) {
@@ -56,11 +54,11 @@ export function FeedRow({
         elevation: pressed ? 3 : 6,
       })}
     >
-      <VoteButton
-        points={item.points}
-        seedPoints={item.seedPoints}
-        voted={voted}
-        onVote={onVote}
+      <ReactionBar
+        likes={item.likeCount ?? 0}
+        dislikes={item.dislikeCount ?? 0}
+        reaction={item.reaction ?? null}
+        onReact={onReact}
         disabled={!canWrite}
       />
 

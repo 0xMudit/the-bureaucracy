@@ -9,7 +9,7 @@ import {
   getStory,
   getTaxonomy,
   joinCircle,
-  postVote,
+  postReaction,
   subscribeDigest,
 } from "./client";
 import type { FeedFilters, FeedResponse, StoryResponse } from "./types";
@@ -142,25 +142,42 @@ function setStoryQueries(
   );
 }
 
-interface VoteContext {
+interface ReactionContext {
   feeds: [readonly unknown[], FeedResponse | undefined][];
   stories: [readonly unknown[], StoryResponse | undefined][];
 }
 
+type ReactionKind = "like" | "dislike";
+
+function nextCounts(
+  item: { reaction?: ReactionKind | null; likeCount?: number; dislikeCount?: number },
+  kind: ReactionKind,
+) {
+  const current = item.reaction ?? null;
+  const next = current === kind ? null : kind;
+  let likes = item.likeCount ?? 0;
+  let dislikes = item.dislikeCount ?? 0;
+  if (current === "like") likes = Math.max(0, likes - 1);
+  if (current === "dislike") dislikes = Math.max(0, dislikes - 1);
+  if (next === "like") likes += 1;
+  if (next === "dislike") dislikes += 1;
+  return { reaction: next, likes, dislikes };
+}
+
 /**
- * Optimistic vote toggle. The tap has to feel instant — the story is ranked by
- * points, so a spinner under the arrow would undercut the whole product.
+ * Optimistic like/dislike. Like and dislike are mutually exclusive; tapping
+ * the active one removes it. The tap must feel instant on a phone.
  */
-export function useVote() {
+export function useReact() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (itemId: string) => {
+    mutationFn: async ({ itemId, kind }: { itemId: string; kind: ReactionKind }) => {
       const deviceId = await getDeviceId();
-      return postVote(itemId, deviceId);
+      return postReaction(itemId, kind, deviceId);
     },
 
-    onMutate: async (itemId) => {
+    onMutate: async ({ itemId, kind }) => {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
 
       await queryClient.cancelQueries({ queryKey: ["feed"] });
@@ -171,33 +188,33 @@ export function useVote() {
 
       queryClient.setQueriesData<FeedResponse>({ queryKey: ["feed"] }, (data) => {
         if (!data) return data;
-        const voted = data.votedIds.includes(itemId);
         return {
           ...data,
-          votedIds: voted
-            ? data.votedIds.filter((id) => id !== itemId)
-            : [...data.votedIds, itemId],
-          items: data.items.map((item) =>
-            item.id === itemId
-              ? { ...item, points: Math.max(0, item.points + (voted ? -1 : 1)) }
-              : item,
-          ),
+          items: data.items.map((item) => {
+            if (item.id !== itemId) return item;
+            const counts = nextCounts(item, kind);
+            return { ...item, likeCount: counts.likes, dislikeCount: counts.dislikes, reaction: counts.reaction };
+          }),
         };
       });
 
-      setStoryQueries(queryClient, itemId, (story) => ({
-        ...story,
-        voted: !story.voted,
-        item: {
-          ...story.item,
-          points: Math.max(0, story.item.points + (story.voted ? -1 : 1)),
-        },
-      }));
+      setStoryQueries(queryClient, itemId, (story) => {
+        const counts = nextCounts(story.item, kind);
+        return {
+          ...story,
+          item: {
+            ...story.item,
+            likeCount: counts.likes,
+            dislikeCount: counts.dislikes,
+            reaction: counts.reaction,
+          },
+        };
+      });
 
-      return { feeds, stories } satisfies VoteContext;
+      return { feeds, stories } satisfies ReactionContext;
     },
 
-    onError: (_error, _itemId, context) => {
+    onError: (_error, _input, context) => {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error).catch(() => {});
       if (!context) return;
       for (const [key, data] of context.feeds) {
@@ -209,26 +226,32 @@ export function useVote() {
     },
 
     onSuccess: (result) => {
-      // Reconcile with the server's tally so concurrent voters do not drift.
+      // Reconcile with the server's tally so concurrent readers do not drift.
       queryClient.setQueriesData<FeedResponse>({ queryKey: ["feed"] }, (data) => {
         if (!data) return data;
         return {
           ...data,
-          votedIds: result.voted
-            ? data.votedIds.includes(result.itemId)
-              ? data.votedIds
-              : [...data.votedIds, result.itemId]
-            : data.votedIds.filter((id) => id !== result.itemId),
           items: data.items.map((item) =>
-            item.id === result.itemId ? { ...item, points: result.points } : item,
+            item.id === result.itemId
+              ? {
+                  ...item,
+                  likeCount: result.likes,
+                  dislikeCount: result.dislikes,
+                  reaction: result.reaction,
+                }
+              : item,
           ),
         };
       });
 
       setStoryQueries(queryClient, result.itemId, (story) => ({
         ...story,
-        voted: result.voted,
-        item: { ...story.item, points: result.points },
+        item: {
+          ...story.item,
+          likeCount: result.likes,
+          dislikeCount: result.dislikes,
+          reaction: result.reaction,
+        },
       }));
     },
   });

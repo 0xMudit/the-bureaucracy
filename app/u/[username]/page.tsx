@@ -7,7 +7,7 @@ import { FollowButton } from "@/components/follow-button";
 import { UserAvatar } from "@/components/user-avatar";
 import { Button } from "@/components/ui/button";
 import { getSessionUser } from "@/lib/auth";
-import { getProfileByUsername, listProfileDiscussions } from "@/lib/people";
+import { getProfileByUsername, listProfileDiscussions, listProfileSaves } from "@/lib/people";
 import { isFollowing } from "@/lib/social";
 import { formatDate } from "@/lib/utils";
 
@@ -38,9 +38,10 @@ export default async function PublicProfilePage({
   if (!profile) notFound();
 
   const isSelf = viewer?.id === profile.id;
-  const [following, discussions] = await Promise.all([
+  const [following, discussions, saves] = await Promise.all([
     viewer && !isSelf ? isFollowing(viewer.id, profile.id) : Promise.resolve(false),
     listProfileDiscussions(profile.id),
+    profile.publicSaves ? listProfileSaves(profile.id) : Promise.resolve([]),
   ]);
 
   return (
@@ -146,6 +147,42 @@ export default async function PublicProfilePage({
           </div>
         )}
       </section>
+
+      {profile.publicSaves && saves.length ? (
+        <section className="mt-8" aria-labelledby="profile-saves">
+          <div className="flex items-baseline justify-between gap-2 border-b border-border pb-2">
+            <h2 id="profile-saves" className="display text-[1.5rem] leading-none tracking-[-0.02em]">
+              On this desk&apos;s shelf
+            </h2>
+            <span className="font-mono text-[8.5px] uppercase tracking-[0.12em] text-muted-foreground">
+              Public saves
+            </span>
+          </div>
+          <ul className="divide-y divide-border/60">
+            {saves.map((item) => (
+              <li key={item.id} className="py-3">
+                <Link
+                  href={`/item/${item.id}`}
+                  className="font-display text-[1.15rem] leading-snug hover:text-primary"
+                >
+                  {item.title}
+                </Link>
+                <p className="mt-1 font-mono text-[8.5px] uppercase tracking-[0.1em] text-muted-foreground">
+                  {item.source} · {formatDate(item.publishedAt)}
+                  {item.archivedAt ? " · archived" : ""}
+                </p>
+              </li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
+
+      {isSelf && !profile.publicSaves ? (
+        <p className="mt-6 border-l-2 border-border pl-3 text-[11.5px] leading-relaxed text-muted-foreground">
+          Your saves are private. Turn on <strong className="font-medium text-foreground">public saves</strong> from
+          account settings to show a revision shelf here.
+        </p>
+      ) : null}
     </div>
   );
 }

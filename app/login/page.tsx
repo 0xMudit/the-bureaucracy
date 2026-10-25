@@ -19,7 +19,7 @@ const BENEFITS = [
   "Comment on any story, and reply inside the thread.",
   "Submit a report, judgment or release to the wire.",
   "Keep your display name on everything you write.",
-  "Reading, voting and the daily brief stay free — no account needed.",
+  "Reading, reacting and the daily brief stay free — no account needed.",
 ];
 
 export default async function LoginPage({
@@ -42,7 +42,7 @@ export default async function LoginPage({
           Log in to the wire.
         </h1>
         <p className="mt-3 max-w-2xl text-[13.5px] leading-relaxed text-muted-foreground">
-          An account lets you comment, reply and put a story on the wire. Reading and voting stay free.
+          An account lets you comment, reply and put a story on the wire. Reading, likes and dislikes stay free.
         </p>
       </div>
 

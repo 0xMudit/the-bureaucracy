@@ -86,7 +86,7 @@ async function loadLocal(): Promise<LocalData> {
 
 async function saveLocal(data: LocalData): Promise<void> {
   localCache = data;
-  if (storeMode() === "readonly") throw new StoreError("This deployment is read-only. Connect Supabase to enable voting and comments.", "readonly");
+  if (storeMode() === "readonly") throw new StoreError("This deployment is read-only. Connect Supabase to enable reactions and comments.", "readonly");
   await fs.mkdir(DATA_DIR, { recursive: true });
   await fs.writeFile(DATA_FILE, JSON.stringify(data, null, 2), "utf8");
 }
@@ -206,17 +206,6 @@ export async function applyItemIntel(
   if (storeMode() !== "readonly") await saveLocal(data);
 }
 
-export async function getVotedIds(voterId: string | undefined): Promise<Set<string>> {
-  if (!voterId) return new Set();
-  const db = getClient();
-  if (db) {
-    const { data, error } = await db.from("votes").select("item_id").eq("voter_id", voterId).limit(2000);
-    if (error) throw new StoreError(error.message);
-    return new Set((data ?? []).map((r) => String(r.item_id)));
-  }
-  return new Set((await loadLocal()).votes.filter((v) => v.voterId === voterId).map((v) => v.itemId));
-}
-
 export async function listComments(itemId: string): Promise<Comment[]> {
   const db = getClient();
   if (db) {
@@ -289,35 +278,6 @@ export async function pruneOlderThan(cutoffIso: string): Promise<number> {
   if (storeMode() === "readonly") return before - items.length;
   if (items.length !== before) await saveLocal({ ...data, items });
   return before - items.length;
-}
-
-export async function vote(itemId: string, voterId: string): Promise<{ points: number; voted: boolean }> {
-  const db = getClient();
-  if (db) {
-    const { data, error } = await db.rpc("tb_vote", { p_item_id: itemId, p_voter_id: voterId });
-    if (error) throw new StoreError(error.message);
-    const row = Array.isArray(data) ? data[0] : data;
-    if (!row) throw new StoreError("Item not found", "not-found");
-    return { points: Number(row.points), voted: Boolean(row.voted) };
-  }
-
-  const data = await loadLocal();
-  const item = data.items.find((i) => i.id === itemId);
-  if (!item) throw new StoreError("Item not found", "not-found");
-  if (storeMode() === "readonly") throw new StoreError("Voting is disabled until a database is connected.", "readonly");
-  const existing = data.votes.findIndex((v) => v.itemId === itemId && v.voterId === voterId);
-  let voted: boolean;
-  if (existing >= 0) {
-    data.votes.splice(existing, 1);
-    item.points = Math.max(0, item.points - 1);
-    voted = false;
-  } else {
-    data.votes.push({ itemId, voterId });
-    item.points += 1;
-    voted = true;
-  }
-  await saveLocal(data);
-  return { points: item.points, voted };
 }
 
 export async function addComment(input: {
