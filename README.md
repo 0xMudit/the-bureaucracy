@@ -77,9 +77,11 @@ comments work and survive restarts. Full instructions, including the Supabase an
 | `npm run check` | Typecheck + production build (what CI runs). |
 | `npm run seed` | Fetch feeds, write `data/seed.json`, the local store and (when configured) Supabase. |
 | `npm run auth:email` | Push the branded confirmation/recovery mail to Supabase. |
+| `npm run auth:smtp` | Pre-flight SPF, DKIM, DMARC, MX, SMTP reachability and the Supabase mail state. |
 | `npm run auth:admins` | Promote `ADMIN_EMAILS` in the `tb_profiles` register. |
 | `npm run auth:doctor` | Read-only check of keys, tables, profiles and admin rows. |
 | `npm run db:push` / `db:reset` | Supabase migrations via the CLI. |
+| `npm run db:snapshot` | Regenerate `supabase/schema.sql` from the migrations. |
 
 ## Stack
 
@@ -119,6 +121,7 @@ client.
 | [docs/ranking-and-taxonomy.md](docs/ranking-and-taxonomy.md) | The ranking formula, the twelve themes and six optional lenses. |
 | [docs/supabase.md](docs/supabase.md) | Migrations, auth, roles, email templates and the CLI workflow. |
 | [docs/deployment.md](docs/deployment.md) | Vercel, environment variables, scheduled refresh. |
+| [docs/monitoring.md](docs/monitoring.md) | Health endpoint, the uptime probe, Sentry and incident triage. |
 | [docs/api.md](docs/api.md) | Every route and endpoint, with request/response shapes. |
 | [docs/mobile.md](docs/mobile.md) | The native app: endpoints, device identity, keeping the contract in sync. |
 | [docs/roadmap.md](docs/roadmap.md) | Where the project is going; mirrors the GitHub issues. |

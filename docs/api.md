@@ -33,12 +33,13 @@ Runs fetch → dedupe → upsert → prune. `GET` is accepted for schedulers tha
 ```bash
 curl -X POST https://the-bureaucracy.vercel.app/api/ingest \
   -H "Authorization: Bearer $CRON_SECRET"
-# or, for cron services that only support GET URLs:
-curl -X POST "https://the-bureaucracy.vercel.app/api/ingest" -H "Authorization: Bearer $CRON_SECRET"
+# or, for schedulers that can only issue a GET:
+curl https://the-bureaucracy.vercel.app/api/ingest \
+  -H "Authorization: Bearer $CRON_SECRET"
 ```
 
 Auth: `Authorization: Bearer $CRON_SECRET`. In development with no `CRON_SECRET` set, the
-endpoint is open. In production it refuses.
+endpoint is open. In production it refuses. The secret is never accepted in the query string.
 
 | Status | Body |
 | --- | --- |
@@ -71,6 +72,29 @@ First-party page-view counter used by `components/visit-tracker.tsx`.
 - Stores the path, referrer, a rotating `tb_visitor` cookie and (when signed in) the account id. **No IP
   addresses.**
 - Returns `{ ok: true }`, `{ ok: true, skipped: "bot" | "no-store" }`, or `429`.
+
+## `GET /api/health`
+
+Uptime probe used by [`.github/workflows/uptime.yml`](../.github/workflows/uptime.yml). Public and
+unauthenticated; it exposes nothing beyond what the feed already shows.
+
+```json
+{
+  "status": "ok",
+  "time": "2026-10-25T09:00:00.000Z",
+  "commit": "1a75ad2f00aa",
+  "db": { "ok": true, "latencyMs": 42 },
+  "wire": { "latest": "2026-10-25T08:47:00.000Z", "ageMinutes": 13, "stale": false }
+}
+```
+
+- `200` when the process answers and Postgres responds.
+- `503` when the service role is missing, the query fails, or the database is unreachable
+  (`db.error` says which).
+- `wire.stale` is a warning, not a failure: no story in six hours usually means a quiet news day, but it
+  can also mean ingestion stopped. The monitor prints it in the run summary.
+
+`cache-control: no-store`, `x-robots-tag: noindex`.
 
 ## `GET /feed.xml`
 

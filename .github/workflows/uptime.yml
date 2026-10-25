@@ -1,0 +1,72 @@
+name: Uptime
+
+# A failed scheduled run sends GitHub's failure mail to the repository owner.
+# The probe is deliberately shallow: it proves the deployment answers and that
+# Postgres is reachable, which is what a real outage looks like. Content
+# freshness is reported in the summary but does not fail the run, because a
+# quiet news day is not an incident.
+
+on:
+  schedule:
+    - cron: "*/15 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: uptime
+  cancel-in-progress: true
+
+jobs:
+  probe:
+    if: github.repository == '0xMudit/the-bureaucracy'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      SITE_URL: ${{ vars.SITE_URL || 'https://the-bureaucracy.vercel.app' }}
+    steps:
+      - name: Health endpoint
+        run: |
+          set -euo pipefail
+          body="$(curl --fail-with-body --silent --show-error \
+            --retry 2 --retry-delay 5 --max-time 30 \
+            "$SITE_URL/api/health")"
+          printf '%s\n' "$body" | tee health.json
+          jq -e '.status == "ok" and .db.ok == true' health.json > /dev/null
+
+      - name: Homepage
+        run: |
+          set -euo pipefail
+          curl --fail --silent --show-error \
+            --retry 2 --retry-delay 5 --max-time 30 \
+            -o /dev/null "$SITE_URL/"
+
+      - name: Note wire freshness
+        if: always()
+        run: |
+          set -euo pipefail
+          if [ ! -s health.json ]; then
+            exit 0
+          fi
+          age="$(jq -r '.wire.ageMinutes // "unknown"' health.json)"
+          stale="$(jq -r '.wire.stale // "unknown"' health.json)"
+          {
+            echo "### Uptime probe"
+            echo ""
+            echo "- site: \`$SITE_URL\`"
+            echo "- database: \`$(jq -r '.db.latencyMs' health.json) ms\`"
+            echo "- newest story: \`$age minutes old\` (stale: \`$stale\`)"
+            echo "- commit: \`$(jq -r '.commit // "unknown"' health.json)\`"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Report failure
+        if: failure()
+        run: |
+          {
+            echo "## Uptime probe failed"
+            echo ""
+            echo '```json'
+            cat health.json 2>/dev/null || echo "no response body"
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"

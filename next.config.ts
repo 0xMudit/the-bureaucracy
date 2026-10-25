@@ -1,4 +1,5 @@
 import type { NextConfig } from "next";
+import { withSentryConfig } from "@sentry/nextjs/config";
 
 /**
  * Content Security Policy.
@@ -24,7 +25,21 @@ function supabaseOrigins(): string[] {
   }
 }
 
-const connectSrc = ["'self'", ...supabaseOrigins()].join(" ");
+/**
+ * The browser SDK posts to the ingest host named in the DSN. Without it in
+ * connect-src the policy silently drops every client-side error.
+ */
+function sentryOrigins(): string[] {
+  const raw = process.env.NEXT_PUBLIC_SENTRY_DSN ?? process.env.SENTRY_DSN;
+  if (!raw) return [];
+  try {
+    return [new URL(raw).origin];
+  } catch {
+    return [];
+  }
+}
+
+const connectSrc = ["'self'", ...supabaseOrigins(), ...sentryOrigins()].join(" ");
 
 const csp = [
   "default-src 'self'",
@@ -79,4 +94,17 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default nextConfig;
+/**
+ * Source-map upload runs only when SENTRY_AUTH_TOKEN is present; without it the
+ * wrapper is inert apart from attaching the release. Builds stay reproducible
+ * on a machine that has no Sentry account.
+ */
+export default withSentryConfig(nextConfig, {
+  org: process.env.SENTRY_ORG,
+  project: process.env.SENTRY_PROJECT,
+  authToken: process.env.SENTRY_AUTH_TOKEN,
+  silent: true,
+  widenClientFileUpload: false,
+  sourcemaps: { deleteSourcemapsAfterUpload: true },
+  telemetry: false,
+});

@@ -20,13 +20,30 @@ npx vercel env add SUPABASE_SERVICE_ROLE_KEY production
 npx vercel env add CRON_SECRET production
 npx vercel env add NEXT_PUBLIC_SITE_URL production
 npx vercel env add ADMIN_EMAILS production
+npx vercel env add RATE_LIMIT_SALT production
+npx vercel env add SMTP_HOST production
+npx vercel env add SMTP_PORT production
+npx vercel env add SMTP_USER production
+npx vercel env add SMTP_PASS production
+npx vercel env add SMTP_SENDER_EMAIL production
+npx vercel env add SMTP_SENDER_NAME production
+npx vercel env add SENTRY_DSN production
+npx vercel env add NEXT_PUBLIC_SENTRY_DSN production
 ```
 
 - `NEXT_PUBLIC_SUPABASE_URL` and the anon key are public.
-- `SUPABASE_SERVICE_ROLE_KEY`, `CRON_SECRET` and `SUPABASE_ACCESS_TOKEN` are secrets.
+- `SUPABASE_SERVICE_ROLE_KEY`, `CRON_SECRET`, `SUPABASE_ACCESS_TOKEN`, `SMTP_PASS` and `SENTRY_AUTH_TOKEN`
+  are secrets.
+- `RATE_LIMIT_SALT` peppers the hashed limiter keys. Changing it only resets live counters. If it is unset,
+  `CRON_SECRET` is used as the pepper.
+- The `SMTP_*` values are read by `npm run auth:email` locally and pushed to Supabase; the deployed app does
+  not send mail itself. See [email.md](email.md).
 - Keep `NEXT_PUBLIC_SITE_URL` on the production origin so confirmation links never point at a preview host.
 - Preview deployments still sign in if the Supabase redirect allow-list contains the preview wildcard
   (already in `supabase/config.toml`).
+- `SENTRY_DSN` and `NEXT_PUBLIC_SENTRY_DSN` are optional; without them error reporting is off. Add
+  `SENTRY_ORG`, `SENTRY_PROJECT` and `SENTRY_AUTH_TOKEN` only if you want readable source maps. See
+  [monitoring.md](monitoring.md).
 
 ## 3. Deploy
 
@@ -75,15 +92,27 @@ The job is guarded with `if: github.repository == '0xMudit/the-bureaucracy'` so 
 (5-minute cooldown, per-IP rate limit). Vercel Hobby only allows a daily cron, which is why the real schedule
 lives in Supabase and GitHub.
 
-## 6. Post-deploy checklist
+## 6. Monitoring
+
+`GET /api/health` is the uptime contract, and `.github/workflows/uptime.yml` probes it (plus `/`) every
+15 minutes. A failed scheduled run emails the repository owner. Sentry is opt-in through `SENTRY_DSN`; the
+setup, what is sent, and how to verify it are in [monitoring.md](monitoring.md).
+
+## 7. Post-deploy checklist
 
 - [ ] `curl -X POST https://<site>/api/ingest -H "Authorization: Bearer $CRON_SECRET"` returns `ok: true`.
+- [ ] `curl -s https://<site>/api/health` returns `200` with `"db": { "ok": true }`.
+- [ ] `curl -sI https://<site>/` shows the CSP, `x-frame-options`, `x-content-type-options` and no
+      `x-powered-by`.
 - [ ] The home page shows stories from the last 24 hours.
 - [ ] Sign-up → confirmation mail → sign-in works on the production domain.
 - [ ] `/auth/forgot-password` mail lands on the production origin.
 - [ ] `/admin` is reachable for the `ADMIN_EMAILS` address and refuses everyone else.
+- [ ] `/admin/comments` lists the report queue for an editor.
+- [ ] `/privacy` and `/terms` render, and both are linked from the footer.
 - [ ] `/feed.xml`, `/sitemap.xml` and `/robots.txt` use the production URL.
-- [ ] `npm run auth:doctor` exits 0 against production credentials.
+- [ ] A manual run of the **Uptime** workflow succeeds.
+- [ ] `npm run auth:smtp` and `npm run auth:doctor` exit 0 against production credentials.
 
 ## Rollback
 

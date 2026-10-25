@@ -10,7 +10,9 @@ const SECTIONS = [
   { href: "/?sort=discussed", label: "Discussed" },
   { href: "/syllabus", label: "Syllabus" },
   { href: "/optional", label: "Optionals" },
+  { href: "/brief", label: "Daily brief" },
   { href: "/saved", label: "Saved" },
+  { href: "/subscribe", label: "Email" },
   { href: "/submit", label: "Submit" },
   { href: "/about", label: "Method" },
 ];
@@ -66,6 +68,17 @@ export function SiteFooter() {
               ({SITE.editor.email})
             </a>
           </p>
+          <nav aria-label="Legal" className="flex items-center gap-3 font-mono text-[9px] uppercase tracking-[0.12em]">
+            <Link href="/privacy" className="text-muted-foreground hover:text-primary">
+              Privacy
+            </Link>
+            <span aria-hidden className="text-border">
+              /
+            </span>
+            <Link href="/terms" className="text-muted-foreground hover:text-primary">
+              Terms
+            </Link>
+          </nav>
           <div className="flex items-center gap-4 pt-1">
             <a
               href="/feed.xml"

@@ -41,6 +41,7 @@
     "db:snapshot": "tsx scripts/build-schema.ts"
   },
   "dependencies": {
+    "@sentry/nextjs": "^11.9.0",
     "@supabase/ssr": "^0.12.7",
     "@supabase/supabase-js": "^2.118.0",
     "class-variance-authority": "^0.7.1",

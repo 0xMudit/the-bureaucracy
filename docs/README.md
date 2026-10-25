@@ -11,6 +11,7 @@ Everything an operator, contributor or self-hoster needs. The root
 | [ranking-and-taxonomy.md](ranking-and-taxonomy.md) | You are changing scores, themes, papers or optional lenses. |
 | [supabase.md](supabase.md) | You are setting up Postgres, auth, roles, migrations or email. |
 | [deployment.md](deployment.md) | You are shipping to Vercel and wiring the refresh schedule. |
+| [monitoring.md](monitoring.md) | You are setting up Sentry, the uptime probe, or answering "is it down?". |
 | [api.md](api.md) | You are calling the app from a script, cron job or another service. |
 | [mobile.md](mobile.md) | You are working on the iOS/Android app in `mobile/` or changing the `/api/mobile/*` contract. |
 | [engagement.md](engagement.md) | You are touching the brief, the streak, the desk or the funnel events. |
