@@ -1,4 +1,4 @@
-export type TagDef = { tag: string; patterns: RegExp[] };
+﻿export type TagDef = { tag: string; patterns: RegExp[] };
 
 export const TAGS: TagDef[] = [
   { tag: "Polity & Constitution", patterns: [/constitution/i, /parliament/i, /rajya sabha/i, /lok sabha/i, /article\s+\d+/i, /amendment/i, /bill/i, /ordinance/i, /panchayat/i, /federal/i, /judicial review/i] },
@@ -36,7 +36,7 @@ export function scoreArticle(article: {
 }, now: Date): number {
   const pub = new Date(article.publishedAt);
   const hours = Math.max(0, (now.getTime() - pub.getTime()) / 3600000);
-  let recency = Math.max(0, 48 - hours) / 48 * 10;
+  const recency = Math.max(0, 48 - hours) / 48 * 10;
   let s = recency + article.sourceWeight * 2.0;
   s += Math.min(article.tags.length, 5) * 1.2;
   const t = article.title.toLowerCase();

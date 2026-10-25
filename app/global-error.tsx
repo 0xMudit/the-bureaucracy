@@ -1,6 +1,7 @@
 "use client";
 
 import * as Sentry from "@sentry/nextjs";
+import Link from "next/link";
 import { useEffect } from "react";
 
 /**
@@ -68,7 +69,7 @@ export default function GlobalError({
             >
               Try again
             </button>
-            <a
+            <Link
               href="/"
               style={{
                 display: "inline-flex",
@@ -84,7 +85,7 @@ export default function GlobalError({
               }}
             >
               Back to the wire
-            </a>
+            </Link>
           </div>
         </main>
       </body>

@@ -1,4 +1,4 @@
-const USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36";
+﻿const USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36";
 
 export async function fetchText(url: string, timeoutMs = 20000): Promise<string> {
   const controller = new AbortController();
@@ -45,7 +45,9 @@ export async function fetchTextSafe(url: string, timeoutMs = 20000): Promise<{ o
     } finally {
       clearTimeout(timer);
     }
-  } catch (e: any) {
-    return { ok: false, error: e?.message || String(e) };
+  } catch (e: unknown) {
+    const message = e instanceof Error ? e.message : String(e);
+    return { ok: false, error: message };
   }
 }
+

@@ -1,4 +1,4 @@
-{
+﻿{
   "expo": {
     "name": "The Bureaucracy",
     "slug": "the-bureaucracy",
@@ -7,8 +7,8 @@
     "icon": "./assets/icon.png",
     "scheme": "bureaucracy",
     "userInterfaceStyle": "automatic",
-    "backgroundColor": "#0F0D0B",
-    "primaryColor": "#FF3B30",
+    "backgroundColor": "#F8F7F3",
+    "primaryColor": "#A9271F",
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "app.thebureaucracy.mobile",
@@ -18,7 +18,7 @@
       "package": "app.thebureaucracy.mobile",
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#F8F5EF"
+        "backgroundColor": "#F8F7F3"
       },
       "permissions": []
     },
@@ -29,7 +29,7 @@
         "expo-notifications",
         {
           "icon": "./assets/adaptive-icon.png",
-          "color": "#FF3B30",
+          "color": "#A9271F",
           "defaultChannel": "brief"
         }
       ],
@@ -39,13 +39,14 @@
           "image": "./assets/splash-icon.png",
           "imageWidth": 180,
           "resizeMode": "contain",
-          "backgroundColor": "#F8F5EF",
+          "backgroundColor": "#F8F7F3",
           "dark": {
             "image": "./assets/splash-icon.png",
-            "backgroundColor": "#130F0C"
+            "backgroundColor": "#171410"
           }
         }
       ]
     ]
   }
 }
+

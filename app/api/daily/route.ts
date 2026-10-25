@@ -1,4 +1,4 @@
-import { revalidatePath } from "next/cache";
+﻿import { revalidatePath } from "next/cache";
 import { briefFromItems, BRIEF_SIZE } from "@/lib/brief";
 import { freezeBrief, type FrozenBriefEntry } from "@/lib/brief-store";
 import { collapseDuplicates } from "@/lib/dedupe";
@@ -109,7 +109,7 @@ async function allPushTokens(): Promise<TokenRow[]> {
 }
 
 /**
- * GET /api/daily — the one scheduled job.
+ * GET /api/daily â€” the one scheduled job.
  *
  * Hobby plans allow two crons, once a day, so this bundles the three things
  * that must happen before 7am IST:
@@ -159,8 +159,8 @@ export async function GET(request: Request) {
       await freezeBrief(day, neutral).catch(() => {});
     }
 
-    let digest = { sent: 0, failed: 0, dry: 0, skipped: 0, total: 0 };
-    let push = { sent: 0, failed: 0, disabled: 0, tokens: 0, skipped: 0 };
+    const digest = { sent: 0, failed: 0, dry: 0, skipped: 0, total: 0 };
+    const push = { sent: 0, failed: 0, disabled: 0, tokens: 0, skipped: 0 };
 
     if (neutral.length) {
       const subscribers = await allSubscribers();
@@ -216,11 +216,11 @@ export async function GET(request: Request) {
         const entries = briefFor(bucket.desk);
         if (!entries.length) continue;
         const lead = entries[0];
-        const body = lead.title.length > 120 ? `${lead.title.slice(0, 117)}…` : lead.title;
+        const body = lead.title.length > 120 ? `${lead.title.slice(0, 117)}â€¦` : lead.title;
         for (const to of bucket.to) {
           messages.push({
             to,
-            title: "Today's five · 8 min",
+            title: "Today's five Â· 8 min",
             body,
             data: { screen: "brief", day },
           });

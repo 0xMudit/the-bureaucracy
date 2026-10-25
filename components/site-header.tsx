@@ -4,6 +4,7 @@ import { Suspense } from "react";
 import { PenLine, Sparkles } from "lucide-react";
 import { GithubMark } from "@/components/github-mark";
 import { Button } from "@/components/ui/button";
+import { CommandTrigger } from "@/components/command-menu";
 import { MainNav } from "@/components/main-nav";
 import { MobileNav } from "@/components/mobile-nav";
 import { ThemeToggle } from "@/components/theme-toggle";
@@ -20,36 +21,34 @@ export async function SiteHeader() {
   const user = await getSessionUser();
 
   return (
-    <header className="relative z-30 border-b-2 border-foreground/85 bg-background">
-      <div className="h-1 w-full bg-primary" aria-hidden />
+    <header className="sticky top-0 z-40 border-b border-border/80 bg-background/88 backdrop-blur-xl supports-[backdrop-filter]:bg-background/75">
+      <div className="h-0.5 w-full bg-primary" aria-hidden />
       <div className="mx-auto max-w-6xl px-4 sm:px-6">
-        <div className="flex items-center justify-between gap-3 py-4 sm:py-5">
-          <Link href="/" className="group flex min-w-0 items-center gap-3 focus-ring rounded-sm">
+        <div className="flex items-center justify-between gap-3 py-2.5 sm:py-3">
+          <Link href="/" className="group flex min-w-0 items-center gap-2.5 rounded-lg focus-ring">
             <span className="relative shrink-0">
               <Image
                 src="/brand/logo.jpg"
                 alt=""
-                width={52}
-                height={52}
+                width={40}
+                height={40}
                 priority
-                className="size-11 rounded-full object-cover ring-2 ring-primary/85 ring-offset-2 ring-offset-background sm:size-[52px]"
+                className="size-9 rounded-full object-cover ring-1 ring-border ring-offset-2 ring-offset-background transition-all group-hover:ring-primary/50 sm:size-10"
                 style={{ objectPosition: "50% 20%" }}
               />
             </span>
             <span className="min-w-0">
-              <span className="block font-mono text-[8.5px] uppercase tracking-[0.26em] text-muted-foreground">
-                For the civil services
-              </span>
-              <span className="display block truncate text-[1.6rem] leading-[1.05] tracking-[-0.03em] sm:text-[2.2rem] sm:tracking-[-0.02em]">
+              <span className="display block truncate text-[1.35rem] leading-none tracking-[-0.03em] sm:text-[1.6rem]">
                 The Bureaucracy
               </span>
-              <span className="mt-0.5 hidden font-mono text-[9px] uppercase tracking-[0.18em] text-muted-foreground sm:block">
+              <span className="mt-1 hidden font-mono text-[8px] uppercase tracking-[0.19em] text-muted-foreground sm:block">
                 {SITE.tagline}
               </span>
             </span>
           </Link>
 
           <div className="flex items-center gap-1.5">
+            <CommandTrigger className="hidden h-8 items-center gap-2 rounded-lg border border-border bg-card px-2.5 text-sm shadow-xs transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:inline-flex" />
             {user ? (
               <>
                 {userCan(user, "admin.dashboard") ? (
@@ -63,7 +62,7 @@ export async function SiteHeader() {
                 <Button
                   asChild
                   size="sm"
-                  className="hidden h-9 rounded-sm px-4 font-mono text-[10px] uppercase tracking-[0.14em] sm:inline-flex"
+                  className="hidden h-8 px-3 sm:inline-flex"
                 >
                   <Link href="/submit">
                     <PenLine className="size-3.5" /> Submit
@@ -73,7 +72,7 @@ export async function SiteHeader() {
                   href="/account"
                   aria-label={`Account: ${user.name}`}
                   title={`${user.name} · ${user.email}`}
-                  className="hidden size-9 items-center justify-center rounded-full border border-border bg-card font-mono text-[10px] uppercase text-foreground transition-colors hover:border-primary/60 hover:text-primary sm:inline-flex"
+                  className="hidden size-8 items-center justify-center rounded-full border border-border bg-card font-mono text-[10px] uppercase text-foreground transition-colors hover:border-primary/60 hover:text-primary sm:inline-flex"
                 >
                   {initials(user.name)}
                 </Link>
@@ -89,7 +88,7 @@ export async function SiteHeader() {
                 <Button
                   asChild
                   size="sm"
-                  className="hidden h-9 rounded-sm px-4 font-mono text-[10px] uppercase tracking-[0.14em] sm:inline-flex"
+                  className="hidden h-8 px-3 sm:inline-flex"
                 >
                   <Link href="/#brief">
                     <Sparkles className="size-3.5" /> Today&apos;s five
@@ -113,8 +112,8 @@ export async function SiteHeader() {
           </div>
         </div>
 
-        <div className="flex min-w-0 items-center justify-between gap-2 border-t border-border/80">
-          <Suspense fallback={<div className="hidden h-9 sm:block" />}>
+        <div className="flex min-w-0 items-center justify-between gap-2 border-t border-border/70">
+          <Suspense fallback={<div className="hidden h-8 sm:block" />}>
             <MainNav className="hidden min-w-0 overflow-x-auto py-0.5 sm:flex [scrollbar-width:none] [&::-webkit-scrollbar]:hidden" />
           </Suspense>
           <TodayStamp />
