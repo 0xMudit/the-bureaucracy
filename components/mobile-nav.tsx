@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { LayoutDashboard, LogIn, LogOut, Menu, Monitor, Moon, PenLine, Sun, UserRound } from "lucide-react";
+import { Bell, LayoutDashboard, LogIn, LogOut, Menu, Monitor, Moon, PenLine, Sun, UserRound } from "lucide-react";
 import { useTheme } from "next-themes";
 import { signOutAction } from "@/app/auth/actions";
 import { GithubMark } from "@/components/github-mark";
@@ -76,6 +76,13 @@ export function MobileNav({ user }: { user: MobileNavUser | null }) {
           ))}
           {user ? (
             <>
+              <Link
+                href="/notifications"
+                onClick={() => setOpen(false)}
+                className="flex items-center gap-2 border-b border-border/60 py-3 text-[15px] font-medium hover:text-primary"
+              >
+                <Bell className="size-4 text-muted-foreground" /> Notifications
+              </Link>
               <Link
                 href="/account"
                 onClick={() => setOpen(false)}

@@ -2,6 +2,9 @@
   "regions": ["bom1"],
   "crons": [
     { "path": "/api/daily", "schedule": "30 1 * * *" },
-    { "path": "/api/ingest", "schedule": "0 2 * * *" }
+    { "path": "/api/notifications/run?mode=daily", "schedule": "30 1 * * *" },
+    { "path": "/api/ingest", "schedule": "0 2 * * *" },
+    { "path": "/api/ai/process", "schedule": "30 2 * * *" },
+    { "path": "/api/notifications/run?mode=all", "schedule": "30 13 * * *" }
   ]
 }

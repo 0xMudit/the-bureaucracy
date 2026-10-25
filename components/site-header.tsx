@@ -1,10 +1,11 @@
 import Image from "next/image";
 import Link from "next/link";
 import { Suspense } from "react";
-import { PenLine, Sparkles } from "lucide-react";
+import { Bell, PenLine, Sparkles } from "lucide-react";
 import { GithubMark } from "@/components/github-mark";
 import { Button } from "@/components/ui/button";
 import { CommandTrigger } from "@/components/command-menu";
+import { HeaderStreak } from "@/components/header-streak";
 import { MainNav } from "@/components/main-nav";
 import { MobileNav } from "@/components/mobile-nav";
 import { ThemeToggle } from "@/components/theme-toggle";
@@ -12,9 +13,11 @@ import { TodayStamp } from "@/components/today-stamp";
 import { UserAvatar } from "@/components/user-avatar";
 import { getSessionUser, userCan } from "@/lib/auth";
 import { SITE } from "@/lib/config";
+import { unreadNotificationCount } from "@/lib/social";
 
 export async function SiteHeader() {
   const user = await getSessionUser();
+  const unread = user ? await unreadNotificationCount(user.id) : 0;
 
   return (
     <header className="sticky top-0 z-40 border-b border-border/80 bg-background/88 backdrop-blur-xl supports-[backdrop-filter]:bg-background/75">
@@ -64,7 +67,21 @@ export async function SiteHeader() {
                     <PenLine className="size-3.5" /> Submit
                   </Link>
                 </Button>
-                                <Link
+                                <Button asChild variant="ghost" size="icon-sm" className="relative text-muted-foreground hover:text-foreground">
+                  <Link
+                    href="/notifications"
+                    aria-label={unread ? `Notifications, ${unread} unread` : "Notifications"}
+                    title={unread ? `${unread} unread notifications` : "Notifications"}
+                  >
+                    <Bell className="size-4" />
+                    {unread > 0 ? (
+                      <span className="absolute -right-0.5 -top-0.5 flex min-w-4 items-center justify-center rounded-full bg-primary px-1 font-mono text-[8px] leading-4 text-primary-foreground">
+                        {unread > 9 ? "9+" : unread}
+                      </span>
+                    ) : null}
+                  </Link>
+                </Button>
+                <Link
                   href="/account"
                   aria-label={`Account: ${user.name}${user.onboardedAt ? "" : " - profile setup incomplete"}`}
                   title={`${user.name} - ${user.email}${user.onboardedAt ? "" : " / finish your byline"}`}
@@ -118,7 +135,10 @@ export async function SiteHeader() {
           <Suspense fallback={<div className="hidden h-8 sm:block" />}>
             <MainNav className="hidden min-w-0 overflow-x-auto py-0.5 sm:flex [scrollbar-width:none] [&::-webkit-scrollbar]:hidden" />
           </Suspense>
-          <TodayStamp />
+          <div className="flex shrink-0 items-center gap-2">
+            <HeaderStreak />
+            <TodayStamp />
+          </div>
         </div>
       </div>
     </header>

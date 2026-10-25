@@ -8,6 +8,7 @@ import { CommandMenu } from "@/components/command-menu";
 import { OpeningSequence } from "@/components/opening-sequence";
 import { ThemeColorSync } from "@/components/theme-color-sync";
 import { PwaRegister } from "@/components/pwa-register";
+import { PermissionPrompt } from "@/components/permission-prompt";
 
 export function Providers({ children }: { children: React.ReactNode }) {
   return (
@@ -23,6 +24,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
       {children}
       <ThemeColorSync />
       <PwaRegister />
+      <PermissionPrompt />
       <CommandMenu />
       <Toaster />
       <AutoRefresh />

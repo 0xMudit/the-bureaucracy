@@ -142,6 +142,12 @@ export default async function AccountPage({
           </Button>
         ) : null}
         <Button asChild variant="outline" className="rounded-sm font-mono text-[10px] uppercase tracking-[0.12em]">
+          <Link href="/notifications">Notifications</Link>
+        </Button>
+        <Button asChild variant="outline" className="rounded-sm font-mono text-[10px] uppercase tracking-[0.12em]">
+          <Link href="/account/notifications">Delivery settings</Link>
+        </Button>
+        <Button asChild variant="outline" className="rounded-sm font-mono text-[10px] uppercase tracking-[0.12em]">
           <Link href="/saved">Saved stories</Link>
         </Button>
         <form action={signOutAction}>

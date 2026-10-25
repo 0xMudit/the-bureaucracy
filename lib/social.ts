@@ -528,6 +528,7 @@ export async function getNotificationPrefs(userId: string): Promise<{
   quietStart: string;
   quietEnd: string;
   maxPerDay: number;
+  timezone: string;
 }> {
   const defaults = {
     dailyBrief: true,
@@ -539,6 +540,7 @@ export async function getNotificationPrefs(userId: string): Promise<{
     quietStart: "22:30",
     quietEnd: "07:00",
     maxPerDay: 2,
+    timezone: "Asia/Kolkata",
   };
   const db = dbOrNull();
   if (!db) return defaults;
@@ -554,6 +556,7 @@ export async function getNotificationPrefs(userId: string): Promise<{
     quietStart: String(data.quiet_start ?? "22:30").slice(0, 5),
     quietEnd: String(data.quiet_end ?? "07:00").slice(0, 5),
     maxPerDay: Number(data.max_per_day ?? 2),
+    timezone: String(data.timezone ?? "Asia/Kolkata"),
   };
 }
 

@@ -4,7 +4,9 @@ import * as React from "react";
 import { useRouter } from "next/navigation";
 import { useTheme } from "next-themes";
 import {
+  Archive,
   ArrowRight,
+  Bell,
   BookOpen,
   Bookmark,
   Compass,
@@ -18,6 +20,7 @@ import {
   Sun,
   Monitor,
   TrendingUp,
+  UserRound,
   Users,
 } from "lucide-react";
 import { toast } from "sonner";
@@ -40,6 +43,10 @@ const PAGES = [
   { label: "Fresh copy", href: "/?sort=new", icon: Feather },
   { label: "Syllabus map", href: "/syllabus", icon: Compass },
   { label: "Optional subjects", href: "/optional", icon: BookOpen },
+  { label: "Following", href: "/following", icon: Users },
+  { label: "Notifications", href: "/notifications", icon: Bell },
+  { label: "Archive", href: "/archive", icon: Archive },
+  { label: "Account settings", href: "/account", icon: UserRound },
   { label: "Saved stories", href: "/saved", icon: Bookmark },
   { label: "Design system", href: "/design-system", icon: Palette },
   { label: "Editor's desk", href: "/admin", icon: LayoutDashboard },

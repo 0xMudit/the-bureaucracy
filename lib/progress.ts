@@ -170,6 +170,11 @@ export function markRead(itemId: string, topic?: string | null): boolean {
   state.days[today] = [...current, itemId];
   if (!state.joinedAt) state.joinedAt = new Date().toISOString();
   write(state);
+  // Signed-in readers also get a durable streak, which powers the evening
+  // "streak at risk" push. Anonymous readers get a no-op response.
+  if (hasWindow()) {
+    void fetch("/api/streak", { method: "POST" }).catch(() => undefined);
+  }
   return true;
 }
 
