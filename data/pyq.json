@@ -1,0 +1,153 @@
+{
+  "updatedAt": "2026-10-25",
+  "note": "A small, hand-curated bank of previous-year UPSC Prelims questions. Questions are paraphrased, not reproduced verbatim; every entry is reviewable and carries the paper and year so a reader can check it against the official paper. Matching is conservative: a story only earns a badge when its own keywords overlap a question's distinctive terms and the topic agrees.",
+  "questions": [
+    {
+      "id": "pyq-2019-gcr",
+      "year": 2019,
+      "paper": "prelims",
+      "question": "The Global Competitiveness Report is published by which organisation?",
+      "options": ["International Monetary Fund", "World Economic Forum", "World Bank", "Asian Development Bank"],
+      "answer": 1,
+      "explanation": "The World Economic Forum publishes the Global Competitiveness Report. The IMF publishes the Global Financial Stability Report and the World Bank publishes Doing Business and World Development Report.",
+      "topics": ["economy", "reports"],
+      "keywords": ["global competitiveness report", "world economic forum", "competitiveness index"]
+    },
+    {
+      "id": "pyq-2016-gfsr",
+      "year": 2016,
+      "paper": "prelims",
+      "question": "'Global Financial Stability Report' is prepared by which institution?",
+      "options": ["International Monetary Fund", "World Bank", "World Trade Organisation", "Bank for International Settlements"],
+      "answer": 0,
+      "explanation": "The Global Financial Stability Report is a biannual IMF publication that assesses global financial stability and vulnerabilities.",
+      "topics": ["economy", "reports"],
+      "keywords": ["global financial stability report", "imf", "financial stability", "international monetary fund"]
+    },
+    {
+      "id": "pyq-2016-beps",
+      "year": 2016,
+      "paper": "prelims",
+      "question": "The term 'Base Erosion and Profit Shifting' is sometimes seen in the news in the context of",
+      "options": [
+        "Mining of rare earth minerals",
+        "Tax avoidance by multinational corporations",
+        "Erosion of the coastline",
+        "Shifting of base camps of security forces"
+      ],
+      "answer": 1,
+      "explanation": "BEPS refers to tax-planning strategies that shift profits to low-tax jurisdictions. The OECD/G20 Inclusive Framework coordinates the response, including the two-pillar global minimum tax.",
+      "topics": ["economy", "governance"],
+      "keywords": ["base erosion", "profit shifting", "beps", "oecd", "global minimum tax", "tax avoidance"]
+    },
+    {
+      "id": "pyq-2020-siachen",
+      "year": 2020,
+      "paper": "prelims",
+      "question": "Siachen Glacier is situated to the",
+      "options": ["east of Aksai Chin", "west of Aksai Chin", "north of Aksai Chin", "south of Aksai Chin"],
+      "answer": 0,
+      "explanation": "The Siachen Glacier lies in the eastern Karakoram, north of the Line of Control and east of the Aksai Chin region.",
+      "topics": ["security", "ir"],
+      "keywords": ["siachen", "aksai chin", "karakoram", "glacier", "line of actual control"]
+    },
+    {
+      "id": "pyq-2017-miyawaki",
+      "year": 2017,
+      "paper": "prelims",
+      "question": "The 'Miyawaki method' is associated with",
+      "options": ["Cultivation of synthetic diamonds", "Urban afforestation", "Deep-sea mining", "Rainwater harvesting"],
+      "answer": 1,
+      "explanation": "The Miyawaki method is a Japanese technique for planting dense, native, fast-growing mini-forests, widely used in urban afforestation.",
+      "topics": ["environment"],
+      "keywords": ["miyawaki", "afforestation", "urban forest", "native species", "green cover"]
+    },
+    {
+      "id": "pyq-2014-ngt",
+      "year": 2014,
+      "paper": "prelims",
+      "question": "With reference to the National Green Tribunal, which statements are correct? 1. It is a statutory body. 2. It hears environmental disputes. 3. It is bound by the procedure laid down in the Code of Civil Procedure.",
+      "options": ["1 only", "1 and 2 only", "2 and 3 only", "1, 2 and 3"],
+      "answer": 1,
+      "explanation": "The NGT was created by the National Green Tribunal Act, 2010. It is not bound by the CPC; it follows principles of natural justice and its own procedure.",
+      "topics": ["environment", "polity"],
+      "keywords": ["national green tribunal", "ngt", "environmental disputes", "statutory body"]
+    },
+    {
+      "id": "pyq-2018-liberty",
+      "year": 2018,
+      "paper": "prelims",
+      "question": "Which one of the following statements best reflects the relationship between law and liberty?",
+      "options": [
+        "If there are more laws, there is less liberty",
+        "If there are no laws, there is no liberty",
+        "If there is liberty, laws have to be made by the people",
+        "If laws are changed too often, liberty is in danger"
+      ],
+      "answer": 1,
+      "explanation": "Liberty is not the absence of law but a condition created and protected by law. Without law there is no enforceable sphere of liberty, only the will of the stronger.",
+      "topics": ["polity", "ethics"],
+      "keywords": ["liberty", "rule of law", "law and liberty", "constitution"]
+    },
+    {
+      "id": "pyq-2016-exploitation",
+      "year": 2016,
+      "paper": "prelims",
+      "question": "Which of the following are envisaged by the Right against Exploitation in the Constitution? 1. Prohibition of traffic in human beings and forced labour. 2. Abolition of untouchability. 3. Protection of the interests of minorities.",
+      "options": ["1 only", "2 and 3 only", "1 and 3 only", "1, 2 and 3"],
+      "answer": 0,
+      "explanation": "Articles 23 and 24 cover trafficking, forced labour and child labour. Untouchability is abolished by Article 17, and minority interests are protected by Articles 29 and 30; both sit outside the Right against Exploitation.",
+      "topics": ["polity", "society"],
+      "keywords": ["right against exploitation", "forced labour", "trafficking", "article 23", "article 24", "untouchability"]
+    },
+    {
+      "id": "pyq-2019-vvm",
+      "year": 2019,
+      "paper": "prelims",
+      "question": "The 'Vaccine Vial Monitor' is used to",
+      "options": [
+        "Measure the potency of a vaccine batch in a laboratory",
+        "Indicate whether a vaccine vial has been exposed to heat",
+        "Track the cold-chain vehicle carrying vaccines",
+        "Record the number of doses drawn from a vial"
+      ],
+      "answer": 1,
+      "explanation": "A Vaccine Vial Monitor is a heat-sensitive label on a vaccine vial. It changes colour cumulatively with heat exposure and tells the health worker whether the vial can still be used.",
+      "topics": ["science", "governance"],
+      "keywords": ["vaccine vial monitor", "cold chain", "immunisation", "vaccine", "heat exposure"]
+    },
+    {
+      "id": "pyq-2017-gbd",
+      "year": 2017,
+      "paper": "prelims",
+      "question": "The 'Global Burden of Disease' study is published by",
+      "options": ["World Health Organisation", "Institute for Health Metrics and Evaluation", "World Bank", "United Nations Development Programme"],
+      "answer": 1,
+      "explanation": "The Global Burden of Disease study is coordinated by the Institute for Health Metrics and Evaluation at the University of Washington, in collaboration with WHO and others.",
+      "topics": ["reports", "society"],
+      "keywords": ["global burden of disease", "ihme", "health metrics", "disease burden", "disability adjusted life year"]
+    },
+    {
+      "id": "pyq-2022-unclos",
+      "year": 2022,
+      "paper": "prelims",
+      "question": "With reference to the Exclusive Economic Zone under UNCLOS, which statements are correct? 1. It extends up to 200 nautical miles from the baseline. 2. The coastal state has sovereign rights over the exploration and use of natural resources there.",
+      "options": ["1 only", "2 only", "Both 1 and 2", "Neither 1 nor 2"],
+      "answer": 2,
+      "explanation": "Under UNCLOS Part V the EEZ extends up to 200 nautical miles. The coastal state has sovereign rights for exploring, exploiting, conserving and managing natural resources, but not full territorial sovereignty.",
+      "topics": ["ir", "security"],
+      "keywords": ["exclusive economic zone", "unclos", "law of the sea", "nautical miles", "maritime boundary", "blue economy"]
+    },
+    {
+      "id": "pyq-2018-digital-india",
+      "year": 2018,
+      "paper": "prelims",
+      "question": "Which of the following are aims of the Digital India plan? 1. Digital infrastructure as a utility to every citizen. 2. Governance and services on demand. 3. Digital empowerment of citizens.",
+      "options": ["1 and 2 only", "2 and 3 only", "1 and 3 only", "1, 2 and 3"],
+      "answer": 3,
+      "explanation": "Digital India rests on three pillars: digital infrastructure as a core utility, governance and services on demand, and digital empowerment of citizens.",
+      "topics": ["governance", "science"],
+      "keywords": ["digital india", "digital infrastructure", "e-governance", "digital empowerment", "service delivery"]
+    }
+  ]
+}

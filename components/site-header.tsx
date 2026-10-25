@@ -1,14 +1,14 @@
 import Image from "next/image";
 import Link from "next/link";
 import { Suspense } from "react";
-import { LogIn, PenLine } from "lucide-react";
+import { PenLine, Sparkles } from "lucide-react";
 import { GithubMark } from "@/components/github-mark";
 import { Button } from "@/components/ui/button";
 import { MainNav } from "@/components/main-nav";
 import { MobileNav } from "@/components/mobile-nav";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { TodayStamp } from "@/components/today-stamp";
-import { getSessionUser } from "@/lib/auth";
+import { getSessionUser, userCan } from "@/lib/auth";
 import { SITE } from "@/lib/config";
 
 function initials(name: string): string {
@@ -52,7 +52,7 @@ export async function SiteHeader() {
           <div className="flex items-center gap-1.5">
             {user ? (
               <>
-                {user.role === "editor" ? (
+                {userCan(user, "admin.dashboard") ? (
                   <Link
                     href="/admin"
                     className="hidden font-mono text-[9px] uppercase tracking-[0.14em] text-muted-foreground hover:text-foreground sm:inline-flex"
@@ -79,15 +79,23 @@ export async function SiteHeader() {
                 </Link>
               </>
             ) : (
-              <Button
-                asChild
-                size="sm"
-                className="hidden h-9 rounded-sm px-4 font-mono text-[10px] uppercase tracking-[0.14em] sm:inline-flex"
-              >
-                <Link href="/submit">
-                  <LogIn className="size-3.5" /> Log in
+              <>
+                <Link
+                  href="/login"
+                  className="hidden px-2 font-mono text-[9px] uppercase tracking-[0.14em] text-muted-foreground hover:text-foreground sm:inline-flex"
+                >
+                  Log in
                 </Link>
-              </Button>
+                <Button
+                  asChild
+                  size="sm"
+                  className="hidden h-9 rounded-sm px-4 font-mono text-[10px] uppercase tracking-[0.14em] sm:inline-flex"
+                >
+                  <Link href="/#brief">
+                    <Sparkles className="size-3.5" /> Today&apos;s five
+                  </Link>
+                </Button>
+              </>
             )}
             <a
               href={SITE.github}

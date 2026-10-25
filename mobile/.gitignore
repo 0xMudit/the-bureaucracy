@@ -1,0 +1,30 @@
+node_modules/
+.expo/
+dist/
+web-build/
+expo-env.d.ts.bak
+
+# Native
+*.orig.*
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+
+# macOS
+.DS_Store
+
+# Env — EXPO_PUBLIC_* values ship in the bundle, so nothing secret belongs here.
+.env
+.env.local
+.env.*.local
+
+# Logs
+npm-debug.*
+yarn-debug.*
+yarn-error.*
+
+# Generated
+*.tsbuildinfo
+.expo-export/

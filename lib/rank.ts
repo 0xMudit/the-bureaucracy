@@ -1,4 +1,4 @@
-import type { FeedItem, FeedQuery, RankedItem, SortKey } from "./types";
+import type { Desk, FeedItem, FeedQuery, RankedItem, SortKey } from "./types";
 import { OPTIONAL_ORDER, OPTIONALS, TOPICS } from "./taxonomy";
 import { sourceAuthority } from "./sources";
 
@@ -6,16 +6,50 @@ export const GRAVITY = 1.8;
 export const TOP_WINDOW_DAYS = 1;
 
 /**
+ * A small, explained tilt toward the reader's declared exam, stage and
+ * optional. It never overrides the public ranking, and it is skipped entirely
+ * for readers who have not set a desk.
+ */
+export function deskTilt(item: FeedItem, desk?: Desk | null): number {
+  if (!desk) return 1;
+  const topic = item.primaryTopic ? TOPICS[item.primaryTopic] : null;
+  let tilt = 1;
+
+  if (desk.stage === "mains") {
+    // Mains rewards material you can build an answer from, so depth of copy
+    // matters more than the raw news score.
+    const depth = Math.min(1, item.summary.length / 320);
+    tilt += depth * 0.32;
+    if (topic && topic.paper !== "prelims" && topic.id !== "exam") tilt += 0.08;
+  } else if (desk.stage === "prelims") {
+    tilt += (item.examScore / 100) * 0.3;
+    if (topic?.paper === "prelims" || topic?.id === "exam") tilt += 0.32;
+    if (item.priority === "high") tilt += 0.1;
+  }
+
+  if (desk.optional !== "all") {
+    if (item.primaryOptional === desk.optional) tilt += 0.6;
+    else if (item.optionals.includes(desk.optional)) tilt += 0.25;
+  }
+
+  if (desk.exam === "state" && (topic?.id === "governance" || topic?.id === "society")) {
+    tilt += 0.12;
+  }
+
+  return tilt;
+}
+
+/**
  * Hacker News-style gravity, tilted by exam relevance and source authority.
  * A story has to earn attention twice: from readers (points) and from the syllabus (examScore).
  */
-export function rankScore(item: FeedItem, now = Date.now()): number {
+export function rankScore(item: FeedItem, now = Date.now(), desk?: Desk | null): number {
   const ageHours = Math.max(0, (now - new Date(item.publishedAt).getTime()) / 3_600_000);
   const base = (totalPoints(item) + 1) / Math.pow(ageHours + 2, GRAVITY);
   const relevance = 0.78 + (item.examScore / 100) * 0.6;
   const authority = sourceAuthority(item.sourceUrl, item.sourceTier);
   const freshness = ageHours < 3 ? 1.18 : 1;
-  return base * relevance * authority * freshness;
+  return base * relevance * authority * freshness * deskTilt(item, desk);
 }
 
 /** Community votes plus the syllabus-relevance baseline the story arrives with. */
@@ -28,8 +62,8 @@ export function seedPoints(examScore: number): number {
   return Math.max(1, Math.round(examScore * 0.34));
 }
 
-export function sortItems(items: FeedItem[], sort: SortKey, now = Date.now()): RankedItem[] {
-  const scored = items.map((item) => ({ ...item, rankScore: rankScore(item, now), position: 0 }));
+export function sortItems(items: FeedItem[], sort: SortKey, now = Date.now(), desk?: Desk | null): RankedItem[] {
+  const scored = items.map((item) => ({ ...item, rankScore: rankScore(item, now, desk), position: 0 }));
 
   switch (sort) {
     case "new":
@@ -79,6 +113,7 @@ export function filterItems(items: FeedItem[], { query, now = Date.now() }: Filt
 
   return items.filter((item) => {
     if (new Date(item.publishedAt).getTime() < cutoff) return false;
+    if (query.minScore !== undefined && item.examScore < query.minScore) return false;
     if (query.topic && query.topic !== "all" && !item.topics.includes(query.topic)) return false;
     if (query.optional && query.optional !== "all" && !item.optionals.includes(query.optional)) return false;
     if (query.paper && query.paper !== "all" && TOPICS[item.primaryTopic ?? "polity"]?.paper !== query.paper) {
@@ -92,9 +127,14 @@ export function filterItems(items: FeedItem[], { query, now = Date.now() }: Filt
   });
 }
 
-export function buildFeed(items: FeedItem[], query: FeedQuery, now = Date.now()): RankedItem[] {
+export function buildFeed(
+  items: FeedItem[],
+  query: FeedQuery,
+  now = Date.now(),
+  desk?: Desk | null,
+): RankedItem[] {
   const filtered = filterItems(items, { query, now });
-  const ranked = sortItems(filtered, query.sort ?? "top", now);
+  const ranked = sortItems(filtered, query.sort ?? "top", now, desk);
   const diverse = query.limit && (query.sort ?? "top") === "top" ? diversify(ranked, query.limit, 5) : ranked;
   return query.limit ? diverse.slice(0, query.limit) : diverse;
 }

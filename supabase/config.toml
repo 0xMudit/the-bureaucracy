@@ -1,0 +1,36 @@
+# Supabase configuration for The Bureaucracy.
+#
+# Only the properties declared here are pushed by `supabase config push`.
+# Database DDL lives in ./migrations; the branded mail lives in ./templates.
+
+project_id = "the-bureaucracy"
+
+[auth]
+site_url = "https://the-bureaucracy.vercel.app"
+additional_redirect_urls = [
+  "https://the-bureaucracy.vercel.app",
+  "https://the-bureaucracy.vercel.app/**",
+  # Preview deployments get a generated hostname. Keep the auth mail landing
+  # on the production URL, but allow a preview to complete a flow it started.
+  "https://the-bureaucracy-*.vercel.app",
+  "https://the-bureaucracy-*.vercel.app/**",
+  "http://localhost:3000",
+  "http://localhost:3000/**",
+]
+
+[auth.email]
+# Never let an unverified address sign in.
+enable_confirmations = true
+
+# Branded templates need a custom SMTP provider. Supabase's free default sender
+# refuses template edits, so `supabase config push` will reject these until
+# SMTP is configured. `npm run auth:email` installs them through the Management
+# API once SMTP_HOST / SMTP_PASS are in .env.local.
+#
+# [auth.email.template.confirmation]
+# subject = "Confirm your desk · The Bureaucracy"
+# content_path = "./supabase/templates/confirmation.html"
+#
+# [auth.email.template.recovery]
+# subject = "Reset your password · The Bureaucracy"
+# content_path = "./supabase/templates/recovery.html"

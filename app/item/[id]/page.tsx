@@ -7,16 +7,25 @@ import { Button } from "@/components/ui/button";
 import { VoteButton } from "@/components/vote-button";
 import { CommentForm } from "@/components/comment-form";
 import { CommentThread } from "@/components/comment-thread";
+import { BriefNext } from "@/components/brief-next";
+import { ReadButton, ReadingProgress } from "@/components/reading-loop";
+import { PrelimsReveal } from "@/components/prelims-reveal";
+import { ShareButton } from "@/components/share-button";
 import { buildCommentTree } from "@/lib/comments";
 import { getSessionUser } from "@/lib/auth";
 import { NEWS_WINDOW_MS, SITE } from "@/lib/config";
 import { buildFeed } from "@/lib/rank";
+import { briefFromItems } from "@/lib/brief";
+import { quizFor } from "@/lib/quiz";
+import { matchPyq } from "@/lib/pyq";
+import { DESK_COOKIE, parseDesk } from "@/lib/desk";
+import { istDateKey } from "@/lib/progress";
 import { PAPER_LABEL, priorityLabel } from "@/lib/taxonomy-extras";
 import { OPTIONALS, TOPICS } from "@/lib/taxonomy";
 import { cachedComments, cachedItem, cachedItems } from "@/lib/cached";
 import { canWrite, getVotedIds } from "@/lib/store";
 import type { FeedItem } from "@/lib/types";
-import { formatDate, timeAgo } from "@/lib/utils";
+import { formatDate, timeAgo, timeUntil } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 
@@ -66,11 +75,15 @@ export default async function ItemPage({ params, searchParams }: PageProps) {
 
   const jar = await cookies();
   const voterId = jar.get("tb_voter")?.value;
+  const desk = parseDesk(jar.get(DESK_COOKIE)?.value);
   const user = await getSessionUser();
   const [voted, comments, all] = await Promise.all([getVotedIds(voterId), cachedComments(item.id), cachedItems()]);
   const tree = buildCommentTree(comments);
   const topic = item.primaryTopic ? TOPICS[item.primaryTopic] : null;
   const paper = topic ? PAPER_LABEL[topic.paper] : "Current affairs";
+  const brief = briefFromItems(all, desk);
+  const quiz = quizFor(item);
+  const pyq = matchPyq(item);
 
   const related = buildFeed(
     all.filter((other) => other.id !== item.id && other.primaryTopic === item.primaryTopic),
@@ -82,6 +95,7 @@ export default async function ItemPage({ params, searchParams }: PageProps) {
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-6 sm:px-6">
+      <ReadingProgress itemId={item.id} topicId={item.primaryTopic ?? undefined} />
       <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1">
         <Link
           href="/"
@@ -132,6 +146,12 @@ export default async function ItemPage({ params, searchParams }: PageProps) {
                 <span className={item.priority === "high" ? "text-primary" : ""}>{priorityLabel(item.priority)}</span>
                 <span aria-hidden>·</span>
                 <span>{item.examScore}/100 relevance</span>
+                {pyq ? (
+                  <>
+                    <span aria-hidden>·</span>
+                    <span className="text-primary">PYQ {pyq.year}</span>
+                  </>
+                ) : null}
               </div>
             </div>
           </div>
@@ -147,11 +167,15 @@ export default async function ItemPage({ params, searchParams }: PageProps) {
                   Read at {item.source} <ArrowUpRight className="size-3.5" />
                 </a>
               </Button>
+              <ReadButton itemId={item.id} topicId={item.primaryTopic ?? undefined} />
+              <ShareButton title={item.title} path={`/item/${item.id}`} source={item.source} />
               <span className="font-mono text-[8.5px] uppercase tracking-[0.1em] text-muted-foreground">
                 Headline and excerpt remain the publisher&apos;s
               </span>
             </div>
           </div>
+
+          <PrelimsReveal itemId={item.id} quiz={quiz} />
 
           <section aria-labelledby="why" className="mt-8 border border-border bg-card">
             <div className="flex items-center justify-between gap-3 border-b border-border px-4 py-2.5">
@@ -199,6 +223,8 @@ export default async function ItemPage({ params, searchParams }: PageProps) {
             </div>
           </section>
 
+          <BriefNext currentId={item.id} entries={brief} dateKey={istDateKey()} />
+
           <section id="discussion" aria-labelledby="discussion-title" className="mt-10 scroll-mt-6">
             <div className="flex items-end justify-between gap-4 border-b-2 border-foreground pb-2">
               <h2 id="discussion-title" className="display text-[1.8rem] leading-none">
@@ -219,7 +245,7 @@ export default async function ItemPage({ params, searchParams }: PageProps) {
                     <p>Log in to join the discussion. Voting stays open to everyone.</p>
                   </div>
                   <Button asChild size="sm" className="h-8 shrink-0 rounded-sm font-mono text-[10px] uppercase tracking-[0.12em]">
-                    <Link href={`/submit?next=${encodeURIComponent(`/item/${item.id}#discussion`)}`}>Log in to comment</Link>
+                    <Link href={`/login?next=${encodeURIComponent(`/item/${item.id}#discussion`)}`}>Log in to comment</Link>
                   </Button>
                 </div>
               ) : (
@@ -242,7 +268,7 @@ export default async function ItemPage({ params, searchParams }: PageProps) {
                 itemId={item.id}
                 authorName={user?.name}
                 canComment={Boolean(user) && canWrite()}
-                loginHref={`/submit?next=${encodeURIComponent(`/item/${item.id}#discussion`)}`}
+                loginHref={`/login?next=${encodeURIComponent(`/item/${item.id}#discussion`)}`}
               />
             </div>
           </section>
@@ -341,7 +367,7 @@ export default async function ItemPage({ params, searchParams }: PageProps) {
                 <span className="font-mono text-[8.5px] uppercase tracking-[0.1em] text-muted-foreground">Expires</span>
                 <span className="inline-flex items-center gap-1">
                   <Clock className="size-3" />
-                  {timeAgo(new Date(new Date(item.publishedAt).getTime() + NEWS_WINDOW_MS).toISOString())}
+                  {timeUntil(new Date(new Date(item.publishedAt).getTime() + NEWS_WINDOW_MS).toISOString())}
                 </span>
               </p>
             </div>

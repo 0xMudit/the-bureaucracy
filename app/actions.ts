@@ -4,7 +4,7 @@ import { cookies, headers } from "next/headers";
 import { revalidatePath, revalidateTag } from "next/cache";
 import { redirect } from "next/navigation";
 import { analyze } from "@/lib/classify";
-import { getSessionUser } from "@/lib/auth";
+import { getSessionUser, userCan } from "@/lib/auth";
 import { canonicalUrl } from "@/lib/rss";
 import { fetchPageMetadata } from "@/lib/page-meta";
 import { clientKey, rateLimit } from "@/lib/rate-limit";
@@ -39,6 +39,13 @@ export async function voteAction(itemId: string): Promise<VoteResult> {
   if (!canWrite()) {
     return { ok: false, error: "Voting is disabled until the database is connected." };
   }
+
+  // Voting is open to anonymous readers by product design. A signed-in
+  // account still has to hold the permission, so a future restricted role
+  // (e.g. a read-only auditor) cannot vote.
+  const user = await getSessionUser();
+  if (user && !userCan(user, "vote.cast")) return { ok: false, error: "This account is not allowed to vote." };
+
   const jar = await cookies();
   if (!jar.get(VOTER_COOKIE)?.value) {
     const headerList = await headers();
@@ -74,6 +81,12 @@ export async function commentAction(_prev: CommentState, formData: FormData): Pr
 
   const user = await getSessionUser();
   if (!user) return { ok: false, error: "Log in to join the discussion." };
+  if (!userCan(user, "comment.write")) return { ok: false, error: "This account is not allowed to comment." };
+
+  const limit = rateLimit(`comment:${user.id}`, 12, 60 * 60_000);
+  if (!limit.ok) {
+    return { ok: false, error: `That is a lot of comments. Try again in ${Math.ceil(limit.retryAfter / 60)} minute(s).` };
+  }
 
   const author = user.name.trim().replace(/[<>]/g, "").slice(0, 32);
 
@@ -108,6 +121,7 @@ export interface SubmitState {
 export async function submitAction(_prev: SubmitState, formData: FormData): Promise<SubmitState> {
   const user = await getSessionUser();
   if (!user) return { error: "Log in to submit a link." };
+  if (!userCan(user, "link.submit")) return { error: "This account is not allowed to file links." };
 
   const rawUrl = String(formData.get("url") ?? "").trim();
   const manualTitle = String(formData.get("title") ?? "").trim();

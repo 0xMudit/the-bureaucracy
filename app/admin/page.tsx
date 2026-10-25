@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowUpRight, Clock, LogIn, MessageSquare, ShieldCheck, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { getSessionUser } from "@/lib/auth";
+import { getSessionUser, userCan } from "@/lib/auth";
 import { serviceClient } from "@/lib/store";
 import { timeAgo } from "@/lib/utils";
 
@@ -69,11 +69,11 @@ export default async function AdminPage() {
     );
   }
 
-  if (user.role !== "editor") {
+  if (!userCan(user, "admin.dashboard")) {
     return (
       <Gate
         title="Editors only."
-        copy={`You are signed in as ${user.email}. This dashboard is limited to the editor account.`}
+        copy={`You are signed in as ${user.email}. This dashboard is limited to editor and admin accounts.`}
         cta={{ href: "/", label: "Back to the wire" }}
       />
     );
@@ -95,7 +95,18 @@ export default async function AdminPage() {
   const weekAgo = new Date(now - 7 * DAY).toISOString();
   const twoWeeksAgo = new Date(now - 14 * DAY).toISOString();
 
-  const [visitsRes, loginsRes, profilesRes, commentsRes, newProfilesRes, itemsRes, totalsRes, editorsRes] = await Promise.all([
+  const [
+    visitsRes,
+    loginsRes,
+    profilesRes,
+    commentsRes,
+    newProfilesRes,
+    itemsRes,
+    totalsRes,
+    editorsRes,
+    adminsRes,
+    suspendedRes,
+  ] = await Promise.all([
     db
       .from("tb_visits")
       .select("path, visitor_id, user_id, created_at")
@@ -118,6 +129,8 @@ export default async function AdminPage() {
     db.from("items").select("id", { count: "exact", head: true }),
     db.from("tb_visits").select("id", { count: "exact", head: true }),
     db.from("tb_profiles").select("id", { count: "exact", head: true }).eq("role", "editor"),
+    db.from("tb_profiles").select("id", { count: "exact", head: true }).eq("role", "admin"),
+    db.from("tb_profiles").select("id", { count: "exact", head: true }).eq("status", "suspended"),
   ]);
 
   const visits = (visitsRes.data ?? []) as { path: string; visitor_id: string | null; user_id: string | null; created_at: string }[];
@@ -204,6 +217,8 @@ export default async function AdminPage() {
         <Stat label="Stories on wire" value={itemsRes.count ?? 0} hint="Last 24 hours" />
         <Stat label="Comments · 7d" value={comments.filter((comment) => comment.created_at >= weekAgo).length} hint="Latest shown below" />
         <Stat label="Editors" value={editorsRes.count ?? 0} hint="Role in database" />
+        <Stat label="Admins" value={adminsRes.count ?? 0} hint="Role in database" accent />
+        <Stat label="Suspended" value={suspendedRes.count ?? 0} hint="Cannot sign in" />
       </div>
 
       <section className="mt-6 border border-border bg-card">
@@ -323,7 +338,7 @@ export default async function AdminPage() {
                   <span className="min-w-0">
                     <span className="block truncate text-[12px] font-medium">
                       {profile.display_name}
-                      {profile.role === "editor" ? <span className="ml-1.5 font-mono text-[8px] uppercase text-primary">editor</span> : null}
+                      {profile.role !== "reader" ? <span className="ml-1.5 font-mono text-[8px] uppercase text-primary">{profile.role}</span> : null}
                     </span>
                     <span className="block truncate font-mono text-[8.5px] tracking-[0.06em] text-muted-foreground">{profile.email}</span>
                   </span>

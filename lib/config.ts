@@ -27,6 +27,13 @@ export const SITE = {
 export const NEWS_WINDOW_HOURS = 24;
 export const NEWS_WINDOW_MS = NEWS_WINDOW_HOURS * 3_600_000;
 
+/**
+ * A syllabus feed is only credible if everything on it clears the bar. Below
+ * this score a story is still reachable by search or a direct link, but it does
+ * not sit next to exam material.
+ */
+export const FEED_MIN_SCORE = 35;
+
 /** Client-side refresh cadence for the live feed. */
 export const AUTO_REFRESH_MS = 5 * 60_000;
 

@@ -21,6 +21,20 @@ export function timeAgo(date: Date | string, now = Date.now()): string {
   return formatDate(d);
 }
 
+/** Countdown to a future timestamp. Used for the 24-hour expiry line. */
+export function timeUntil(date: Date | string, now = Date.now()): string {
+  const d = typeof date === "string" ? new Date(date) : date;
+  const diff = d.getTime() - now;
+  if (diff <= 0) return "expired";
+  const min = Math.ceil(diff / 60_000);
+  if (min < 60) return `in ${min}m`;
+  const hr = Math.floor(min / 60);
+  const rest = min % 60;
+  if (hr < 24) return rest > 0 ? `in ${hr}h ${rest}m` : `in ${hr}h`;
+  const day = Math.floor(hr / 24);
+  return `in ${day}d`;
+}
+
 export function formatDate(date: Date | string): string {
   const d = typeof date === "string" ? new Date(date) : date;
   return d.toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" });

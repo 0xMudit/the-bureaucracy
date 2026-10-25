@@ -2,7 +2,10 @@ import Link from "next/link";
 import { ArrowUpRight, MessageSquare } from "lucide-react";
 import { VoteButton } from "@/components/vote-button";
 import { SaveButton } from "@/components/save-button";
+import { ReadBadge } from "@/components/reading-loop";
 import { OPTIONALS, TOPICS } from "@/lib/taxonomy";
+import { payoffFor } from "@/lib/taxonomy-extras";
+import { matchPyq } from "@/lib/pyq";
 import type { FeedItem } from "@/lib/types";
 import { cn, timeAgo } from "@/lib/utils";
 
@@ -15,6 +18,7 @@ interface FeedItemRowProps {
 
 export function FeedItemRow({ item, position, voted, canWrite }: FeedItemRowProps) {
   const topic = item.primaryTopic ? TOPICS[item.primaryTopic] : null;
+  const pyq = matchPyq(item);
   const savedItem = {
     id: item.id,
     title: item.title,
@@ -49,6 +53,14 @@ export function FeedItemRow({ item, position, voted, canWrite }: FeedItemRowProp
               <span className="size-1 rounded-full bg-primary" /> Priority
             </span>
           ) : null}
+          {pyq ? (
+            <span
+              className="inline-flex shrink-0 items-center gap-1 border border-primary/40 px-1.5 py-0.5 font-mono text-[8.5px] uppercase tracking-[0.12em] text-primary"
+              title={`A previous-year question is linked to this story: ${pyq.question}`}
+            >
+              PYQ {pyq.year}
+            </span>
+          ) : null}
         </div>
 
         <h3 className="break-words font-display text-[1.3rem] leading-[1.2] tracking-[-0.01em] sm:text-[1.45rem]">
@@ -71,6 +83,13 @@ export function FeedItemRow({ item, position, voted, canWrite }: FeedItemRowProp
             {item.summary}
           </p>
         ) : null}
+
+        <p className="mt-1 flex max-w-2xl gap-1.5 text-[12px] leading-snug text-foreground/75">
+          <span aria-hidden className="font-mono text-primary">
+            →
+          </span>
+          <span className="line-clamp-1">{payoffFor(item)}</span>
+        </p>
 
         <div className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1 font-mono text-[9.5px] uppercase tracking-[0.09em] text-muted-foreground">
           <a
@@ -124,6 +143,7 @@ export function FeedItemRow({ item, position, voted, canWrite }: FeedItemRowProp
             <span className="text-primary/80">{item.examScore}</span>
             <span className="text-muted-foreground/70">relevance</span>
           </span>
+          <ReadBadge itemId={item.id} />
         </div>
       </div>
 

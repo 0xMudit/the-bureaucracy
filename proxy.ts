@@ -19,11 +19,28 @@ export async function proxy(request: NextRequest) {
   const hasSession = request.cookies
     .getAll()
     .some((cookie) => cookie.name.startsWith("sb-") && cookie.name.includes("-auth-token"));
-  if (!hasSession) return NextResponse.next();
+  if (!hasSession) {
+    const { pathname, search } = request.nextUrl;
+    const needsAccount = pathname === "/account" || pathname.startsWith("/account/");
+    const needsAdmin = pathname === "/admin" || pathname.startsWith("/admin/");
+    if (needsAccount || needsAdmin) {
+      const target = request.nextUrl.clone();
+      target.pathname = "/submit";
+      target.search = `?next=${encodeURIComponent(pathname + search)}`;
+      return NextResponse.redirect(target);
+    }
+    return NextResponse.next();
+  }
 
   let response = NextResponse.next({ request });
 
   const supabase = createServerClient(url, key, {
+    cookieOptions: {
+      path: "/",
+      sameSite: "lax",
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+    },
     cookies: {
       getAll: () => request.cookies.getAll(),
       setAll: (cookiesToSet, headers) => {

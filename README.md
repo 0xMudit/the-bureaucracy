@@ -49,6 +49,8 @@ deletes it. The constraint is the product.
 - **A clean reading surface.** Warm paper, ink, vermilion, Instrument Serif headlines, dark mode, keyboard
   navigation (`/`, `j`/`k`, `o`, `v`, `s`).
 - **RSS and SEO.** `/feed.xml`, sitemap, robots, Open Graph metadata.
+- **A native client.** [`mobile/`](mobile/README.md) is an Expo SDK 54 app for iOS and Android that
+  reads the same `/api/mobile/*` endpoints — same ranking, same taxonomy, same votes.
 
 ## Quick start
 
@@ -86,6 +88,26 @@ comments work and survive restarts. Full instructions, including the Supabase an
 - **Supabase** (Postgres, Auth) for production persistence; JSON + local file store for development
 - **Vercel** for hosting, **GitHub Actions** / **`pg_cron`** for the 15-minute ingestion schedule
 - **Lucide** icons, **Instrument Serif** / **Inter** / **IBM Plex Mono**
+- **Expo SDK 54** + **expo-router** + **React Query** for the native app in `mobile/`
+
+## The native app
+
+The phone is not a second product: it is a client of this deployment.
+
+```bash
+npm run dev                # the API the app reads, on :3000
+cd mobile && npm install && npm start
+```
+
+| Platform | `EXPO_PUBLIC_API_URL` |
+| --- | --- |
+| iOS simulator / Expo web | `http://localhost:3000` |
+| Android emulator | rewritten to `http://10.0.2.2:3000` automatically |
+| Real phone | `http://<your-lan-ip>:3000` |
+
+The app talks only to `/api/mobile/*`; the service role stays on the server. See
+[docs/mobile.md](docs/mobile.md) for the contract and [mobile/README.md](mobile/README.md) for the
+client.
 
 ## Documentation
 
@@ -98,6 +120,7 @@ comments work and survive restarts. Full instructions, including the Supabase an
 | [docs/supabase.md](docs/supabase.md) | Migrations, auth, roles, email templates and the CLI workflow. |
 | [docs/deployment.md](docs/deployment.md) | Vercel, environment variables, scheduled refresh. |
 | [docs/api.md](docs/api.md) | Every route and endpoint, with request/response shapes. |
+| [docs/mobile.md](docs/mobile.md) | The native app: endpoints, device identity, keeping the contract in sync. |
 | [docs/roadmap.md](docs/roadmap.md) | Where the project is going; mirrors the GitHub issues. |
 
 ## Contributing

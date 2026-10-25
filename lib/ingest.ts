@@ -1,6 +1,7 @@
 import { analyze } from "./classify";
-import { fetchFeed, mapWithConcurrency, canonicalUrl, normalizeTitle } from "./rss";
+import { fetchFeed, mapWithConcurrency, canonicalUrl } from "./rss";
 import type { RawItem } from "./rss";
+import { collapseDuplicates } from "./dedupe";
 import { SOURCES, isBlockedSource } from "./sources";
 import { seedPoints } from "./rank";
 import type { FeedItem, IngestResult, SourceTier } from "./types";
@@ -121,77 +122,16 @@ export async function fetchAllFeeds(now = new Date()): Promise<FetchAllResult> {
   return { items: capItems(dedupe(collected)), errors, fetched };
 }
 
+/**
+ * Batch-level de-duplication. The matching rules live in `lib/dedupe.ts` so the
+ * read path can apply the identical cluster test to rows that arrived in
+ * different ingest runs.
+ */
 export function dedupe(items: FeedItem[]): FeedItem[] {
-  const byUrl = new Map<string, FeedItem>();
-  const kept: FeedItem[] = [];
-  const tierRank: Record<string, number> = { official: 3, analysis: 2, news: 1, aggregator: 0 };
-
-  const prefers = (candidate: FeedItem, current: FeedItem) => {
-    const tierDiff = tierRank[candidate.sourceTier] - tierRank[current.sourceTier];
-    if (tierDiff !== 0) return tierDiff > 0;
-    if (candidate.examScore !== current.examScore) return candidate.examScore > current.examScore;
-    return new Date(candidate.publishedAt).getTime() > new Date(current.publishedAt).getTime();
-  };
-
-  for (const item of items) {
-    const existingUrl = byUrl.get(item.url);
-    if (existingUrl) {
-      if (prefers(item, existingUrl)) {
-        const idx = kept.indexOf(existingUrl);
-        if (idx !== -1) kept[idx] = item;
-        byUrl.set(item.url, item);
-      }
-      continue;
-    }
-
-    const tokens = titleTokens(item.title);
-    const duplicate = kept.find((other) => {
-      if (Math.abs(new Date(other.publishedAt).getTime() - new Date(item.publishedAt).getTime()) > 5 * 86_400_000) {
-        return false;
-      }
-      return Math.max(jaccard(tokens, titleTokens(other.title)), overlap(tokens, titleTokens(other.title))) >= 0.66;
-    });
-
-    if (duplicate) {
-      if (prefers(item, duplicate)) {
-        const idx = kept.indexOf(duplicate);
-        if (idx !== -1) kept[idx] = item;
-        byUrl.set(item.url, item);
-      }
-      continue;
-    }
-
-    kept.push(item);
-    byUrl.set(item.url, item);
-  }
-
-  return kept;
+  return collapseDuplicates(items);
 }
 
-const STOPWORDS = new Set(["the", "a", "an", "and", "or", "of", "in", "on", "to", "for", "with", "as", "at", "by", "from", "is", "are", "be", "will", "says", "said", "after", "over", "new", "india", "indian", "special", "session", "likely", "may", "month", "centre", "government", "govt", "latest", "live", "update", "updates", "explained", "today", "amid", "ahead", "know", "here", "what", "why", "how"]);
-
-export function titleTokens(title: string): Set<string> {
-  return new Set(
-    normalizeTitle(title)
-      .split(" ")
-      .filter((w) => w.length > 2 && !STOPWORDS.has(w)),
-  );
-}
-
-export function jaccard(a: Set<string>, b: Set<string>): number {
-  if (!a.size || !b.size) return 0;
-  let intersection = 0;
-  for (const token of a) if (b.has(token)) intersection++;
-  return intersection / (a.size + b.size - intersection);
-}
-
-/** Overlap coefficient: robust when one headline is a shorter version of another. */
-export function overlap(a: Set<string>, b: Set<string>): number {
-  if (!a.size || !b.size) return 0;
-  let intersection = 0;
-  for (const token of a) if (b.has(token)) intersection++;
-  return intersection / Math.min(a.size, b.size);
-}
+export { titleTokens, jaccard, overlap, collapseDuplicates } from "./dedupe";
 
 /** Keep the strongest 450 items per ingest so the dataset stays queryable and cheap. */
 export function capItems(items: FeedItem[], max = 450): FeedItem[] {

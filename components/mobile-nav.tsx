@@ -17,6 +17,7 @@ import {
 import { SITE } from "@/lib/config";
 
 const LINKS = [
+  { href: "/#brief", label: "Today's five" },
   { href: "/", label: "Top stories" },
   { href: "/?sort=new", label: "New wire" },
   { href: "/?sort=best", label: "Best for the syllabus" },
@@ -30,7 +31,7 @@ const LINKS = [
 export interface MobileNavUser {
   name: string;
   email: string;
-  role: "reader" | "editor";
+  role: "reader" | "editor" | "admin";
 }
 
 export function MobileNav({ user }: { user: MobileNavUser | null }) {
@@ -69,13 +70,13 @@ export function MobileNav({ user }: { user: MobileNavUser | null }) {
               >
                 <UserRound className="size-4 text-muted-foreground" /> {user.name}
               </Link>
-              {user.role === "editor" ? (
+              {user.role !== "reader" ? (
                 <Link
                   href="/admin"
                   onClick={() => setOpen(false)}
                   className="flex items-center gap-2 border-b border-border/60 py-3 text-[15px] font-medium hover:text-primary"
                 >
-                  <LayoutDashboard className="size-4 text-primary" /> Editor dashboard
+                  <LayoutDashboard className="size-4 text-primary" /> {user.role === "admin" ? "Admin console" : "Editor dashboard"}
                 </Link>
               ) : null}
             </>
@@ -91,12 +92,12 @@ export function MobileNav({ user }: { user: MobileNavUser | null }) {
           ) : (
             <>
               <Button asChild className="w-full">
-                <Link href="/submit" onClick={() => setOpen(false)}>
+                <Link href="/login" onClick={() => setOpen(false)}>
                   <LogIn className="size-4" /> Log in
                 </Link>
               </Button>
               <Button asChild variant="outline" className="w-full">
-                <Link href="/submit" onClick={() => setOpen(false)}>
+                <Link href="/login" onClick={() => setOpen(false)}>
                   <UserRound className="size-4" /> Create account
                 </Link>
               </Button>

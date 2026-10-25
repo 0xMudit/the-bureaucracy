@@ -56,6 +56,11 @@ export const metadata: Metadata = {
     icon: "/brand/logo.jpg",
     apple: "/brand/logo.jpg",
   },
+  appleWebApp: {
+    capable: true,
+    title: SITE.shortName,
+    statusBarStyle: "black-translucent",
+  },
   robots: { index: true, follow: true },
 };
 

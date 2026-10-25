@@ -1,12 +1,12 @@
 import Link from "next/link";
 import { ArrowRight, PenLine, Radio } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { TOPICS } from "@/lib/taxonomy";
+import { StreakCard } from "@/components/streak-card";
+import { CoverageMap } from "@/components/coverage-map";
+import { RevisionCard } from "@/components/revision-card";
 import { timeAgo } from "@/lib/utils";
-import type { FeedItem } from "@/lib/types";
 
 interface SidebarProps {
-  brief: FeedItem[];
   topicCounts: { id: string; label: string; count: number }[];
   sources: { source: string; count: number; official: boolean }[];
   total: number;
@@ -33,37 +33,14 @@ function Card({
   );
 }
 
-export function Sidebar({ brief, topicCounts, sources, total, latestFetchedAt }: SidebarProps) {
+export function Sidebar({ topicCounts, sources, total, latestFetchedAt }: SidebarProps) {
   const max = Math.max(1, ...topicCounts.map((t) => t.count));
 
   return (
     <aside className="min-w-0 space-y-4 lg:sticky lg:top-4 lg:self-start">
-      <Card title="The brief" meta="Top 3 by relevance">
-        <ol className="divide-y divide-border/70">
-          {brief.map((item, index) => {
-            const topic = item.primaryTopic ? TOPICS[item.primaryTopic] : null;
-            return (
-              <li key={item.id} className="px-3 py-3">
-                <Link href={`/item/${item.id}`} className="group block">
-                  <div className="flex items-start gap-2">
-                    <span className="mt-0.5 font-mono text-[10px] text-primary">
-                      {String(index + 1).padStart(2, "0")}
-                    </span>
-                    <div className="min-w-0">
-                      <p className="text-[12.5px] font-medium leading-snug group-hover:text-primary">
-                        {item.title}
-                      </p>
-                      <p className="mt-1 font-mono text-[8.5px] uppercase tracking-[0.12em] text-muted-foreground">
-                        {topic ? topic.label : "Current affairs"} · {item.examScore}
-                      </p>
-                    </div>
-                  </div>
-                </Link>
-              </li>
-            );
-          })}
-        </ol>
-      </Card>
+      <StreakCard />
+      <RevisionCard />
+      <CoverageMap />
 
       <Card title="Syllabus radar" meta="Last 24h">
         <div className="space-y-2.5 px-3 py-3">

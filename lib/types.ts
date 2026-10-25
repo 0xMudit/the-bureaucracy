@@ -24,6 +24,47 @@ export type OptionalId =
 
 export type Priority = "high" | "medium" | "low";
 
+export type ExamTrack = "upsc" | "state";
+
+/** What the reader is actually writing. Drives the desk tilt on the feed. */
+export type DeskStage = "all" | "prelims" | "mains";
+
+export interface Desk {
+  exam: ExamTrack;
+  stage: DeskStage;
+  optional: OptionalId | "all";
+}
+
+/** One of the five stories in the reader's daily brief. */
+export interface BriefEntry {
+  id: string;
+  title: string;
+  summary: string;
+  source: string;
+  publishedAt: string;
+  examScore: number;
+  priority: Priority;
+  topicId: TopicId | null;
+  topicLabel: string;
+  paperLabel: string;
+  why: string;
+  hook: string;
+  /** Retrieval question frozen with the brief, so a noon ingest cannot move it. */
+  quiz?: QuizQuestion;
+}
+
+/** A single retrieval question: a real PYQ when one matches, otherwise the syllabus angle. */
+export interface QuizQuestion {
+  kind: "pyq" | "topic";
+  /** "UPSC Prelims 2019" or "Syllabus angle". */
+  label: string;
+  prompt: string;
+  options: string[];
+  answerIndex: number;
+  explanation: string;
+  pyqId?: string;
+}
+
 export type SourceTier = "official" | "news" | "analysis" | "aggregator";
 
 export type SortKey = "top" | "new" | "best" | "discussed";
@@ -94,6 +135,8 @@ export interface FeedQuery {
   q?: string;
   days?: number;
   limit?: number;
+  /** Lowest exam-relevance score a story may carry on this surface. */
+  minScore?: number;
 }
 
 export interface Comment {

@@ -1,8 +1,10 @@
 "use client";
 
 import { useActionState, useState } from "react";
-import { Loader2, LogIn, UserPlus } from "lucide-react";
+import Link from "next/link";
+import { Loader2, LogIn, MailCheck, UserPlus } from "lucide-react";
 import { signInAction, signUpAction, type AuthState } from "@/app/auth/actions";
+import { ResendVerification } from "@/components/resend-verification";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
@@ -95,10 +97,35 @@ export function AuthForm({ next = "/", initialMode = "signin" }: { next?: string
           />
         </label>
 
+        {mode === "signin" ? (
+          <p className="text-right">
+            <Link
+              href="/auth/forgot-password"
+              className="font-mono text-[9px] uppercase tracking-[0.1em] text-muted-foreground underline hover:text-foreground"
+            >
+              Forgot password?
+            </Link>
+          </p>
+        ) : null}
+
         {state.error ? (
           <p role="alert" className="border-l-2 border-destructive bg-destructive/5 px-2.5 py-2 text-xs leading-relaxed text-destructive">
             {state.error}
           </p>
+        ) : null}
+
+        {state.needsVerification && state.email ? (
+          <div className="border border-border bg-background px-3 py-3">
+            <p className="flex items-center gap-1.5 font-mono text-[9px] uppercase tracking-[0.14em] text-foreground">
+              <MailCheck className="size-3.5 text-primary" /> Verification required
+            </p>
+            <p className="mt-1.5 text-[11.5px] leading-relaxed text-muted-foreground">
+              Accounts stay dormant until the address is confirmed. Send yourself another link.
+            </p>
+            <div className="mt-2.5">
+              <ResendVerification email={state.email} compact />
+            </div>
+          </div>
         ) : null}
 
         <Button type="submit" disabled={pending} className="h-11 w-full rounded-sm font-mono text-[10px] uppercase tracking-[0.14em] sm:h-10">
@@ -112,6 +139,13 @@ export function AuthForm({ next = "/", initialMode = "signin" }: { next?: string
           {mode === "signin" ? "Sign in" : "Create account"}
         </Button>
       </form>
+
+      {mode === "signup" ? (
+        <p className="mt-3 flex items-start gap-1.5 border-l-2 border-border pl-2.5 text-[11px] leading-relaxed text-muted-foreground">
+          <MailCheck className="mt-0.5 size-3.5 shrink-0 text-primary" />
+          One verification email. Your account opens the moment you click the link — no password can bypass it.
+        </p>
+      ) : null}
 
       <p className="mt-3 text-[11.5px] leading-relaxed text-muted-foreground">
         {mode === "signin" ? (

@@ -27,6 +27,15 @@ export async function createSupabaseServer() {
 
   const jar = await cookies();
   return createServerClient(config.url, config.key, {
+    // Every Supabase call in this app happens on the server, so the session
+    // cookies never need to be readable from JavaScript. HttpOnly keeps an XSS
+    // bug from turning into a stolen refresh token.
+    cookieOptions: {
+      path: "/",
+      sameSite: "lax",
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+    },
     cookies: {
       getAll: () => jar.getAll(),
       setAll: (cookiesToSet) => {

@@ -76,6 +76,24 @@ First-party page-view counter used by `components/visit-tracker.tsx`.
 
 RSS 2.0 for the current 24-hour wire. Absolute links come from `NEXT_PUBLIC_SITE_URL`.
 
+## `/api/mobile/*` — the native client
+
+The iOS/Android app in [`mobile/`](../mobile/README.md) is a client of these four endpoints and
+nothing else. They reuse the same store, ranking and taxonomy as the pages, so the phone and the
+site cannot disagree. Full detail: [mobile.md](mobile.md).
+
+| Method | Path | Purpose |
+| --- | --- | --- |
+| `GET` | `/api/mobile/feed` | Ranked wire. `sort`, `topic`, `optional`, `paper`, `q`, `limit` (1–60). |
+| `GET` | `/api/mobile/item/[id]` | Story + topic rationale + comments + related. `410` once it leaves the window. |
+| `GET` | `/api/mobile/taxonomy` | Papers, themes and optional lenses, CDN-cached for a day. |
+| `POST` | `/api/mobile/vote` | `{ "itemId": "…" }`, toggled per `x-device-id`. 30/min. |
+| `OPTIONS` | all four | CORS preflight. |
+
+Every response carries `version` (currently `1`) and `ok`, is `access-control-allow-origin: *`, and
+errors are `{ version, ok: false, error, retryAfter? }`. Votes are namespaced server-side as
+`m_<device-id>` so a phone can never overwrite a web `tb_voter` tally.
+
 ## Conventions for new endpoints
 
 - Put route handlers in `app/api/<name>/route.ts` and export `dynamic = "force-dynamic"` for anything that

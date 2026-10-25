@@ -1,10 +1,11 @@
 import { cache } from "react";
 import { cookies } from "next/headers";
 import { SITE } from "@/lib/config";
+import { hasPermission, normalizeRole, type Permission, type Role } from "@/lib/rbac";
 import { serviceClient } from "@/lib/store";
 import { authConfigured, createSupabaseServer } from "@/lib/supabase/server";
 
-export type Role = "reader" | "editor";
+export type { Permission, Role };
 
 export interface SessionUser {
   id: string;
@@ -27,6 +28,15 @@ export function adminEmails(): string[] {
 export function isAdminEmail(email: string | null | undefined): boolean {
   if (!email) return false;
   return adminEmails().includes(email.toLowerCase());
+}
+
+/**
+ * The role that actually applies to a request. An address in ADMIN_EMAILS is
+ * always an admin, even before `npm run auth:admins` has promoted the row.
+ */
+export function resolveRole(email: string | null | undefined, dbRole: unknown): Role {
+  if (isAdminEmail(email)) return "admin";
+  return normalizeRole(dbRole);
 }
 
 /**
@@ -56,20 +66,39 @@ export const getSessionUser = cache(async (): Promise<SessionUser | null> => {
     return null;
   }
 
-  let profile: { display_name: string | null; role: string | null } | null = null;
+  let profile: { display_name: string | null; role: string | null; status: string | null } | null = null;
+  const fallbackName = email ? email.split("@")[0].replace(/[._-]+/g, " ") : "Reader";
 
   const db = serviceClient();
   if (db) {
     const { data } = await db
       .from("tb_profiles")
-      .select("display_name, role")
+      .select("display_name, role, status")
       .eq("id", userId)
       .maybeSingle();
     profile = data;
+
+    // Self-heal accounts created before the trigger existed (or by an admin
+    // API call that bypassed it). The insert is idempotent and never promotes.
+    if (!profile) {
+      try {
+        await db
+          .from("tb_profiles")
+          .upsert(
+            { id: userId, email, display_name: fallbackName.slice(0, 48) },
+            { onConflict: "id", ignoreDuplicates: true },
+          );
+      } catch {
+        // A transient write failure must not lock the reader out.
+      }
+    }
   }
 
-  const role: Role = profile?.role === "editor" || isAdminEmail(email) ? "editor" : "reader";
-  const fallbackName = email ? email.split("@")[0].replace(/[._-]+/g, " ") : "Reader";
+  // A suspension is enforced on every request, not just at sign-in: an existing
+  // cookie stops resolving to a user the moment the flag is flipped.
+  if (profile?.status === "suspended") return null;
+
+  const role = resolveRole(email, profile?.role);
 
   return {
     id: userId,
@@ -78,6 +107,11 @@ export const getSessionUser = cache(async (): Promise<SessionUser | null> => {
     role,
   };
 });
+
+/** Server-side permission check for pages, actions and route handlers. */
+export function userCan(user: SessionUser | null | undefined, permission: Permission): boolean {
+  return Boolean(user && hasPermission(user.role, permission));
+}
 
 export async function logAuthEvent(input: {
   userId: string | null;
@@ -103,9 +137,15 @@ export async function logAuthEvent(input: {
   }
 }
 
-/** Only allow same-origin, path-style redirects. */
+/**
+ * Only allow same-origin, path-style redirects. Rejects protocol-relative
+ * (`//evil`), backslash (`/\evil`), encoded separators and control characters,
+ * all of which a browser can turn into an off-site navigation.
+ */
 export function safeNext(value: string | null | undefined, fallback = "/"): string {
   const next = (value ?? "").trim();
   if (!next.startsWith("/") || next.startsWith("//")) return fallback;
+  if (/[\\\u0000-\u001f\u007f]/.test(next)) return fallback;
+  if (/^\/%2f|^\/%5c/i.test(next)) return fallback;
   return next;
 }

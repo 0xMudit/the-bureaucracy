@@ -8,6 +8,33 @@ All notable changes to this project are documented here. The format follows
 
 ### Added
 
+- **Read-time de-duplication** (`lib/dedupe.ts`): near-duplicate stories that entered in
+  different ingest runs now collapse on the front page, the brief and the mobile feed, keeping
+  the highest-tier, highest-scoring copy.
+- **Relevance floor** (`FEED_MIN_SCORE = 35`): browsing is curated, search stays complete, and
+  saved stories never disappear.
+- **A payoff line on every feed card** (`payoffFor`), shared by the brief and the mobile payload.
+- **A dedicated login page** (`/login`); signed-out visits to `/submit` are redirected there with
+  a `next` return path.
+- **`docs/prompts/retention-engine.md`**: the phased brief for PYQ linkage, guess-before-reveal,
+  the coverage map, spaced revision and the Telegram digest.
+- **Daily reading loop**: a finite "Today's five" brief, per-day read tracking, an IST streak,
+  a desk (exam / stage / optional) that tilts the ranking without filtering it, serial
+  "next unread" reading, a 07:00 IST countdown with a downloadable calendar reminder, and a
+  home-screen manifest. See [`docs/engagement.md`](docs/engagement.md).
+- **First-party funnel events** (`/_event/*` via `/api/track`) for desk setup, brief completion,
+  reads, shares and reminders.
+- **Native app** (`mobile/`): an Expo SDK 54 client — expo-router tabs for the wire, the reading list
+  and the syllabus, a story screen with why-it-matters and discussion, search, optimistic haptic
+  voting, and the web's palette ported to React Native.
+- **`/api/mobile/*`**: feed, item, taxonomy and vote endpoints with `version: 1`, CORS and per-device
+  vote identity (`m_<device-id>`).
+- **Accounts and roles**: email-verified sign-up, password recovery, session management, profile
+  editing and deletion; `reader` / `editor` / `admin` with suspension and an append-only audit trail.
+- **Editor desk**: `/admin` traffic and activity, `/admin/users` register with role changes and
+  `/admin/audit`.
+- Branded Supabase confirmation and recovery templates (`npm run auth:email`), plus
+  `npm run auth:admins` and `npm run auth:doctor`.
 - Open-source project scaffolding: `CONTRIBUTING.md`, `CODE_OF_CONDUCT.md`, `SECURITY.md`, issue and pull
   request templates, Dependabot and a CI workflow.
 - `docs/` — architecture, local development, ingestion, ranking and taxonomy, Supabase, deployment and API
@@ -16,6 +43,9 @@ All notable changes to this project are documented here. The format follows
 
 ### Changed
 
+- The front page leads with a five-story brief and a one-tap desk question instead of a bare
+  forty-row feed; the anonymous header CTA is "Today's five" rather than "Log in".
+- CI typechecks and bundles both surfaces: the Next.js app and `mobile/`.
 - README slimmed to a front door; operational detail moved to `docs/`.
 - The scheduled ingest workflow is guarded to the upstream repository so forks do not trigger it.
 - `supabase/schema.sql` is documented as a snapshot; `supabase/migrations/` is the source of truth.

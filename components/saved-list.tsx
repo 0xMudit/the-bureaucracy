@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { BookmarkX, ExternalLink, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { readSaved, SAVED_EVENT, writeSaved, type SavedItem } from "@/lib/saved";
+import { readSaved, SAVED_EVENT, writeSaved, isExpired, type SavedItem } from "@/lib/saved";
 import { OPTIONALS, TOPICS } from "@/lib/taxonomy";
 import { priorityLabel } from "@/lib/taxonomy-extras";
 import { timeAgo } from "@/lib/utils";
@@ -45,8 +45,8 @@ export function SavedList() {
         <BookmarkX className="size-6 text-muted-foreground" />
         <p className="mt-3 font-display text-2xl">Nothing saved.</p>
         <p className="mt-1 max-w-sm text-[12.5px] leading-relaxed text-muted-foreground">
-          Save a story from the feed and it waits here for the rest of the 24-hour cycle. After that, it expires
-          with the wire.
+          Save a story from the feed and it waits here for revision on day 1, 3, 7 and 30. It stays in this
+          browser only.
         </p>
         <Button asChild size="sm" className="mt-4 rounded-sm font-mono text-[10px] uppercase tracking-[0.12em]">
           <Link href="/">Back to the wire</Link>
@@ -82,9 +82,21 @@ export function SavedList() {
               <div className="min-w-0 flex-1">
                 {item.kicker ? <p className="kicker truncate">{item.kicker}</p> : null}
                 <h2 className="mt-1 font-display text-[1.2rem] leading-snug">
-                  <Link href={`/item/${item.id}`} className="headline-link">
-                    {item.title}
-                  </Link>
+                  {isExpired(item) ? (
+                    <a
+                      href={item.url}
+                      target="_blank"
+                      rel="noreferrer noopener"
+                      className="headline-link inline-flex items-start gap-1"
+                    >
+                      {item.title}
+                      <ExternalLink className="mt-1 size-3 shrink-0 text-muted-foreground" />
+                    </a>
+                  ) : (
+                    <Link href={`/item/${item.id}`} className="headline-link">
+                      {item.title}
+                    </Link>
+                  )}
                 </h2>
                 <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 font-mono text-[9px] uppercase tracking-[0.09em] text-muted-foreground">
                   <a
@@ -118,6 +130,12 @@ export function SavedList() {
                   )}
                   <span aria-hidden>·</span>
                   <span>{item.examScore}/100</span>
+                  {isExpired(item) ? (
+                    <>
+                      <span aria-hidden>·</span>
+                      <span className="text-primary">off the wire</span>
+                    </>
+                  ) : null}
                   {item.primaryOptional && OPTIONALS[item.primaryOptional] ? (
                     <>
                       <span aria-hidden>·</span>

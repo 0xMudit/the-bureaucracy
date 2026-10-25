@@ -12,6 +12,9 @@ Everything an operator, contributor or self-hoster needs. The root
 | [supabase.md](supabase.md) | You are setting up Postgres, auth, roles, migrations or email. |
 | [deployment.md](deployment.md) | You are shipping to Vercel and wiring the refresh schedule. |
 | [api.md](api.md) | You are calling the app from a script, cron job or another service. |
+| [mobile.md](mobile.md) | You are working on the iOS/Android app in `mobile/` or changing the `/api/mobile/*` contract. |
+| [engagement.md](engagement.md) | You are touching the brief, the streak, the desk or the funnel events. |
+| [prompts/retention-engine.md](prompts/retention-engine.md) | You are picking up the next retention phase: PYQ, reveal, coverage, revision, digest. |
 | [roadmap.md](roadmap.md) | You want to know what is planned and where to help. |
 
 ## Ground rules

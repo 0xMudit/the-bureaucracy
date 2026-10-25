@@ -18,8 +18,8 @@ export default function SavedPage() {
           Reading list.
         </h1>
         <p className="mt-3 max-w-xl text-[13.5px] leading-relaxed text-muted-foreground">
-          Saved stories live in this browser only. They expire with the 24-hour wire, so download or note what
-          matters before the cycle turns.
+          Saved stories live in this browser only. They leave the public wire after 24 hours, so older saves open
+          at the publisher and come back for revision on day 1, 3, 7 and 30.
         </p>
       </div>
 

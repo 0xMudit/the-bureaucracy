@@ -30,9 +30,11 @@ export function SaveButton({ item, className }: { item: SavedItem; className?: s
       setSaved(false);
       toast("Removed from your reading list");
     } else {
-      writeSaved([item, ...current].slice(0, 100));
+      writeSaved([{ ...item, savedAt: new Date().toISOString() }, ...current].slice(0, 100));
       setSaved(true);
-      toast.success("Saved for later", { description: "Find it under Saved. It expires with the 24-hour wire." });
+      toast.success("Saved for revision", {
+        description: "It comes back on day 1, 3, 7 and 30. Stored on this device only.",
+      });
     }
   };
 

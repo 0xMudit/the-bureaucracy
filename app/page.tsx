@@ -9,8 +9,15 @@ import { OptionalFilter } from "@/components/optional-filter";
 import { Sidebar } from "@/components/sidebar";
 import { SearchBox } from "@/components/search-box";
 import { TopicFilter } from "@/components/topic-filter";
+import { DeskBar } from "@/components/desk-bar";
+import { DailyBrief } from "@/components/daily-brief";
 import { buildFeed, filterItems, optionalCounts, topicCounts } from "@/lib/rank";
-import { NEWS_WINDOW_MS } from "@/lib/config";
+import { briefFromItems } from "@/lib/brief";
+import { collapseDuplicates } from "@/lib/dedupe";
+import { DESK_COOKIE, DESK_SKIP_COOKIE, deskIsDefault, deskSummary, parseDesk } from "@/lib/desk";
+import { istDateKey } from "@/lib/progress";
+import { SORT_COPY } from "@/lib/feed-copy";
+import { FEED_MIN_SCORE, NEWS_WINDOW_MS } from "@/lib/config";
 import { cachedItems } from "@/lib/cached";
 import { canWrite, getVotedIds } from "@/lib/store";
 import { OPTIONAL_ORDER, OPTIONALS, PAPERS, TOPICS } from "@/lib/taxonomy";
@@ -21,25 +28,6 @@ export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   alternates: { types: { "application/rss+xml": "/feed.xml" } },
-};
-
-const SORT_COPY: Record<SortKey, { title: string; blurb: string }> = {
-  top: {
-    title: "The 24-hour wire",
-    blurb: "Reader points, freshness and syllabus relevance. Nothing older than a day survives here.",
-  },
-  new: {
-    title: "Fresh off the wire",
-    blurb: "Everything ingested in the last 24 hours, newest first. No ranking, no favours.",
-  },
-  best: {
-    title: "Best for the syllabus",
-    blurb: "The stories with the highest exam relevance in the last 24 hours.",
-  },
-  discussed: {
-    title: "The discussion",
-    blurb: "Where aspirants are arguing about the day's policy. Add your angle.",
-  },
 };
 
 function parseSort(value: string | string[] | undefined): SortKey {
@@ -67,7 +55,12 @@ export default async function HomePage({
 
   const all = await cachedItems();
   const cutoff = Date.now() - NEWS_WINDOW_MS;
-  const fresh = all.filter((item) => new Date(item.publishedAt).getTime() >= cutoff);
+  // Collapse again at read time: two ingest runs can each keep the same event.
+  const fresh = collapseDuplicates(all.filter((item) => new Date(item.publishedAt).getTime() >= cutoff));
+
+  const jar = await cookies();
+  const desk = parseDesk(jar.get(DESK_COOKIE)?.value);
+  const deskSkipped = jar.get(DESK_SKIP_COOKIE)?.value === "1";
 
   const baseQuery = {
     sort,
@@ -75,20 +68,24 @@ export default async function HomePage({
     optional: optional as OptionalId | "all",
     paper: paper as PaperId | "all",
     q,
+    // Searching is how a reader finds anything; browsing is curated.
+    minScore: q ? undefined : FEED_MIN_SCORE,
   };
-  const feed = buildFeed(fresh, { ...baseQuery, limit: 40 });
+  const feed = buildFeed(fresh, { ...baseQuery, limit: 40 }, Date.now(), desk);
   const scope = filterItems(fresh, { query: baseQuery });
-  const voterId = (await cookies()).get("tb_voter")?.value;
+  const voterId = jar.get("tb_voter")?.value;
   const voted = await getVotedIds(voterId);
+
+  const defaultView = !q && topic === "all" && optional === "all" && paper === "all";
+  const showBrief = defaultView && sort !== "new";
+  const briefEntries = showBrief ? briefFromItems(fresh, desk) : [];
+  const dateKey = istDateKey();
 
   const topicScope = filterItems(fresh, { query: { ...baseQuery, topic: "all" } });
   const counts = Object.fromEntries(topicCounts(topicScope).map((t) => [t.id, t.count]));
   const optionalScope = filterItems(fresh, { query: { ...baseQuery, optional: "all" } });
   const optionCounts = Object.fromEntries(optionalCounts(optionalScope).map((o) => [o.id, o.count]));
 
-  const brief = [...scope]
-    .sort((a, b) => b.examScore - a.examScore || +new Date(b.publishedAt) - +new Date(a.publishedAt))
-    .slice(0, 3);
   const latestFetchedAt =
     scope.length > 0
       ? new Date(Math.max(...scope.map((i) => new Date(i.fetchedAt).getTime()))).toISOString()
@@ -126,7 +123,11 @@ export default async function HomePage({
         ? paperInfo.description
         : topicInfo
           ? `Stories mapped to ${topicInfo.label} in the last 24 hours.`
-          : copy.blurb;
+          : showBrief
+            ? desk
+              ? `Tilted to your desk: ${deskSummary(desk)}. Five stories first, then the rest of the wire.`
+              : "The five stories that matter today, ranked for the syllabus. Read them, tick them off, close the tab."
+            : copy.blurb;
 
   return (
     <div className="mx-auto max-w-6xl px-4 sm:px-6">
@@ -149,6 +150,17 @@ export default async function HomePage({
             <div className="flex items-center gap-2">
               <SearchBox className="w-full sm:w-[260px]" />
             </div>
+          </div>
+
+          <div className="mt-4 space-y-3">
+            {briefEntries.length ? (
+              <DailyBrief
+                entries={briefEntries}
+                dateKey={dateKey}
+                deskLabel={desk && !deskIsDefault(desk) ? deskSummary(desk) : null}
+              />
+            ) : null}
+            <DeskBar desk={desk} skipped={deskSkipped} />
           </div>
 
           <div className="mt-4">
@@ -204,7 +216,6 @@ export default async function HomePage({
 
         <Suspense fallback={<div className="hidden lg:block" />}>
           <Sidebar
-            brief={brief}
             topicCounts={topicCounts(topicScope)}
             sources={sources}
             total={scope.length}

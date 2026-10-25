@@ -43,4 +43,10 @@ yarn-error.log*
 # previous prototype, kept on disk for reference only
 .legacy/
 
+# Expo app (mobile/) — it owns its own .gitignore for the rest
+mobile/.expo/
+mobile/dist/
+mobile/.env.local
+mobile/*.tsbuildinfo
+
 ReviewPaperonRecommendationSystems.pdf

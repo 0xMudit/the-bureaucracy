@@ -32,6 +32,31 @@ updates:
       - dependency-name: "*"
         update-types: ["version-update:semver-major"]
 
+  - package-ecosystem: npm
+    directory: /mobile
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 5
+    groups:
+      expo:
+        patterns:
+          - expo
+          - expo-*
+          - "@expo/*"
+      react-native:
+        patterns:
+          - react-native
+          - react-native-*
+          - react
+          - "@types/react"
+    ignore:
+      # Expo SDK upgrades are deliberate: they go with a `expo install --fix` pass.
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "expo"
+        update-types: ["version-update:semver-minor"]
+
   - package-ecosystem: github-actions
     directory: /
     schedule:
