@@ -55,9 +55,11 @@ confirmation mail. The app accepts both the stock PKCE link and the branded `tok
 
 ## 4. Install the branded mail (once SMTP exists)
 
+Sign-up is confirmation-only, so this is a launch step, not a finishing touch. The full walkthrough —
+provider choice, the four DNS records, verification and a deliverability test — is in [email.md](email.md).
+
 ```bash
-# SMTP_HOST / SMTP_PORT / SMTP_USER / SMTP_PASS / SMTP_SENDER_EMAIL in .env.local,
-# plus SUPABASE_ACCESS_TOKEN from https://supabase.com/dashboard/account/tokens
+npm run auth:smtp                 # PASS on SPF, DKIM, DMARC, MX, SMTP reachability
 npm run auth:email -- --dry-run   # inspect what will change
 npm run auth:email
 ```

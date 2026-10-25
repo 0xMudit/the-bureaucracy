@@ -34,6 +34,7 @@
     "auth:email": "tsx scripts/apply-auth-email.ts",
     "auth:admins": "tsx scripts/sync-admins.ts",
     "auth:doctor": "tsx scripts/auth-doctor.ts",
+    "auth:smtp": "tsx scripts/check-mail.ts",
     "db:start": "npx supabase start",
     "db:push": "npx supabase db push",
     "db:reset": "npx supabase db reset"

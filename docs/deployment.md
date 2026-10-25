@@ -7,7 +7,7 @@ the environment-variable commands; any Node host works.
 ## 1. Supabase
 
 Follow [supabase.md](supabase.md) first: create the project, `npm run db:push`, `npx supabase config push`,
-install mail, promote admins, run `npm run auth:doctor`.
+install mail ([email.md](email.md)), promote admins, run `npm run auth:doctor`.
 
 ## 2. Environment variables
 
