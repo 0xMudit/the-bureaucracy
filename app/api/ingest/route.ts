@@ -1,5 +1,6 @@
 import { revalidatePath, revalidateTag } from "next/cache";
 import { NEWS_WINDOW_MS } from "@/lib/config";
+import { enrichItems } from "@/lib/enrich";
 import { ensureUniqueIds, fetchAllFeeds } from "@/lib/ingest";
 import { canWrite, pruneOlderThan, StoreError, upsertItems } from "@/lib/store";
 
@@ -39,13 +40,16 @@ async function run(request: Request): Promise<Response> {
   const started = Date.now();
   try {
     const result = await fetchAllFeeds(new Date());
-    const items = ensureUniqueIds(result.items);
+    const enriched = await enrichItems(result.items);
+    const items = ensureUniqueIds(enriched.items);
     const { inserted, updated } = await upsertItems(items);
+    // Stories leaving the wire are archived, not deleted.
     const pruned = await pruneOlderThan(new Date(Date.now() - NEWS_WINDOW_MS).toISOString());
 
     revalidatePath("/");
     revalidatePath("/syllabus");
     revalidatePath("/optional");
+    revalidatePath("/archive");
     revalidateTag("items", { expire: 0 });
 
     return Response.json(
@@ -56,6 +60,7 @@ async function run(request: Request): Promise<Response> {
         inserted,
         updated,
         pruned,
+        enrichment: enriched.summary,
         errors: result.errors,
         durationMs: Date.now() - started,
       },

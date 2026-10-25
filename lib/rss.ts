@@ -12,6 +12,8 @@ export interface RawItem {
   sourceName: string;
   sourceUrl: string;
   tier: SourceTier;
+  /** media:content / media:thumbnail / enclosure / inline <img>. */
+  imageUrl?: string | null;
 }
 
 interface ParsedItem {
@@ -21,6 +23,26 @@ interface ParsedItem {
   pubDate?: string;
   sourceName?: string;
   sourceUrl?: string;
+  imageUrl?: string;
+}
+
+/** Pull the first plausible image out of an RSS item block. */
+function getImage(block: string): string | undefined {
+  const mediaTags = block.match(/<(?:media:content|media:thumbnail|enclosure)\b[^>]*>/gi) ?? [];
+  for (const tag of mediaTags) {
+    const url = extractAttr(tag, "url");
+    if (!url || !/^https?:\/\//i.test(url)) continue;
+    const type = extractAttr(tag, "type") ?? "";
+    if (type && !type.toLowerCase().startsWith("image/")) continue;
+    return url;
+  }
+  const description =
+    getTagContent(block, "description") ??
+    getTagContent(block, "content:encoded") ??
+    "";
+  const inline = description.match(/<img\b[^>]*src\s*=\s*["']([^"']+)["']/i);
+  if (inline && /^https?:\/\//i.test(inline[1])) return inline[1];
+  return undefined;
 }
 
 function getTagContent(block: string, tag: string): string | undefined {
@@ -81,6 +103,7 @@ export function parseRss(xml: string): ParsedItem[] {
       pubDate,
       sourceName: sourceName ? sourceName.slice(0, 60) : undefined,
       sourceUrl: sourceUrl || undefined,
+      imageUrl: getImage(block),
     });
   }
   return items;
@@ -134,6 +157,7 @@ export async function fetchFeed(source: SourceConfig): Promise<RawItem[]> {
         sourceName,
         sourceUrl,
         tier: source.tier,
+        imageUrl: item.imageUrl ?? null,
       }];
     });
   } finally {

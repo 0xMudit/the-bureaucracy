@@ -101,15 +101,63 @@ export async function listItems(): Promise<FeedItem[]> {
     const { data, error } = await db
       .from("items")
       .select(
-        "id,title,kicker,url,source,source_url,source_tier,summary,published_at,fetched_at,topics,primary_topic,exam_score,priority,keywords,optionals,primary_optional,points,seed_points,comment_count,like_count,dislike_count,save_count,image_url,image_source,image_attribution,summary_bullets,exam_angle,cluster_id,archived_at",
+        "id,title,kicker,url,source,source_url,source_tier,summary,published_at,fetched_at,topics,primary_topic,exam_score,priority,keywords,optionals,primary_optional,points,seed_points,comment_count,like_count,dislike_count,save_count,image_url,image_source,image_attribution,summary_bullets,exam_angle,gs_paper,prelims_fact,mains_angle,syllabus_hint,india_relevant,ai_relevance,ai_provider,pinned,hidden,cluster_id,archived_at",
       )
       .gte("published_at", new Date(Date.now() - 26 * 3_600_000).toISOString())
+      .is("archived_at", null)
+      .eq("hidden", false)
       .order("published_at", { ascending: false })
       .limit(600);
     if (error) throw new StoreError(error.message);
     return (data ?? []).map(rowToItem);
   }
-  return (await loadLocal()).items;
+  return (await loadLocal()).items.filter((item) => !item.archivedAt && !item.hidden);
+}
+
+/**
+ * Archive search: every story that has left the 24-hour wire, newest first.
+ * The wire itself never reads this path, so the front page stays finite.
+ */
+export async function listArchived(options: {
+  limit?: number;
+  topic?: string;
+  paper?: string;
+  q?: string;
+  from?: string;
+  to?: string;
+} = {}): Promise<FeedItem[]> {
+  const limit = Math.min(200, Math.max(1, options.limit ?? 60));
+  const db = getClient();
+  if (db) {
+    let query = db
+      .from("items")
+      .select(
+        "id,title,kicker,url,source,source_url,source_tier,summary,published_at,fetched_at,topics,primary_topic,exam_score,priority,keywords,optionals,primary_optional,points,seed_points,comment_count,like_count,dislike_count,save_count,image_url,image_source,image_attribution,summary_bullets,exam_angle,gs_paper,prelims_fact,mains_angle,syllabus_hint,india_relevant,ai_relevance,ai_provider,pinned,hidden,cluster_id,archived_at",
+      )
+      .not("archived_at", "is", null)
+      .eq("hidden", false)
+      .order("published_at", { ascending: false })
+      .limit(limit);
+    if (options.topic && options.topic !== "all") query = query.contains("topics", [options.topic]);
+    if (options.from) query = query.gte("published_at", options.from);
+    if (options.to) query = query.lte("published_at", options.to);
+    if (options.q) {
+      const term = options.q.replace(/[%,()]/g, " ").trim().slice(0, 80);
+      if (term) query = query.or(`title.ilike.%${term}%,summary.ilike.%${term}%`);
+    }
+    const { data, error } = await query;
+    if (error) throw new StoreError(error.message);
+    return (data ?? []).map(rowToItem);
+  }
+
+  const local = await loadLocal();
+  const term = options.q?.trim().toLowerCase();
+  return local.items
+    .filter((item) => Boolean(item.archivedAt) && !item.hidden)
+    .filter((item) => (options.topic && options.topic !== "all" ? item.topics.includes(options.topic as FeedItem["topics"][number]) : true))
+    .filter((item) => (term ? `${item.title} ${item.summary}`.toLowerCase().includes(term) : true))
+    .sort((a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime())
+    .slice(0, limit);
 }
 
 export async function getItem(id: string): Promise<FeedItem | null> {
@@ -120,6 +168,42 @@ export async function getItem(id: string): Promise<FeedItem | null> {
     return data ? rowToItem(data) : null;
   }
   return (await loadLocal()).items.find((i) => i.id === id) ?? null;
+}
+
+export async function applyItemIntel(
+  id: string,
+  patch: Partial<FeedItem>,
+): Promise<void> {
+  const db = getClient();
+  if (db) {
+    const row: Record<string, unknown> = {};
+    if (patch.imageUrl !== undefined) row.image_url = patch.imageUrl;
+    if (patch.imageSource !== undefined) row.image_source = patch.imageSource;
+    if (patch.imageAttribution !== undefined) row.image_attribution = patch.imageAttribution;
+    if (patch.summaryBullets !== undefined) row.summary_bullets = patch.summaryBullets;
+    if (patch.examAngle !== undefined) row.exam_angle = patch.examAngle;
+    if (patch.gsPaper !== undefined) row.gs_paper = patch.gsPaper;
+    if (patch.prelimsFact !== undefined) row.prelims_fact = patch.prelimsFact;
+    if (patch.mainsAngle !== undefined) row.mains_angle = patch.mainsAngle;
+    if (patch.syllabusHint !== undefined) row.syllabus_hint = patch.syllabusHint;
+    if (patch.indiaRelevant !== undefined) row.india_relevant = patch.indiaRelevant;
+    if (patch.aiRelevance !== undefined) row.ai_relevance = patch.aiRelevance;
+    if (patch.aiProvider !== undefined) row.ai_provider = patch.aiProvider;
+    if (patch.primaryTopic !== undefined) row.primary_topic = patch.primaryTopic;
+    if (patch.topics !== undefined) row.topics = patch.topics;
+    if (patch.examScore !== undefined) row.exam_score = patch.examScore;
+    if (patch.priority !== undefined) row.priority = patch.priority;
+    if (patch.clusterId !== undefined) row.cluster_id = patch.clusterId;
+    if (patch.url !== undefined) row.url = patch.url;
+    if (!Object.keys(row).length) return;
+    const { error } = await db.from("items").update(row).eq("id", id);
+    if (error) throw new StoreError(error.message);
+    return;
+  }
+  const data = await loadLocal();
+  const item = data.items.find((entry) => entry.id === id);
+  if (item) Object.assign(item, patch);
+  if (storeMode() !== "readonly") await saveLocal(data);
 }
 
 export async function getVotedIds(voterId: string | undefined): Promise<Set<string>> {

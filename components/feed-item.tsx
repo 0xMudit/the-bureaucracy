@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { ArrowUpRight, MessageSquare } from "lucide-react";
+import { ArticleThumb } from "@/components/article-image";
 import { ReactionBar } from "@/components/reaction-bar";
 import { SaveButton } from "@/components/save-button";
 import { ReadBadge } from "@/components/reading-loop";
@@ -148,8 +149,19 @@ export function FeedItemRow({ item, position, viewerReaction, canWrite }: FeedIt
         </div>
       </div>
 
-      <div className="shrink-0 pt-0.5">
+      <div className="flex shrink-0 flex-col items-end gap-1 pt-0.5">
         <SaveButton item={savedItem} />
+        {item.imageUrl ? (
+          <ArticleThumb src={item.imageUrl} alt={item.title} topic={item.primaryTopic} />
+        ) : null}
+        {item.clusterCount && item.clusterCount > 1 ? (
+          <span
+            className="hidden font-mono text-[8px] uppercase tracking-[0.1em] text-muted-foreground sm:block"
+            title={`${item.clusterCount} publishers covered this event`}
+          >
+            +{item.clusterCount - 1} source{item.clusterCount - 1 === 1 ? "" : "s"}
+          </span>
+        ) : null}
       </div>
     </li>
   );

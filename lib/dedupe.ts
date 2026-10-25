@@ -73,6 +73,7 @@ export function collapseDuplicates(
   const ordered = [...items].sort((a, b) => (prefers(a, b) ? -1 : prefers(b, a) ? 1 : 0));
   const kept: FeedItem[] = [];
   const keptTokens: Set<string>[] = [];
+  const counts: number[] = [];
   const seenUrls = new Set<string>();
 
   for (const item of ordered) {
@@ -81,15 +82,54 @@ export function collapseDuplicates(
     seenUrls.add(item.url);
 
     const tokens = titleTokens(item.title);
-    const duplicate = kept.some((other, index) => {
+    let duplicateIndex = -1;
+    kept.forEach((other, index) => {
+      if (duplicateIndex !== -1) return;
       const gap = Math.abs(new Date(other.publishedAt).getTime() - new Date(item.publishedAt).getTime());
-      if (gap > maxAgeMs) return false;
-      return Math.max(jaccard(tokens, keptTokens[index]), overlap(tokens, keptTokens[index])) >= threshold;
+      if (gap > maxAgeMs) return;
+      if (Math.max(jaccard(tokens, keptTokens[index]), overlap(tokens, keptTokens[index])) >= threshold) {
+        duplicateIndex = index;
+      }
     });
-    if (duplicate) continue;
+    if (duplicateIndex !== -1) {
+      counts[duplicateIndex] += 1;
+      continue;
+    }
     kept.push(item);
     keptTokens.push(tokens);
+    counts.push(1);
   }
 
-  return kept;
+  return kept.map((item, index) => ({
+    ...item,
+    clusterId: item.clusterId ?? item.id,
+    clusterCount: counts[index],
+  }));
+}
+
+/**
+ * Tag every story with the id of the cluster's strongest representative.
+ * Unlike `collapseDuplicates` this keeps duplicates, so the archive and the
+ * admin console can show that an event was reported by several publishers.
+ */
+export function assignClusters(
+  items: FeedItem[],
+  threshold = DUPLICATE_THRESHOLD,
+  maxAgeMs = 5 * 86_400_000,
+): FeedItem[] {
+  const ordered = [...items].sort((a, b) => (prefers(a, b) ? -1 : prefers(b, a) ? 1 : 0));
+  const clusters: { id: string; tokens: Set<string>; publishedAt: number }[] = [];
+
+  return ordered.map((item) => {
+    const tokens = titleTokens(item.title);
+    const publishedAt = new Date(item.publishedAt).getTime();
+    const match = clusters.find(
+      (cluster) =>
+        Math.abs(cluster.publishedAt - publishedAt) <= maxAgeMs &&
+        Math.max(jaccard(tokens, cluster.tokens), overlap(tokens, cluster.tokens)) >= threshold,
+    );
+    if (match) return { ...item, clusterId: match.id };
+    clusters.push({ id: item.id, tokens, publishedAt });
+    return { ...item, clusterId: item.id };
+  });
 }

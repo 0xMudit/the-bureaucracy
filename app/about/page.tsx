@@ -31,7 +31,7 @@ const STEPS = [
   {
     n: "04",
     title: "Rank & expire",
-    body: "Reader votes and the relevance baseline feed the ranking. Everything older than 24 hours is filtered out of queries and deleted by the next ingestion.",
+    body: "Likes, dislikes, comments and the relevance baseline feed the ranking. Everything older than 24 hours leaves the live wire and moves to the searchable archive.",
   },
 ];
 
@@ -59,7 +59,7 @@ export default function AboutPage() {
         <p>
           So this site does the opposite of an archive. It shows the last{" "}
           <strong className="font-medium">24 hours</strong>, ranked by reader attention and exam relevance. When a
-          story falls out of the window, it is gone from the feed and from the database. If it still matters
+          story falls out of the window it leaves the live feed and moves to the archive. If it still matters
           tomorrow, it will be part of a newer story.
         </p>
       </section>
@@ -77,12 +77,15 @@ export default function AboutPage() {
       <section className="mt-10 border-l-2 border-primary bg-accent/35 px-4 py-4">
         <h2 className="font-mono text-[9px] uppercase tracking-[0.16em] text-primary">The ranking</h2>
         <p className="mt-2 font-mono text-[12px] leading-relaxed text-foreground">
-          score = (points + 1) / (ageHours + 2)<sup>1.8</sup> × relevance × authority × freshness
+          signal = seed + likes + 1.35·comments − 0.55·dislikes
+          <br />
+          score = (signal + 1) / (ageHours + 2)<sup>1.8</sup> × (0.78 + 0.006·relevance) × authority × freshness
         </p>
         <ul className="mt-3 space-y-1.5 text-[12.5px] leading-relaxed text-muted-foreground">
           <li>
-            <strong className="font-medium text-foreground">points</strong> are community upvotes plus a small
-            syllabus-relevance baseline, so a useful story is visible before anyone votes.
+            <strong className="font-medium text-foreground">signal</strong> is a small syllabus-relevance seed plus
+            one like per reader, a 1.35 weight for a comment (it costs more than a tap) and a 0.55 penalty for a
+            dislike. Like and dislike are mutually exclusive per reader.
           </li>
           <li>
             <strong className="font-medium text-foreground">ageHours</strong> is the HN gravity term. A story loses
@@ -95,7 +98,9 @@ export default function AboutPage() {
         </ul>
         <p className="mt-2 text-[11.5px] leading-relaxed text-muted-foreground">
           The feed also caps how many stories one publisher can hold in the top slots, so a single newspaper cannot
-          own the front page.
+          own the front page. <strong className="font-medium text-foreground">Today&apos;s five</strong> is different:
+          it is strictly the five most syllabus-relevant stories, diversified by topic and paper, so a viral story
+          cannot push out an important policy document.
         </p>
       </section>
 

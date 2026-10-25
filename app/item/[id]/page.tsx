@@ -4,6 +4,8 @@ import { notFound } from "next/navigation";
 import { cookies } from "next/headers";
 import { ArrowLeft, ArrowUpRight, Clock, ExternalLink, Gavel, Layers, Rss, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { ArticleImage } from "@/components/article-image";
+import { BulletList } from "@/components/rich-text";
 import { ReactionBar } from "@/components/reaction-bar";
 import { CommentForm } from "@/components/comment-form";
 import { CommentThread } from "@/components/comment-thread";
@@ -169,10 +171,32 @@ export default async function ItemPage({ params, searchParams }: PageProps) {
             </div>
           </div>
 
-          <div className="mt-7 border-l-2 border-border pl-4 sm:pl-5">
-            <p className="text-[15px] leading-[1.75] text-foreground/90">
-              {item.summary ||
-                "The publisher did not include an excerpt in its feed. Open the original for the full report."}
+          <ArticleImage
+            src={item.imageUrl}
+            alt={item.title}
+            topic={item.primaryTopic}
+            source={item.source}
+            priority
+            className="mt-5 aspect-[16/9] w-full border border-border"
+          />
+
+          <div className="mt-5 border-l-2 border-border pl-4 sm:pl-5">
+            {item.summaryBullets?.length ? (
+              <>
+                <p className="mb-2 font-mono text-[8.5px] uppercase tracking-[0.18em] text-primary">
+                  The story in five lines
+                </p>
+                <BulletList bullets={item.summaryBullets} />
+              </>
+            ) : (
+              <p className="text-[15px] leading-[1.75] text-foreground/90">
+                {item.summary ||
+                  "The publisher did not include an excerpt in its feed. Open the original for the full report."}
+              </p>
+            )}
+            <p className="mt-3 flex flex-wrap items-center gap-1 font-mono text-[8.5px] uppercase tracking-[0.1em] text-muted-foreground">
+              {item.imageAttribution || item.source}
+              {item.imageUrl ? <span aria-hidden>· image: {item.imageSource ?? "publisher"}</span> : null}
             </p>
             <div className="mt-4 flex flex-wrap items-center gap-2">
               <Button asChild size="sm" variant="outline" className="rounded-sm font-mono text-[10px] uppercase tracking-[0.12em]">
@@ -196,14 +220,47 @@ export default async function ItemPage({ params, searchParams }: PageProps) {
                 <Gavel className="size-3.5 text-primary" /> Why it matters
               </h2>
               <span className="font-mono text-[9px] uppercase tracking-[0.12em] text-muted-foreground">
-                {paper} · {topic?.label ?? "General"}
+                {item.gsPaper ?? paper} · {topic?.label ?? "General"}
               </span>
             </div>
             <div className="px-4 py-4">
               <p className="text-[14px] leading-relaxed text-foreground/90">
-                {topic?.why ??
+                {item.examAngle ??
+                  topic?.why ??
                   "A general current-affairs item. Place it against a syllabus theme before you commit it to memory."}
               </p>
+
+              {(item.prelimsFact || item.mainsAngle || item.syllabusHint) && (
+                <div className="mt-4 grid gap-2 sm:grid-cols-2">
+                  {item.prelimsFact ? (
+                    <div className="border border-border bg-background px-3 py-2">
+                      <p className="font-mono text-[8.5px] uppercase tracking-[0.14em] text-primary">
+                        Likely Prelims fact
+                      </p>
+                      <p className="mt-1 text-[12.5px] leading-relaxed text-foreground/85">
+                        {item.prelimsFact}
+                      </p>
+                    </div>
+                  ) : null}
+                  {item.mainsAngle ? (
+                    <div className="border border-border bg-background px-3 py-2">
+                      <p className="font-mono text-[8.5px] uppercase tracking-[0.14em] text-primary">
+                        Mains angle
+                      </p>
+                      <p className="mt-1 text-[12.5px] leading-relaxed text-foreground/85">
+                        {item.mainsAngle}
+                      </p>
+                    </div>
+                  ) : null}
+                </div>
+              )}
+
+              {item.syllabusHint ? (
+                <p className="mt-3 flex gap-2 border-l-2 border-primary/50 pl-2.5 text-[12px] leading-relaxed text-muted-foreground">
+                  <span className="font-mono text-primary">→</span>
+                  {item.syllabusHint}
+                </p>
+              ) : null}
 
               <h3 className="mt-4 font-mono text-[9px] uppercase tracking-[0.16em] text-muted-foreground">
                 Answer hooks

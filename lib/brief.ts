@@ -41,11 +41,13 @@ function toEntry(item: FeedItem): BriefEntry {
  */
 export function briefFromItems(items: FeedItem[], desk: Desk | null, now = Date.now()): BriefEntry[] {
   const fresh = freshItems(items, now);
-  let pool = buildFeed(fresh, { sort: "top", limit: 120, minScore: FEED_MIN_SCORE }, now, desk);
+  // "Today's five" is strictly the five most syllabus-relevant stories, not
+  // the five with the most likes. Reader signals still decide the wire below.
+  let pool = buildFeed(fresh, { sort: "best", limit: 120, minScore: FEED_MIN_SCORE }, now, desk);
   // A quiet wire must still have a finish line today. Relax the floor rather
   // than hand a reader an empty brief, and never relax it below background.
   if (pool.length < BRIEF_SIZE) {
-    const relaxed = buildFeed(fresh, { sort: "top", limit: 120, minScore: 25 }, now, desk);
+    const relaxed = buildFeed(fresh, { sort: "best", limit: 120, minScore: 25 }, now, desk);
     if (relaxed.length > pool.length) pool = relaxed;
   }
   if (!pool.length) return [];
@@ -73,11 +75,6 @@ export function briefFromItems(items: FeedItem[], desk: Desk | null, now = Date.
     sourceCount.set(source, (sourceCount.get(source) ?? 0) + 1);
     return true;
   };
-
-  // Lead with a primary document when one is close to the top: a gazette
-  // notification or judgment is the strongest "this is for the exam" signal.
-  const official = pool.slice(0, 15).find((item) => item.sourceTier === "official");
-  if (official) tryTake(official, false);
 
   for (const item of pool) {
     if (chosen.length >= BRIEF_SIZE) break;

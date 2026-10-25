@@ -32,6 +32,7 @@ const LINKS = [
   { href: "/syllabus", label: "Syllabus map" },
   { href: "/optional", label: "Optional subjects" },
   { href: "/following", label: "Following" },
+  { href: "/archive", label: "Archive" },
   { href: "/saved", label: "Saved" },
   { href: "/about", label: "How ranking works" },
 ];

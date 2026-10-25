@@ -82,6 +82,7 @@ export function toFeedItem(raw: RawItem, sourceId: string, now = new Date()): Fe
     points: 0,
     seedPoints: seedPoints(analysis.examScore),
     commentCount: 0,
+    imageUrl: raw.imageUrl ?? null,
   };
 }
 

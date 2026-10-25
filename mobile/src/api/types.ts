@@ -43,6 +43,20 @@ export interface FeedItem {
   points: number;
   seedPoints: number;
   commentCount: number;
+  likeCount?: number;
+  dislikeCount?: number;
+  imageUrl?: string | null;
+  imageSource?: string | null;
+  imageAttribution?: string | null;
+  summaryBullets?: string[];
+  examAngle?: string | null;
+  gsPaper?: string | null;
+  prelimsFact?: string | null;
+  mainsAngle?: string | null;
+  syllabusHint?: string | null;
+  indiaRelevant?: boolean;
+  clusterCount?: number;
+  reaction?: "like" | "dislike" | null;
   /** 1-based position in the ranked feed. */
   position?: number;
   rankScore?: number;

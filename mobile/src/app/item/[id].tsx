@@ -14,6 +14,7 @@ import {
 } from "lucide-react-native";
 import React, { useCallback, useEffect } from "react";
 import {
+  Image,
   Linking,
   Pressable,
   RefreshControl,
@@ -248,6 +249,22 @@ export default function StoryScreen() {
             </View>
           </View>
 
+          {item.imageUrl ? (
+            <Image
+              source={{ uri: item.imageUrl }}
+              style={{
+                width: "100%",
+                aspectRatio: 16 / 9,
+                marginTop: spacing.lg,
+                borderWidth: StyleSheet.hairlineWidth,
+                borderColor: colors.border,
+                backgroundColor: colors.muted,
+              }}
+              resizeMode="cover"
+              accessibilityLabel={item.title}
+            />
+          ) : null}
+
           <View
             style={{
               marginTop: spacing.lg,
@@ -256,10 +273,45 @@ export default function StoryScreen() {
               paddingLeft: spacing.md,
             }}
           >
-            <Text style={[typography.body, { color: colors.foreground }]}>
-              {item.summary ||
-                "The publisher did not include an excerpt in its feed. Open the original for the full report."}
-            </Text>
+            {item.summaryBullets?.length ? (
+              <View style={{ gap: 7 }}>
+                <Text style={[typography.tag, { color: colors.primary, fontSize: 8.5 }]}>
+                  The story in five lines
+                </Text>
+                {item.summaryBullets.map((bullet, index) => (
+                  <View key={`${index}-${bullet.slice(0, 16)}`} style={{ flexDirection: "row", gap: 7 }}>
+                    <View
+                      style={{
+                        width: 4,
+                        height: 4,
+                        marginTop: 8,
+                        backgroundColor: colors.primary,
+                      }}
+                    />
+                    <Text style={[typography.body, { color: colors.foreground, flex: 1 }]}>
+                      {bullet.split(/(\*\*[^*]+\*\*)/g).map((part, partIndex) =>
+                        part.startsWith("**") && part.endsWith("**") ? (
+                          <Text key={partIndex} style={{ fontWeight: "700" }}>
+                            {part.slice(2, -2)}
+                          </Text>
+                        ) : (
+                          <Text key={partIndex}>{part}</Text>
+                        ),
+                      )}
+                    </Text>
+                  </View>
+                ))}
+                <Text style={[typography.tag, { color: colors.mutedForeground, fontSize: 8 }]}>
+                  {item.imageAttribution || item.source}
+                  {item.imageUrl ? ` · image: ${item.imageSource ?? "publisher"}` : ""}
+                </Text>
+              </View>
+            ) : (
+              <Text style={[typography.body, { color: colors.foreground }]}>
+                {item.summary ||
+                  "The publisher did not include an excerpt in its feed. Open the original for the full report."}
+              </Text>
+            )}
             <View style={{ marginTop: spacing.md, flexDirection: "row", alignItems: "center", gap: spacing.sm }}>
               <ActionButton
                 label={`Read at ${item.source}`}
@@ -296,9 +348,66 @@ export default function StoryScreen() {
             }
           >
             <Text style={[typography.summary, { color: colors.foreground, lineHeight: 21 }]}>
-              {topic?.why ??
+              {item.examAngle ??
+                topic?.why ??
                 "A general current-affairs item. Place it against a syllabus theme before you commit it to memory."}
             </Text>
+
+            {item.gsPaper ? (
+              <Text style={[typography.tag, { color: colors.primary, fontSize: 8.5, marginTop: spacing.sm }]}>
+                {item.gsPaper}
+              </Text>
+            ) : null}
+
+            {item.prelimsFact ? (
+              <View
+                style={{
+                  marginTop: spacing.md,
+                  borderWidth: StyleSheet.hairlineWidth,
+                  borderColor: colors.border,
+                  padding: spacing.sm,
+                }}
+              >
+                <Text style={[typography.tag, { color: colors.primary, fontSize: 8 }]}>Likely Prelims fact</Text>
+                <Text style={[typography.summary, { color: colors.foreground, marginTop: 3, lineHeight: 19 }]}>
+                  {item.prelimsFact}
+                </Text>
+              </View>
+            ) : null}
+
+            {item.mainsAngle ? (
+              <View
+                style={{
+                  marginTop: spacing.sm,
+                  borderWidth: StyleSheet.hairlineWidth,
+                  borderColor: colors.border,
+                  padding: spacing.sm,
+                }}
+              >
+                <Text style={[typography.tag, { color: colors.primary, fontSize: 8 }]}>Mains angle</Text>
+                <Text style={[typography.summary, { color: colors.foreground, marginTop: 3, lineHeight: 19 }]}>
+                  {item.mainsAngle}
+                </Text>
+              </View>
+            ) : null}
+
+            {item.syllabusHint ? (
+              <Text
+                style={[
+                  typography.summary,
+                  {
+                    color: colors.mutedForeground,
+                    marginTop: spacing.sm,
+                    borderLeftWidth: 2,
+                    borderLeftColor: colors.primary,
+                    paddingLeft: spacing.sm,
+                    lineHeight: 19,
+                  },
+                ]}
+              >
+                {item.syllabusHint}
+              </Text>
+            ) : null}
 
             <Text
               style={[

@@ -138,7 +138,18 @@ export interface FeedItem {
   imageAttribution?: string | null;
   summaryBullets?: string[];
   examAngle?: string | null;
+  gsPaper?: string | null;
+  prelimsFact?: string | null;
+  mainsAngle?: string | null;
+  syllabusHint?: string | null;
+  indiaRelevant?: boolean;
+  aiRelevance?: number | null;
+  aiProvider?: string | null;
+  pinned?: boolean;
+  hidden?: boolean;
   clusterId?: string | null;
+  /** How many near-identical stories from other publishers were merged. */
+  clusterCount?: number;
   archivedAt?: string | null;
 }
 

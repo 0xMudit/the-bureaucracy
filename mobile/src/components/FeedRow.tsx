@@ -1,6 +1,6 @@
 import { MessageSquare } from "lucide-react-native";
 import React from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Image, Pressable, StyleSheet, Text, View } from "react-native";
 import type { FeedItem } from "@/api/types";
 import { timeAgo } from "@/lib/time";
 import { SaveButton } from "./SaveButton";
@@ -111,6 +111,21 @@ export function FeedRow({
           >
             {item.summary}
           </Text>
+        ) : null}
+
+        {item.imageUrl ? (
+          <Image
+            source={{ uri: item.imageUrl }}
+            style={{
+              width: "100%",
+              height: 132,
+              marginTop: 8,
+              borderRadius: 8,
+              backgroundColor: colors.muted,
+            }}
+            resizeMode="cover"
+            accessibilityLabel=""
+          />
         ) : null}
 
         <View

@@ -11,6 +11,7 @@ const SECTIONS = [
   { href: "/syllabus", label: "Syllabus" },
   { href: "/optional", label: "Optionals" },
   { href: "/brief", label: "Daily brief" },
+  { href: "/archive", label: "Archive" },
   { href: "/saved", label: "Saved" },
   { href: "/subscribe", label: "Email" },
   { href: "/submit", label: "Submit" },
@@ -102,7 +103,7 @@ export function SiteFooter() {
           <span>
             © {new Date().getFullYear()} {SITE.name} · Built by {SITE.author}
           </span>
-          <span>/ search · j k move · o open · v vote · s save</span>
+          <span>/ search · j k move · o open · l like · d dislike · c comment · s save</span>
         </div>
       </div>
     </footer>
