@@ -433,8 +433,8 @@ export default async function AdminPage() {
       </section>
 
       <p className="mt-4 font-mono text-[8.5px] uppercase leading-relaxed tracking-[0.1em] text-muted-foreground">
-        Visits are stored without IP addresses — a rotating browser id, the path and the referrer. Analytics are
-        pruned with the rest of the wire.
+        Visits are stored without IP addresses — a rotating browser id, the path and the referrer. Visits are
+        deleted after 90 days, login events after 180, and the limiter keeps only live counters.
       </p>
     </div>
   );

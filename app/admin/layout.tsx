@@ -37,7 +37,11 @@ export default async function AdminLayout({ children }: { children: React.ReactN
     <>
       <div className="border-b border-border bg-card/70">
         <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-2 px-4 py-2 sm:px-6">
-          <AdminNav canViewUsers={userCan(user, "user.view")} canViewAudit={userCan(user, "audit.view")} />
+          <AdminNav
+            canViewUsers={userCan(user, "user.view")}
+            canViewAudit={userCan(user, "audit.view")}
+            canModerate={userCan(user, "comment.moderate")}
+          />
           <p className="font-mono text-[8.5px] uppercase tracking-[0.12em] text-muted-foreground">
             {user.name} · <span className="text-foreground">{roleLabel(user.role)}</span>
           </p>

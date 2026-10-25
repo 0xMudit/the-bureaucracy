@@ -140,6 +140,7 @@ export async function listComments(itemId: string): Promise<Comment[]> {
       .from("comments")
       .select("*")
       .eq("item_id", itemId)
+      .is("hidden_at", null)
       .order("created_at", { ascending: true })
       .limit(500);
     if (error) throw new StoreError(error.message);
@@ -192,9 +193,11 @@ export async function upsertItems(items: FeedItem[]): Promise<{ inserted: number
 export async function pruneOlderThan(cutoffIso: string): Promise<number> {
   const db = getClient();
   if (db) {
-    const { data, error } = await db.from("items").delete().lt("published_at", cutoffIso).select("id");
+    // tb_prune removes expired stories and also applies telemetry retention
+    // (visits, login events, limiter rows) in the same round trip.
+    const { data, error } = await db.rpc("tb_prune", { cutoff: cutoffIso });
     if (error) throw new StoreError(error.message);
-    return data?.length ?? 0;
+    return Number(data ?? 0);
   }
   const data = await loadLocal();
   const before = data.items.length;

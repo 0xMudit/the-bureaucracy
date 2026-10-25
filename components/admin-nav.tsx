@@ -6,16 +6,26 @@ import { cn } from "@/lib/utils";
 
 const ITEMS = [
   { href: "/admin", label: "Overview", exact: true },
+  { href: "/admin/comments", label: "Moderation", permission: "moderate" as const },
   { href: "/admin/users", label: "Accounts", permission: "users" as const },
   { href: "/admin/audit", label: "Audit", permission: "audit" as const },
 ];
 
-export function AdminNav({ canViewUsers, canViewAudit }: { canViewUsers: boolean; canViewAudit: boolean }) {
+export function AdminNav({
+  canViewUsers,
+  canViewAudit,
+  canModerate,
+}: {
+  canViewUsers: boolean;
+  canViewAudit: boolean;
+  canModerate: boolean;
+}) {
   const pathname = usePathname();
 
   return (
     <nav aria-label="Admin" className="flex flex-wrap items-center gap-1">
       {ITEMS.filter((item) => {
+        if (item.permission === "moderate") return canModerate;
         if (item.permission === "users") return canViewUsers;
         if (item.permission === "audit") return canViewAudit;
         return true;

@@ -37,7 +37,8 @@
     "auth:smtp": "tsx scripts/check-mail.ts",
     "db:start": "npx supabase start",
     "db:push": "npx supabase db push",
-    "db:reset": "npx supabase db reset"
+    "db:reset": "npx supabase db reset",
+    "db:snapshot": "tsx scripts/build-schema.ts"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.7",

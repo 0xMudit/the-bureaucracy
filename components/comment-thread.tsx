@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { CommentForm } from "@/components/comment-form";
+import { ReportButton } from "@/components/report-button";
 import type { CommentNode } from "@/lib/types";
 import { timeAgo } from "@/lib/utils";
 
@@ -17,6 +18,7 @@ function Node({
   itemId,
   authorName,
   canComment,
+  canReport,
   loginHref,
   depth,
 }: {
@@ -24,6 +26,7 @@ function Node({
   itemId: string;
   authorName?: string;
   canComment: boolean;
+  canReport: boolean;
   loginHref: string;
   depth: number;
 }) {
@@ -42,25 +45,28 @@ function Node({
         <p className="mt-1.5 whitespace-pre-wrap break-words pl-8 text-[13.5px] leading-relaxed text-foreground/90">
           {node.body}
         </p>
-        {depth < 4 ? (
-          canComment ? (
-            <details className="group ml-8 mt-1">
-              <summary className="cursor-pointer list-none font-mono text-[9px] uppercase tracking-[0.12em] text-muted-foreground hover:text-primary">
-                Reply
-              </summary>
-              <div className="mt-2 border-l-2 border-border pl-3">
-                <CommentForm itemId={itemId} parentId={node.id} authorName={authorName} compact />
-              </div>
-            </details>
-          ) : (
-            <Link
-              href={loginHref}
-              className="ml-8 mt-1 inline-flex font-mono text-[9px] uppercase tracking-[0.12em] text-muted-foreground hover:text-primary"
-            >
-              Log in to reply
-            </Link>
-          )
-        ) : null}
+        <div className="ml-8 mt-1 flex flex-wrap items-center gap-x-4 gap-y-1">
+          {depth < 4 ? (
+            canComment ? (
+              <details className="open:w-full">
+                <summary className="cursor-pointer list-none font-mono text-[9px] uppercase tracking-[0.12em] text-muted-foreground hover:text-primary">
+                  Reply
+                </summary>
+                <div className="mt-2 border-l-2 border-border pl-3">
+                  <CommentForm itemId={itemId} parentId={node.id} authorName={authorName} compact />
+                </div>
+              </details>
+            ) : (
+              <Link
+                href={loginHref}
+                className="inline-flex font-mono text-[9px] uppercase tracking-[0.12em] text-muted-foreground hover:text-primary"
+              >
+                Log in to reply
+              </Link>
+            )
+          ) : null}
+          {canReport ? <ReportButton commentId={node.id} /> : null}
+        </div>
       </article>
       {node.children.length ? (
         <ul className="ml-3 sm:ml-4">
@@ -71,6 +77,7 @@ function Node({
               itemId={itemId}
               authorName={authorName}
               canComment={canComment}
+              canReport={canReport}
               loginHref={loginHref}
               depth={depth + 1}
             />
@@ -86,12 +93,14 @@ export function CommentThread({
   itemId,
   authorName,
   canComment,
+  canReport,
   loginHref,
 }: {
   nodes: CommentNode[];
   itemId: string;
   authorName?: string;
   canComment: boolean;
+  canReport: boolean;
   loginHref: string;
 }) {
   if (!nodes.length) {
@@ -110,6 +119,7 @@ export function CommentThread({
           itemId={itemId}
           authorName={authorName}
           canComment={canComment}
+          canReport={canReport}
           loginHref={loginHref}
           depth={0}
         />

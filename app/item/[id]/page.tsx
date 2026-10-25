@@ -268,6 +268,7 @@ export default async function ItemPage({ params, searchParams }: PageProps) {
                 itemId={item.id}
                 authorName={user?.name}
                 canComment={Boolean(user) && canWrite()}
+                canReport={canWrite()}
                 loginHref={`/login?next=${encodeURIComponent(`/item/${item.id}#discussion`)}`}
               />
             </div>

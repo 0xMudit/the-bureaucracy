@@ -28,8 +28,8 @@ npm run db:reset       # replay migrations on a clean local database
 ```
 
 The SQL-editor path still works: paste [`supabase/schema.sql`](../supabase/schema.sql) (a single-file snapshot
-of the migrations) and then any migration newer than the snapshot, in order. If the two disagree, the
-migrations win.
+generated from the migrations) into a fresh project. It is generated, not hand-maintained: run
+`npm run db:snapshot` after adding a migration so the two can never drift.
 
 What the migrations create:
 
@@ -40,6 +40,8 @@ What the migrations create:
 | `20261024000002_accounts` | `tb_profiles`, `tb_visits`, `tb_login_events`, new-user trigger, `comments.author_id`. |
 | `20261024000003_roles_admin` | `reader`/`editor`/`admin` roles, suspension status, `verified_at`, `tb_admin_events`. |
 | `20261024000004_auth_hardening` | Profile backfill, email sync trigger, `updated_at`. |
+| `20261024000005_rate_limit_and_vote_atomicity` | Shared `rate_limits` + `tb_rate_limit`, race-free `tb_vote`, indexes. |
+| `20261025000006_moderation_and_retention` | Hidden comments, `comment_reports`, `tb_moderate_comment`, 90-day telemetry retention. |
 
 ## 3. Point auth at the deployment
 
