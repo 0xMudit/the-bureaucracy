@@ -93,6 +93,8 @@ unauthenticated; it exposes nothing beyond what the feed already shows.
   (`db.error` says which).
 - `wire.stale` is a warning, not a failure: no story in six hours usually means a quiet news day, but it
   can also mean ingestion stopped. The monitor prints it in the run summary.
+- `commit` is the first 12 characters of the deployed git SHA when Vercel built from a Git push. A CLI
+  upload carries no git metadata, so the field is `null` there.
 
 `cache-control: no-store`, `x-robots-tag: noindex`.
 

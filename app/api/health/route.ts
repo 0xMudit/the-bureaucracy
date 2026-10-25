@@ -24,7 +24,9 @@ export async function GET() {
   } = {
     status: "degraded",
     time: new Date().toISOString(),
-    commit: process.env.VERCEL_GIT_COMMIT_SHA?.slice(0, 12) ?? null,
+    // Empty on CLI deploys, which carry no git metadata; report null rather
+    // than an empty string so the probe summary says "unknown".
+    commit: process.env.VERCEL_GIT_COMMIT_SHA?.slice(0, 12) || null,
     db: { ok: false, latencyMs: 0 },
     wire: { latest: null, ageMinutes: null, stale: null },
   };
