@@ -24,7 +24,7 @@ npm run check
 
 ## Checklist
 
-- [ ] I read [CONTRIBUTING.md](../CONTRIBUTING.md) and kept this PR to one concern.
+- [ ] I read [CONTRIBUTING.md](https://github.com/0xMudit/the-bureaucracy/blob/main/CONTRIBUTING.md) and kept this PR to one concern.
 - [ ] `npm run check` passes.
 - [ ] I updated the relevant page in `docs/` (and `CHANGELOG.md` for user-visible changes).
 - [ ] I did not commit `.env.local`, keys, tokens or personal data.

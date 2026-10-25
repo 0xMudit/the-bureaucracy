@@ -16,6 +16,7 @@ A Hacker News-style 24-hour radar for UPSC and state PSC aspirants.</p>
 
 <p align="center">
   <a href="LICENSE"><img alt="MIT licence" src="https://img.shields.io/badge/licence-MIT-black" /></a>
+  <a href="https://github.com/0xMudit/the-bureaucracy/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/0xMudit/the-bureaucracy/actions/workflows/ci.yml/badge.svg" /></a>
   <img alt="Next.js 16" src="https://img.shields.io/badge/Next.js-16-black" />
   <img alt="React 19" src="https://img.shields.io/badge/React-19-black" />
   <img alt="Supabase" src="https://img.shields.io/badge/Supabase-Postgres-3ecf8e" />
