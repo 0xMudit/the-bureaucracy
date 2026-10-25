@@ -1,0 +1,91 @@
+name: Bug report
+description: Something is broken — a feed, a page, auth, ingestion or the database.
+title: "bug: "
+labels: ["bug", "needs triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for the report. Please **do not** include secrets, service-role keys, `.env.local` contents or
+        personal data. Security problems belong in [SECURITY.md](../blob/main/SECURITY.md), not here.
+
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: A clear description of the bug, including the URL or route.
+      placeholder: On /item/abc123 the comment box stays disabled after signing in.
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: What did you expect?
+      placeholder: The comment box should accept text and post the comment.
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Go to /submit and sign in
+        2. Open a story
+        3. Type a comment and submit
+    validations:
+      required: true
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - Feed / ranking / taxonomy
+        - Ingestion / sources
+        - Auth / accounts / roles
+        - Comments / votes / saving
+        - Admin desk
+        - Database / migrations
+        - Deployment / scheduling
+        - Documentation
+        - Other
+    validations:
+      required: true
+
+  - type: dropdown
+    id: store
+    attributes:
+      label: Which store are you running?
+      options:
+        - Local JSON store (no Supabase)
+        - Supabase (local)
+        - Supabase (hosted)
+        - Not sure
+    validations:
+      required: true
+
+  - type: input
+    id: environment
+    attributes:
+      label: Environment
+      description: OS, Node version, browser. Redact anything private.
+      placeholder: Windows 11, Node 24.19, Chrome 141
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant logs or screenshots
+      description: Server output, browser console, the JSON returned by /api/ingest, screenshots.
+      render: shell
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Before submitting
+      options:
+        - label: I searched existing issues and this is not a duplicate.
+          required: true
+        - label: I removed secrets, tokens and personal data from this report.
+          required: true

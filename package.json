@@ -3,13 +3,40 @@
   "version": "1.0.0",
   "private": true,
   "description": "A Hacker News-style, syllabus-aware 24-hour news radar for UPSC and state PSC aspirants.",
+  "license": "MIT",
+  "homepage": "https://the-bureaucracy.vercel.app",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/0xMudit/the-bureaucracy.git"
+  },
+  "bugs": {
+    "url": "https://github.com/0xMudit/the-bureaucracy/issues"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "keywords": [
+    "upsc",
+    "current-affairs",
+    "news-aggregator",
+    "nextjs",
+    "supabase",
+    "civil-services"
+  ],
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
     "typecheck": "tsc --noEmit",
+    "check": "npm run typecheck && npm run build",
     "seed": "tsx scripts/seed.ts",
-    "ingest": "tsx scripts/seed.ts"
+    "ingest": "tsx scripts/seed.ts",
+    "auth:email": "tsx scripts/apply-auth-email.ts",
+    "auth:admins": "tsx scripts/sync-admins.ts",
+    "auth:doctor": "tsx scripts/auth-doctor.ts",
+    "db:start": "npx supabase start",
+    "db:push": "npx supabase db push",
+    "db:reset": "npx supabase db reset"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.7",

@@ -1,22 +1,46 @@
+# dependencies
 node_modules
+
+# next.js
 .next
 out
 build
-.DS_Store
+next-env.d.ts
+*.tsbuildinfo
+
+# env & secrets
+.env
+.env*.local
+.supabase-db-password
+supabase/.temp
 *.pem
+
+# local state (SQLite / JSON store created by `npm run seed`)
+.data
+
+# deployment tooling
+.vercel
+
+# editor / OS
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+
+# agent & browser tooling (local only)
+.gstack/
+.freebuff/
+
+# logs
+*.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
-.env
-.env*.local
-.vercel
-.supabase-db-password
-supabase/.temp
-.data
-next-env.d.ts
-*.tsbuildinfo
 
+# previous prototype, kept on disk for reference only
 .legacy/
 
 ReviewPaperonRecommendationSystems.pdf

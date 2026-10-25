@@ -1,6 +1,15 @@
--- The Bureaucracy · Supabase schema
--- Run once in the SQL editor (or `supabase db push`). All access goes through
--- the service role on the server; the browser never talks to these tables.
+-- The Bureaucracy · Supabase schema (single-file snapshot)
+--
+-- SOURCE OF TRUTH: supabase/migrations/*.sql. This snapshot exists for the
+-- SQL-editor install path and for reading the schema in one file. It must stay
+-- equivalent to running every migration in filename order.
+--
+-- Fresh project:  npx supabase db push      (recommended — applies migrations)
+-- SQL editor:     paste this file once, then the migrations that are newer
+--                 than the snapshot, in filename order.
+--
+-- All access goes through the service role on the server; the browser never
+-- talks to these tables.
 
 create extension if not exists pgcrypto;
 

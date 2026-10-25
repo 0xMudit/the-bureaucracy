@@ -1,0 +1,82 @@
+name: Feature request
+description: Propose a feature, a source, or a change to the taxonomy or ranking.
+title: "feat: "
+labels: ["enhancement", "needs triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        The 24-hour window is the product. Features that quietly create an archive need a deliberate design
+        discussion first — say how your idea respects the window.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: What problem does this solve?
+      description: Describe the exam or reader problem, not the implementation.
+      placeholder: I read the wire on my phone on a train and lose the saved list when the signal drops.
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution
+      description: What should happen? Include the route, query parameter or UI surface if you have one in mind.
+    validations:
+      required: true
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - Feed / ranking / taxonomy
+        - Ingestion / sources
+        - Auth / accounts / roles
+        - Comments / votes / saving
+        - Admin desk
+        - Database / migrations
+        - Deployment / scheduling
+        - Accessibility / internationalisation
+        - Documentation / developer experience
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: What else did you try or consider? Why is this better?
+
+  - type: dropdown
+    id: cost
+    attributes:
+      label: Running cost
+      description: Would this add a paid service, a background job, or significant database work?
+      options:
+        - No new cost — uses the existing stack
+        - Small — a free tier or a few queries per request
+        - Significant — paid API, email/SMS volume, or heavy compute
+        - Not sure
+
+  - type: textarea
+    id: scope
+    attributes:
+      label: Scope and acceptance criteria
+      description: How would we know it is done? List the behaviours a reviewer should check.
+      placeholder: |
+        - [ ] Search returns ranked results for a two-word phrase
+        - [ ] Works with an empty wire
+        - [ ] Documented in docs/api.md
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Before submitting
+      options:
+        - label: I searched existing issues and the roadmap in docs/roadmap.md.
+          required: true
+        - label: I understand features must not create a permanent archive.
+          required: true

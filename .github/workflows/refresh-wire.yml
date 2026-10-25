@@ -1,4 +1,4 @@
-name: Ingest the wire
+name: Refresh the wire
 
 on:
   schedule:
@@ -15,6 +15,10 @@ concurrency:
 
 jobs:
   ingest:
+    # Only the upstream deployment should call its own ingest endpoint. Without
+    # this guard every fork would run the schedule and mail failures forever.
+    # Forking? Change the repository below to your own, or disable this workflow.
+    if: github.repository == '0xMudit/the-bureaucracy'
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
