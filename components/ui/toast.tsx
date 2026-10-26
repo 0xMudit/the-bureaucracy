@@ -22,8 +22,9 @@ function ToastViewport({ className, ...props }: ToastPrimitive.Viewport.Props) {
     <ToastPrimitive.Viewport
       data-slot="toast-viewport"
       className={cn(
-        // Top-left, under the sticky masthead (0.5px rule + brand row + nav row).
-        "pointer-events-none fixed left-3 top-[5.75rem] z-[100] flex w-[calc(100vw-1.5rem)] max-w-sm flex-col gap-2.5 outline-none sm:left-6 sm:top-[6.5rem]",
+        // Bottom-right, clear of the last column so it never covers the reading edge.
+        // Insets (not 100vw) so a classic scrollbar can't push the toast off-screen.
+        "pointer-events-none fixed right-3 bottom-3 left-3 z-[100] flex flex-col-reverse gap-2.5 outline-none sm:right-6 sm:bottom-6 sm:left-auto sm:w-96",
         className,
       )}
       {...props}
@@ -36,10 +37,10 @@ function Toast({ className, ...props }: ToastPrimitive.Root.Props) {
     <ToastPrimitive.Root
       data-slot="toast"
       className={cn(
-        "group/toast pointer-events-auto relative w-full origin-top rounded-xl border border-border bg-popover text-popover-foreground shadow-lg shadow-foreground/5 outline-none select-none",
+        "group/toast pointer-events-auto relative w-full origin-bottom rounded-xl border border-border bg-popover text-popover-foreground shadow-lg shadow-foreground/5 outline-none select-none",
         "[transform:translateX(var(--toast-swipe-movement-x))_translateY(var(--toast-swipe-movement-y))]",
         "transition-[transform,opacity] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)]",
-        "data-starting-style:opacity-0 data-starting-style:[transform:translateY(-0.75rem)]",
+        "data-starting-style:opacity-0 data-starting-style:[transform:translateY(0.75rem)]",
         "data-ending-style:opacity-0",
         "data-ending-style:data-[swipe-direction=up]:[transform:translateY(calc(var(--toast-swipe-movement-y)-150%))]",
         "data-ending-style:data-[swipe-direction=down]:[transform:translateY(calc(var(--toast-swipe-movement-y)+150%))]",
