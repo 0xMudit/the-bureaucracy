@@ -470,10 +470,11 @@ export async function premiumView(
  *
  * The free Groq tier is metered per minute and per day, and the free article
  * intel draws from the same account. A token budget for the last 24 hours keeps
- * a busy wire from starving the free tier; when the budget is spent, paid
- * readers still generate on demand, just not ahead of time.
+ * a busy wire from starving the free tier — 120k of the 200k daily tokens,
+ * leaving room for the brief and for on-demand packs. When the budget is
+ * spent, paid readers still generate on demand, just not ahead of time.
  */
-const DEFAULT_DAILY_TOKEN_BUDGET = 220_000;
+const DEFAULT_DAILY_TOKEN_BUDGET = 120_000;
 
 export async function backfillPremiumPacks(limit = 3): Promise<{
   generated: number;
