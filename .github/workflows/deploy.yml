@@ -30,8 +30,8 @@ jobs:
           node-version-file: .nvmrc
           cache: npm
 
-      # Keeps the run green (with a visible notice) until the token is added,
-      # so the first push of this workflow doesn't fail red for no reason.
+      # Guards against a missing or empty secret: an unset token would otherwise
+      # fail the deploy step with an opaque auth error.
       - name: Check for deploy token
         id: token
         env:
