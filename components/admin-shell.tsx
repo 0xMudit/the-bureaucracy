@@ -29,6 +29,7 @@ import {
   SidebarMenuItem,
   SidebarProvider,
   SidebarTrigger,
+  useSidebar,
 } from "@/components/ui/sidebar";
 import { cn } from "@/lib/utils";
 
@@ -41,22 +42,28 @@ interface AdminShellProps {
   children: React.ReactNode;
 }
 
-const ANALYTICS_LINKS = [
+type LinkDef = {
+  href: string;
+  label: string;
+  icon: React.ComponentType<{ className?: string }>;
+  exact?: boolean;
+  permission?: string;
+};
+
+const ANALYTICS_LINKS: LinkDef[] = [
   { href: "/admin", label: "Analytics", icon: BarChart3, exact: true },
 ];
 
-const OPERATIONS_LINKS = [
-  { href: "/admin/users", label: "Accounts", icon: Users, permission: "users" },
-  { href: "/admin/comments", label: "Moderation", icon: MessageSquare, permission: "moderate" },
-  { href: "/admin/ingestion", label: "Ingestion", icon: Rss },
-  { href: "/admin/llm", label: "LLM jobs", icon: Bot },
-  { href: "/admin/push", label: "Push campaigns", icon: Bell },
-  { href: "/admin/content", label: "Content", icon: FileText },
-  { href: "/admin/settings", label: "Settings", icon: Settings },
-  { href: "/admin/audit", label: "Audit log", icon: ScrollText, permission: "audit" },
+const OPERATIONS_LINKS: LinkDef[] = [
+  { href: "/admin/users",     label: "Accounts",   icon: Users,         permission: "users"    },
+  { href: "/admin/comments",  label: "Moderation", icon: MessageSquare, permission: "moderate" },
+  { href: "/admin/ingestion", label: "Ingestion",  icon: Rss                                   },
+  { href: "/admin/llm",       label: "LLM jobs",   icon: Bot                                   },
+  { href: "/admin/push",      label: "Push",       icon: Bell                                  },
+  { href: "/admin/content",   label: "Content",    icon: FileText                              },
+  { href: "/admin/settings",  label: "Settings",   icon: Settings                              },
+  { href: "/admin/audit",     label: "Audit log",  icon: ScrollText,    permission: "audit"    },
 ];
-
-type LinkDef = (typeof ANALYTICS_LINKS)[number] | (typeof OPERATIONS_LINKS)[number];
 
 export function AdminShell({
   roleLabel,
@@ -68,31 +75,22 @@ export function AdminShell({
 }: AdminShellProps) {
   const pathname = usePathname();
 
-  const visibleOps = OPERATIONS_LINKS.filter((link) => {
-    if ("permission" in link && link.permission === "users") return canViewUsers;
-    if ("permission" in link && link.permission === "audit") return canViewAudit;
-    if ("permission" in link && link.permission === "moderate") return canModerate;
+  const visibleOps: LinkDef[] = OPERATIONS_LINKS.filter((link) => {
+    if (link.permission === "users")    return canViewUsers;
+    if (link.permission === "audit")    return canViewAudit;
+    if (link.permission === "moderate") return canModerate;
     return true;
   });
 
-  const allVisible = [...ANALYTICS_LINKS, ...visibleOps];
+  const allLinks: LinkDef[] = [...ANALYTICS_LINKS, ...visibleOps];
 
   return (
     <SidebarProvider>
-      <div className="flex min-h-[calc(100dvh-6rem)] w-full">
+      <div className="flex min-h-[calc(100dvh-5.5rem)] w-full overflow-hidden">
+        {/* ── Left sidebar (desktop) ─────────────────────────────────────── */}
         <Sidebar>
           <SidebarHeader>
-            <Link href="/admin" className="flex items-center gap-2 px-1 py-1">
-              <span className="flex size-7 shrink-0 items-center justify-center rounded-md bg-primary text-primary-foreground">
-                <ShieldCheck className="size-3.5" />
-              </span>
-              <span className="min-w-0 group-data-[state=collapsed]/sidebar:hidden">
-                <span className="block truncate font-display text-lg leading-none">The desk</span>
-                <span className="mt-0.5 block font-mono text-[8px] uppercase tracking-[0.14em] text-muted-foreground">
-                  Operations
-                </span>
-              </span>
-            </Link>
+            <SidebarWordmark />
           </SidebarHeader>
 
           <SidebarContent>
@@ -100,7 +98,7 @@ export function AdminShell({
               <SidebarGroupLabel>Analytics</SidebarGroupLabel>
               <SidebarMenu>
                 {ANALYTICS_LINKS.map((link) => (
-                  <MenuLink key={link.href} link={link} pathname={pathname} />
+                  <NavItem key={link.href} link={link} pathname={pathname} />
                 ))}
               </SidebarMenu>
             </SidebarGroup>
@@ -109,47 +107,45 @@ export function AdminShell({
               <SidebarGroupLabel>Operations</SidebarGroupLabel>
               <SidebarMenu>
                 {visibleOps.map((link) => (
-                  <MenuLink key={link.href} link={link} pathname={pathname} />
+                  <NavItem key={link.href} link={link} pathname={pathname} />
                 ))}
               </SidebarMenu>
             </SidebarGroup>
           </SidebarContent>
 
           <SidebarFooter>
-            <Link
-              href="/"
-              className="flex items-center gap-2 rounded-md px-2 py-1.5 font-mono text-[9px] uppercase tracking-[0.1em] text-muted-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
-            >
-              <ExternalLink className="size-3.5 shrink-0" />
-              <span className="group-data-[state=collapsed]/sidebar:hidden">Open the wire</span>
-            </Link>
+            <SidebarMenuButton asChild tooltip="Back to the wire">
+              <Link href="/" className="text-sidebar-foreground/60">
+                <ExternalLink className="size-4 shrink-0" />
+                <span>Open the wire</span>
+              </Link>
+            </SidebarMenuButton>
           </SidebarFooter>
         </Sidebar>
 
+        {/* ── Main content area ──────────────────────────────────────────── */}
         <SidebarInset>
-          <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border bg-card/60 px-3 py-2">
+          {/* Top bar */}
+          <div className="sticky top-0 z-10 flex items-center justify-between gap-2 border-b border-border bg-card/80 px-3 py-2 backdrop-blur">
             <div className="flex min-w-0 items-center gap-2">
               <SidebarTrigger />
-              {/* Mobile tab strip */}
+              {/* Mobile pill nav */}
               <nav
                 aria-label="Admin navigation"
                 className="flex min-w-0 gap-1 overflow-x-auto md:hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
               >
-                {allVisible.map((link) => {
-                  const active =
-                    "exact" in link && link.exact
-                      ? pathname === link.href
-                      : pathname.startsWith(link.href);
+                {allLinks.map((link) => {
+                  const active = isActive(link, pathname);
                   return (
                     <Link
                       key={link.href}
                       href={link.href}
                       aria-current={active ? "page" : undefined}
                       className={cn(
-                        "shrink-0 rounded-sm px-2 py-1 font-mono text-[9px] uppercase tracking-[0.1em]",
+                        "shrink-0 rounded-md px-2.5 py-1 font-mono text-[9px] uppercase tracking-[0.1em] transition-colors",
                         active
                           ? "bg-foreground text-background"
-                          : "text-muted-foreground hover:text-foreground",
+                          : "text-muted-foreground hover:bg-muted hover:text-foreground",
                       )}
                     >
                       {link.label}
@@ -158,10 +154,12 @@ export function AdminShell({
                 })}
               </nav>
             </div>
-            <p className="font-mono text-[8.5px] uppercase tracking-[0.12em] text-muted-foreground">
+            <p className="shrink-0 font-mono text-[8.5px] uppercase tracking-[0.12em] text-muted-foreground">
               {name} · <span className="text-foreground">{roleLabel}</span>
             </p>
           </div>
+
+          {/* Page content */}
           <div className="min-w-0">{children}</div>
         </SidebarInset>
       </div>
@@ -169,18 +167,54 @@ export function AdminShell({
   );
 }
 
-function MenuLink({ link, pathname }: { link: LinkDef; pathname: string }) {
+/* ─────────────────────────────────────────────────────────────────────────── *
+ *  Sub-components
+ * ─────────────────────────────────────────────────────────────────────────── */
+
+function SidebarWordmark() {
+  const { open } = useSidebar();
+  return (
+    <Link
+      href="/admin"
+      className="flex min-w-0 items-center gap-2.5 rounded-lg px-1 py-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sidebar-ring"
+    >
+      {/* Icon always visible */}
+      <span className="flex size-7 shrink-0 items-center justify-center rounded-md bg-primary text-primary-foreground">
+        <ShieldCheck className="size-3.5" />
+      </span>
+      {/* Text hidden when collapsed */}
+      {open && (
+        <span className="min-w-0">
+          <span className="block truncate font-display text-[1.1rem] leading-tight">The desk</span>
+          <span className="block font-mono text-[8px] uppercase tracking-[0.16em] text-sidebar-foreground/50">
+            Operations
+          </span>
+        </span>
+      )}
+    </Link>
+  );
+}
+
+function NavItem({ link, pathname }: { link: LinkDef; pathname: string }) {
   const Icon = link.icon;
-  const active =
-    "exact" in link && link.exact ? pathname === link.href : pathname.startsWith(link.href);
+  const active = isActive(link, pathname);
+  const { open } = useSidebar();
+
   return (
     <SidebarMenuItem>
-      <SidebarMenuButton asChild isActive={active}>
+      <SidebarMenuButton asChild isActive={active} tooltip={link.label}>
         <Link href={link.href} aria-current={active ? "page" : undefined}>
-          <Icon className="size-4 shrink-0" />
-          <span className="group-data-[state=collapsed]/sidebar:hidden">{link.label}</span>
+          <Icon className="size-[1.05rem] shrink-0" />
+          {open && <span>{link.label}</span>}
         </Link>
       </SidebarMenuButton>
     </SidebarMenuItem>
   );
+}
+
+function isActive(link: LinkDef, pathname: string): boolean {
+  if (link.exact) return pathname === link.href;
+  // For sub-routes: must start with href AND not be the root "/admin" when
+  // checking a sub-path (avoids every item matching when href = "/admin")
+  return pathname.startsWith(link.href + "/") || pathname === link.href;
 }

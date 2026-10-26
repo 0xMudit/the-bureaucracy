@@ -494,17 +494,17 @@ export default function DesignSystemPage() {
                       <SidebarGroupLabel>Operations</SidebarGroupLabel>
                       <SidebarMenu>
                         <SidebarMenuItem>
-                          <SidebarMenuButton href="#" isActive>
+                          <SidebarMenuButton isActive>
                             <Sparkles /> Today’s brief
                           </SidebarMenuButton>
                         </SidebarMenuItem>
                         <SidebarMenuItem>
-                          <SidebarMenuButton href="#">
+                          <SidebarMenuButton>
                             <Newspaper /> The wire
                           </SidebarMenuButton>
                         </SidebarMenuItem>
                         <SidebarMenuItem>
-                          <SidebarMenuButton href="#">
+                          <SidebarMenuButton>
                             <LayoutDashboard /> Admin
                           </SidebarMenuButton>
                         </SidebarMenuItem>
@@ -514,7 +514,7 @@ export default function DesignSystemPage() {
                       <SidebarGroupLabel>Preferences</SidebarGroupLabel>
                       <SidebarMenu>
                         <SidebarMenuItem>
-                          <SidebarMenuButton href="#">
+                          <SidebarMenuButton>
                             <Moon /> Appearance
                           </SidebarMenuButton>
                         </SidebarMenuItem>
