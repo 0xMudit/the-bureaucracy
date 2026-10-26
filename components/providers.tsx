@@ -1,7 +1,7 @@
 "use client";
 
 import { ThemeProvider as NextThemesProvider } from "next-themes";
-import { Toaster } from "@/components/ui/sonner";
+import { Toaster } from "@/components/ui/toast";
 import { AutoRefresh } from "@/components/auto-refresh";
 import { KeyboardShortcuts } from "@/components/keyboard-shortcuts";
 import { CommandMenu } from "@/components/command-menu";

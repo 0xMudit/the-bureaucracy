@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Bookmark, BookmarkCheck } from "lucide-react";
-import { toast } from "sonner";
+import { toast } from "@/components/ui/toast";
 import { saveAction } from "@/app/social-actions";
 import { readSaved, SAVED_EVENT, writeSaved, type SavedItem } from "@/lib/saved";
 import { cn } from "@/lib/utils";
@@ -29,11 +29,13 @@ export function SaveButton({ item, className }: { item: SavedItem; className?: s
     if (exists) {
       writeSaved(current.filter((s) => s.id !== item.id));
       setSaved(false);
-      toast("Removed from your reading list");
+      toast.add({ title: "Removed from your reading list" });
     } else {
       writeSaved([{ ...item, savedAt: new Date().toISOString() }, ...current].slice(0, 100));
       setSaved(true);
-      toast.success("Saved for revision", {
+      toast.add({
+        type: "success",
+        title: "Saved for revision",
         description: "It comes back on day 1, 3, 7 and 30. Synced to your account when signed in.",
       });
     }

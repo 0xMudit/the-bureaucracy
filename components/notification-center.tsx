@@ -13,7 +13,7 @@ import {
   ThumbsUp,
   UserPlus,
 } from "lucide-react";
-import { toast } from "sonner";
+import { toast } from "@/components/ui/toast";
 import { markNotificationsReadAction } from "@/app/social-actions";
 import { Button } from "@/components/ui/button";
 import { cn, timeAgo } from "@/lib/utils";
@@ -87,10 +87,10 @@ export function NotificationCenter({
     startTransition(async () => {
       try {
         await markNotificationsReadAction();
-        toast.success("All caught up.");
+        toast.add({ type: "success", title: "All caught up." });
       } catch {
         setItems(previous);
-        toast.error("Could not mark them read. Try again.");
+        toast.add({ type: "error", title: "Could not mark them read. Try again." });
       }
     });
   };

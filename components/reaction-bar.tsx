@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { ThumbsDown, ThumbsUp } from "lucide-react";
-import { toast } from "sonner";
+import { toast } from "@/components/ui/toast";
 import { reactionAction } from "@/app/social-actions";
 import type { ViewerReaction } from "@/lib/types";
 import { cn } from "@/lib/utils";
@@ -37,7 +37,7 @@ export function ReactionBar({
       const result = await reactionAction(itemId, kind);
       if (!result.ok) {
         setState(previous);
-        toast.error(result.error);
+        toast.add({ type: "error", title: result.error });
         return;
       }
       setState({ ...state, likes: result.likes, dislikes: result.dislikes, reaction: result.reaction });

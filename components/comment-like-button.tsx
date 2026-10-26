@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { ThumbsUp } from "lucide-react";
-import { toast } from "sonner";
+import { toast } from "@/components/ui/toast";
 import { commentLikeAction } from "@/app/social-actions";
 import { cn } from "@/lib/utils";
 
@@ -32,7 +32,7 @@ export function CommentLikeButton({
     setPending(false);
     if (!result.ok) {
       setState(previous);
-      toast.error(result.error);
+      toast.add({ type: "error", title: result.error });
       return;
     }
     setState({ liked: result.liked, likes: result.likes });

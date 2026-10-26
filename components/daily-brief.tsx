@@ -13,7 +13,7 @@ import {
   Share2,
   Sparkles,
 } from "lucide-react";
-import { toast } from "sonner";
+import { toast } from "@/components/ui/toast";
 import { Button } from "@/components/ui/button";
 import {
   humanDate,
@@ -96,7 +96,7 @@ function downloadReminder(): void {
   anchor.remove();
   URL.revokeObjectURL(url);
   trackEvent("reminder");
-  toast.success("Reminder downloaded", { description: "Add it to your calendar for 07:00 IST." });
+  toast.add({ type: "success", title: "Reminder downloaded", description: "Add it to your calendar for 07:00 IST." });
 }
 
 export function DailyBrief({ entries, dateKey, deskLabel }: DailyBriefProps) {
@@ -164,10 +164,10 @@ export function DailyBrief({ entries, dateKey, deskLabel }: DailyBriefProps) {
     ].join("\n");
     try {
       await navigator.clipboard.writeText(notes);
-      toast.success("Five stories copied as notes");
+      toast.add({ type: "success", title: "Five stories copied as notes" });
       trackEvent("share", { via: "copy_brief" });
     } catch {
-      toast.error("Could not copy on this browser");
+      toast.add({ type: "error", title: "Could not copy on this browser" });
     }
   };
 
@@ -184,10 +184,10 @@ export function DailyBrief({ entries, dateKey, deskLabel }: DailyBriefProps) {
     }
     try {
       await navigator.clipboard.writeText(url);
-      toast.success("Brief link copied");
+      toast.add({ type: "success", title: "Brief link copied" });
       trackEvent("share", { via: "copy_brief_link" });
     } catch {
-      toast.error("Could not copy on this browser");
+      toast.add({ type: "error", title: "Could not copy on this browser" });
     }
   };
 

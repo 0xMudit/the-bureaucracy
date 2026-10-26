@@ -17,7 +17,7 @@ import {
   Sun,
 } from "lucide-react";
 import { Bar, BarChart, CartesianGrid, XAxis } from "recharts";
-import { toast } from "sonner";
+import { toast } from "@/components/ui/toast";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "@/components/ui/breadcrumb";
@@ -144,7 +144,7 @@ export default function DesignSystemPage() {
         </div>
         <div className="flex flex-wrap gap-2">
           <CommandTrigger className="inline-flex h-8 items-center gap-2 rounded-lg border border-border bg-card px-3 text-sm shadow-xs hover:bg-muted" label="Open command palette" />
-          <Button onClick={() => toast.success("The desk is listening.", { description: "Toasts use semantic tokens in both schemes." })}>
+          <Button onClick={() => toast.add({ type: "success", title: "The desk is listening.", description: "Toasts use semantic tokens in both schemes." })}>
             <Bell /> Test toast
           </Button>
         </div>
@@ -350,7 +350,7 @@ export default function DesignSystemPage() {
                 </DialogHeader>
                 <DialogFooter>
                   <Button variant="outline">Keep editing</Button>
-                  <Button onClick={() => toast.success("Brief queued for 07:00 IST")}>Queue brief</Button>
+                  <Button onClick={() => toast.add({ type: "success", title: "Brief queued for 07:00 IST" })}>Queue brief</Button>
                 </DialogFooter>
               </DialogContent>
             </Dialog>

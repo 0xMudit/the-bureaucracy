@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Loader2, Pencil, Trash2 } from "lucide-react";
-import { toast } from "sonner";
+import { toast } from "@/components/ui/toast";
 import { deleteCommentAction, editCommentAction } from "@/app/social-actions";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -33,11 +33,11 @@ export function CommentBody({
     const result = await editCommentAction(commentId, text);
     setPending(false);
     if (!result.ok) {
-      toast.error(result.error);
+      toast.add({ type: "error", title: result.error });
       return;
     }
     setEditing(false);
-    toast.success("Comment edited");
+    toast.add({ type: "success", title: "Comment edited" });
   };
 
   const remove = async () => {
@@ -45,7 +45,7 @@ export function CommentBody({
     setPending(true);
     const result = await deleteCommentAction(commentId);
     setPending(false);
-    if (!result.ok) toast.error(result.error);
+    if (!result.ok) toast.add({ type: "error", title: result.error });
   };
 
   if (editing) {

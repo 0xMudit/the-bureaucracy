@@ -1,7 +1,7 @@
 "use client";
 
 import { Share2 } from "lucide-react";
-import { toast } from "sonner";
+import { toast } from "@/components/ui/toast";
 import { Button } from "@/components/ui/button";
 import { trackEvent } from "@/lib/telemetry";
 
@@ -26,10 +26,10 @@ export function ShareButton({ title, path, source }: ShareButtonProps) {
     }
     try {
       await navigator.clipboard.writeText(url);
-      toast.success("Link copied", { description: source ? `Share the ${source} story.` : undefined });
+      toast.add({ type: "success", title: "Link copied", description: source ? `Share the ${source} story.` : undefined });
       trackEvent("share", { via: "copy" });
     } catch {
-      toast.error("Could not copy on this browser");
+      toast.add({ type: "error", title: "Could not copy on this browser" });
     }
   };
 

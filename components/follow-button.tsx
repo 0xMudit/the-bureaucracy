@@ -4,7 +4,7 @@ import { useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Loader2, UserCheck, UserPlus } from "lucide-react";
-import { toast } from "sonner";
+import { toast } from "@/components/ui/toast";
 import { followAction } from "@/app/social-actions";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -59,11 +59,11 @@ export function FollowButton({
       const result = await followAction(targetId);
       if (!result.ok) {
         setState(previous);
-        toast.error(result.error);
+        toast.add({ type: "error", title: result.error });
         return;
       }
       setState({ following: result.following, followers: result.followers });
-      toast.success(result.following ? `Following @${targetUsername}` : `Unfollowed @${targetUsername}`);
+      toast.add({ type: "success", title: result.following ? `Following @${targetUsername}` : `Unfollowed @${targetUsername}` });
       router.refresh();
     });
   };

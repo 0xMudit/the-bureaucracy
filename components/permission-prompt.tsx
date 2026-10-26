@@ -4,7 +4,7 @@ import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Bell, Loader2, MapPin, ShieldAlert, Smartphone, X } from "lucide-react";
-import { toast } from "sonner";
+import { toast } from "@/components/ui/toast";
 import { Button } from "@/components/ui/button";
 
 type PermissionState = "default" | "granted" | "denied" | "unsupported";
@@ -95,7 +95,9 @@ export function PermissionPrompt() {
       const keyResponse = await fetch("/api/push/vapid", { cache: "no-store" });
       const keyPayload = (await keyResponse.json()) as { ok: boolean; key?: string };
       if (!keyPayload.ok || !keyPayload.key) {
-        toast.error("Push is not configured on this deployment", {
+        toast.add({
+          type: "error",
+          title: "Push is not configured on this deployment",
           description: "Add VAPID keys to enable notifications.",
         });
         return false;
@@ -117,23 +119,25 @@ export function PermissionPrompt() {
       if (!response.ok) {
         const payload = (await response.json().catch(() => null)) as { error?: string } | null;
         if (response.status === 401) {
-          toast.error("Log in to enable push", { description: "The notification centre and alerts need an account." });
+          toast.add({ type: "error", title: "Log in to enable push", description: "The notification centre and alerts need an account." });
         } else {
-          toast.error(payload?.error ?? "Could not enable push on this browser.");
+          toast.add({ type: "error", title: payload?.error ?? "Could not enable push on this browser." });
         }
         return false;
       }
       setStatus((current) => (current ? { ...current, subscribed: true } : current));
       return true;
     } catch {
-      toast.error("Could not enable push on this browser.");
+      toast.add({ type: "error", title: "Could not enable push on this browser." });
       return false;
     }
   }, []);
 
   const enablePush = async () => {
     if (!status?.signedIn) {
-      toast.info("Log in to keep your notifications in one place", {
+      toast.add({
+        type: "info",
+        title: "Log in to keep your notifications in one place",
         description: "You can also enable this from account settings after signing in.",
       });
       return;
@@ -144,7 +148,7 @@ export function PermissionPrompt() {
       setPermission(result as PermissionState);
       if (result === "granted") {
         const ok = await subscribe();
-        if (ok) toast.success("Notifications on", { description: "At most two pushes a day. Quiet hours respected." });
+        if (ok) toast.add({ type: "success", title: "Notifications on", description: "At most two pushes a day. Quiet hours respected." });
       }
     } finally {
       setBusy(null);

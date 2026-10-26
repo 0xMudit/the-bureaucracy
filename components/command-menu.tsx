@@ -23,7 +23,7 @@ import {
   UserRound,
   Users,
 } from "lucide-react";
-import { toast } from "sonner";
+import { toast } from "@/components/ui/toast";
 import {
   CommandDialog,
   CommandEmpty,
@@ -137,13 +137,13 @@ export function CommandMenu() {
         </CommandGroup>
         <CommandSeparator />
         <CommandGroup heading="Reading mode">
-          <CommandItem value="theme light" onSelect={() => run(() => { setTheme("light"); toast.success("Light mode"); })}>
+          <CommandItem value="theme light" onSelect={() => run(() => { setTheme("light"); toast.add({ type: "success", title: "Light mode" }); })}>
             <Sun /> Light
           </CommandItem>
-          <CommandItem value="theme dark" onSelect={() => run(() => { setTheme("dark"); toast.success("Dark mode"); })}>
+          <CommandItem value="theme dark" onSelect={() => run(() => { setTheme("dark"); toast.add({ type: "success", title: "Dark mode" }); })}>
             <Moon /> Dark
           </CommandItem>
-          <CommandItem value="theme system" onSelect={() => run(() => { setTheme("system"); toast.success("Following your system"); })}>
+          <CommandItem value="theme system" onSelect={() => run(() => { setTheme("system"); toast.add({ type: "success", title: "Following your system" }); })}>
             <Monitor /> Use system setting
           </CommandItem>
         </CommandGroup>
