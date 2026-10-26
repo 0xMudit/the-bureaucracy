@@ -3,7 +3,19 @@
 import * as React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { BarChart3, ExternalLink, MessageSquare, ScrollText, ShieldCheck, Users } from "lucide-react";
+import {
+  BarChart3,
+  Bell,
+  Bot,
+  ExternalLink,
+  FileText,
+  MessageSquare,
+  Rss,
+  ScrollText,
+  Settings,
+  ShieldCheck,
+  Users,
+} from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -29,12 +41,22 @@ interface AdminShellProps {
   children: React.ReactNode;
 }
 
-const LINKS = [
+const ANALYTICS_LINKS = [
   { href: "/admin", label: "Analytics", icon: BarChart3, exact: true },
-  { href: "/admin/comments", label: "Moderation", icon: MessageSquare, permission: "moderate" },
+];
+
+const OPERATIONS_LINKS = [
   { href: "/admin/users", label: "Accounts", icon: Users, permission: "users" },
+  { href: "/admin/comments", label: "Moderation", icon: MessageSquare, permission: "moderate" },
+  { href: "/admin/ingestion", label: "Ingestion", icon: Rss },
+  { href: "/admin/llm", label: "LLM jobs", icon: Bot },
+  { href: "/admin/push", label: "Push campaigns", icon: Bell },
+  { href: "/admin/content", label: "Content", icon: FileText },
+  { href: "/admin/settings", label: "Settings", icon: Settings },
   { href: "/admin/audit", label: "Audit log", icon: ScrollText, permission: "audit" },
 ];
+
+type LinkDef = (typeof ANALYTICS_LINKS)[number] | (typeof OPERATIONS_LINKS)[number];
 
 export function AdminShell({
   roleLabel,
@@ -46,12 +68,14 @@ export function AdminShell({
 }: AdminShellProps) {
   const pathname = usePathname();
 
-  const visible = LINKS.filter((link) => {
-    if (link.permission === "users") return canViewUsers;
-    if (link.permission === "audit") return canViewAudit;
-    if (link.permission === "moderate") return canModerate;
+  const visibleOps = OPERATIONS_LINKS.filter((link) => {
+    if ("permission" in link && link.permission === "users") return canViewUsers;
+    if ("permission" in link && link.permission === "audit") return canViewAudit;
+    if ("permission" in link && link.permission === "moderate") return canModerate;
     return true;
   });
+
+  const allVisible = [...ANALYTICS_LINKS, ...visibleOps];
 
   return (
     <SidebarProvider>
@@ -75,7 +99,7 @@ export function AdminShell({
             <SidebarGroup>
               <SidebarGroupLabel>Analytics</SidebarGroupLabel>
               <SidebarMenu>
-                {visible.slice(0, 1).map((link) => (
+                {ANALYTICS_LINKS.map((link) => (
                   <MenuLink key={link.href} link={link} pathname={pathname} />
                 ))}
               </SidebarMenu>
@@ -84,7 +108,7 @@ export function AdminShell({
             <SidebarGroup>
               <SidebarGroupLabel>Operations</SidebarGroupLabel>
               <SidebarMenu>
-                {visible.slice(1).map((link) => (
+                {visibleOps.map((link) => (
                   <MenuLink key={link.href} link={link} pathname={pathname} />
                 ))}
               </SidebarMenu>
@@ -106,9 +130,16 @@ export function AdminShell({
           <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border bg-card/60 px-3 py-2">
             <div className="flex min-w-0 items-center gap-2">
               <SidebarTrigger />
-              <nav aria-label="Admin mobile" className="flex min-w-0 gap-1 overflow-x-auto md:hidden">
-                {visible.map((link) => {
-                  const active = link.exact ? pathname === link.href : pathname.startsWith(link.href);
+              {/* Mobile tab strip */}
+              <nav
+                aria-label="Admin navigation"
+                className="flex min-w-0 gap-1 overflow-x-auto md:hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+              >
+                {allVisible.map((link) => {
+                  const active =
+                    "exact" in link && link.exact
+                      ? pathname === link.href
+                      : pathname.startsWith(link.href);
                   return (
                     <Link
                       key={link.href}
@@ -116,7 +147,9 @@ export function AdminShell({
                       aria-current={active ? "page" : undefined}
                       className={cn(
                         "shrink-0 rounded-sm px-2 py-1 font-mono text-[9px] uppercase tracking-[0.1em]",
-                        active ? "bg-foreground text-background" : "text-muted-foreground",
+                        active
+                          ? "bg-foreground text-background"
+                          : "text-muted-foreground hover:text-foreground",
                       )}
                     >
                       {link.label}
@@ -136,15 +169,10 @@ export function AdminShell({
   );
 }
 
-function MenuLink({
-  link,
-  pathname,
-}: {
-  link: (typeof LINKS)[number];
-  pathname: string;
-}) {
+function MenuLink({ link, pathname }: { link: LinkDef; pathname: string }) {
   const Icon = link.icon;
-  const active = link.exact ? pathname === link.href : pathname.startsWith(link.href);
+  const active =
+    "exact" in link && link.exact ? pathname === link.href : pathname.startsWith(link.href);
   return (
     <SidebarMenuItem>
       <SidebarMenuButton asChild isActive={active}>

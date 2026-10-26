@@ -36,11 +36,13 @@ alter table public.profiles add column if not exists follower_count integer not 
 alter table public.profiles add column if not exists following_count integer not null default 0;
 
 -- Roles: `reader` becomes `user`; editor/admin are retained because the
--- existing operations console needs a middle role.
-update public.profiles set role = 'user' where role = 'reader';
-alter table public.profiles alter column role set default 'user';
+-- existing operations console needs a middle role. The legacy constraint must
+-- be dropped *before* the backfill, otherwise the old `reader|editor|admin`
+-- check rejects the new `user` value.
 alter table public.profiles drop constraint if exists tb_profiles_role_check;
 alter table public.profiles drop constraint if exists profiles_role_check;
+update public.profiles set role = 'user' where role = 'reader';
+alter table public.profiles alter column role set default 'user';
 alter table public.profiles
   add constraint profiles_role_check check (role in ('user', 'editor', 'admin'));
 

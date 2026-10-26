@@ -172,7 +172,7 @@ export function FeedRow({
           <View style={{ flexDirection: "row", alignItems: "center", gap: 3 }}>
             <MessageSquare size={11} color={colors.mutedForeground} strokeWidth={1.8} />
             <Text style={[type.meta, { color: colors.mutedForeground }]}>
-              {item.commentCount === 0 ? "Discuss" : item.commentCount}
+              {item.commentCount === 0 ? "Comment" : item.commentCount}
             </Text>
           </View>
         </View>

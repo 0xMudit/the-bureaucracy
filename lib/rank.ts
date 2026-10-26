@@ -64,6 +64,21 @@ export function totalPoints(item: FeedItem): number {
   return Math.max(0, item.seedPoints + likes + comments * 1.35 - dislikes * 0.55);
 }
 
+/**
+ * The "Discussed" sort. Same shape as the main score, but a comment is worth
+ * substantially more than a like and the decay is gentler, so an active
+ * argument can stay on the board longer than a merely popular link.
+ */
+export function discussionScore(item: FeedItem, now = Date.now(), desk?: Desk | null): number {
+  const ageHours = Math.max(0, (now - new Date(item.publishedAt).getTime()) / 3_600_000);
+  const likes = item.likeCount ?? item.points;
+  const dislikes = item.dislikeCount ?? 0;
+  const comments = item.commentCount ?? 0;
+  const signal = Math.max(0, item.seedPoints * 0.4 + likes + comments * 2.4 - dislikes * 0.55);
+  const relevance = 0.86 + (item.examScore / 100) * 0.4;
+  return ((signal + 1) / Math.pow(ageHours + 2, 1.35)) * relevance * deskTilt(item, desk);
+}
+
 /** Starting points keep a story visible before the first human vote. */
 export function seedPoints(examScore: number): number {
   return Math.max(1, Math.round(examScore * 0.34));
@@ -81,16 +96,21 @@ export function sortItems(items: FeedItem[], sort: SortKey, now = Date.now(), de
       );
       break;
     case "best":
+      // "Best" is the shared ranking formula: syllabus relevance, weighted
+      // likes/comments and a dislike penalty, all under time decay. It is not
+      // simply "highest exam score" — an old high-relevance story must still
+      // lose to a fresher one readers are actually engaging with.
       scored.sort(
         (a, b) =>
-          b.examScore - a.examScore ||
           b.rankScore - a.rankScore ||
+          b.examScore - a.examScore ||
           new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime(),
       );
       break;
     case "discussed":
       scored.sort(
         (a, b) =>
+          discussionScore(b, now, desk) - discussionScore(a, now, desk) ||
           b.commentCount - a.commentCount ||
           b.rankScore - a.rankScore ||
           new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime(),

@@ -138,7 +138,7 @@ export function FeedItemRow({ item, position, viewerReaction, canWrite }: FeedIt
             className="inline-flex items-center gap-1 hover:text-foreground"
           >
             <MessageSquare className="size-3" />
-            {item.commentCount === 0 ? "Discuss" : `${item.commentCount}`}
+            {item.commentCount === 0 ? "Comment" : `${item.commentCount}`}
           </Link>
           <span aria-hidden>·</span>
           <span className="inline-flex items-center gap-1" title="Syllabus relevance score">
