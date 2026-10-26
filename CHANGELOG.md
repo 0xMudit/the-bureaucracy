@@ -33,6 +33,9 @@ All notable changes to this project are documented here. The format follows
   editing and deletion; `reader` / `editor` / `admin` with suspension and an append-only audit trail.
 - **Editor desk**: `/admin` traffic and activity, `/admin/users` register with role changes and
   `/admin/audit`.
+- **Analytics desk** (`/admin`): a sidebar-backed dashboard with overview, acquisition and retention
+  tabs, first-party traffic and brief-funnel charts, and clearly labelled demo blocks for device,
+  source-share and cohort data that the current tracker cannot measure yet.
 - Branded Supabase confirmation and recovery templates (`npm run auth:email`), plus
   `npm run auth:admins` and `npm run auth:doctor`.
 - Open-source project scaffolding: `CONTRIBUTING.md`, `CODE_OF_CONDUCT.md`, `SECURITY.md`, issue and pull
