@@ -1,6 +1,5 @@
-import Constants from "expo-constants";
+import Constants, { ExecutionEnvironment } from "expo-constants";
 import * as Device from "expo-device";
-import * as Notifications from "expo-notifications";
 import { Platform } from "react-native";
 import { getDeviceId } from "./device";
 import { getDesk } from "./desk";
@@ -24,7 +23,42 @@ const projectId =
 
 const TOKEN_KEY = "tb.push.token.v1";
 
-export const pushConfigured = Boolean(projectId && Device.isDevice);
+type NotificationsApi = typeof import("expo-notifications");
+
+let notificationsApi: NotificationsApi | null | undefined;
+
+/**
+ * `expo-notifications` evaluates its topic-subscription module on import, and
+ * that module hard-requires a native piece ("ExpoTopicSubscriptionModule")
+ * that Expo Go does not ship on Android. A static import therefore throws
+ * while the bundle is still initialising and takes the whole root layout down.
+ *
+ * Load it behind a guard instead: a binary without the native modules simply
+ * reports push as unavailable, which every caller below already handles.
+ */
+function notifications(): NotificationsApi | null {
+  if (notificationsApi !== undefined) return notificationsApi;
+  // Expo Go carries only a subset of the native modules. On Android it has no
+  // notification push/topic module at all, so there is nothing to load — and
+  // attempting it is what used to crash the bundle. Local-only behaviour is
+  // unaffected because Expo Go can never mint an Expo push token anyway.
+  const expoGoOnAndroid =
+    Platform.OS === "android" &&
+    Constants.executionEnvironment === ExecutionEnvironment.StoreClient;
+  if (Platform.OS === "web" || expoGoOnAndroid) {
+    notificationsApi = null;
+    return null;
+  }
+  try {
+    notificationsApi = require("expo-notifications") as NotificationsApi;
+  } catch {
+    notificationsApi = null;
+  }
+  return notificationsApi;
+}
+
+export const pushConfigured =
+  Boolean(projectId && Device.isDevice) && notifications() !== null;
 
 export interface PushRegistration {
   granted: boolean;
@@ -40,13 +74,15 @@ export function getLastPushToken(): string | null {
 }
 
 export async function permissionGranted(): Promise<boolean> {
-  if (Platform.OS === "web") return false;
+  const Notifications = notifications();
+  if (!Notifications) return false;
   const settings = await Notifications.getPermissionsAsync();
   return settings.status === Notifications.PermissionStatus.GRANTED;
 }
 
 async function ensureAndroidChannel(): Promise<void> {
-  if (Platform.OS !== "android") return;
+  const Notifications = notifications();
+  if (!Notifications || Platform.OS !== "android") return;
   await Notifications.setNotificationChannelAsync("brief", {
     name: "The daily brief",
     description: "One nudge when the five stories are ready.",
@@ -61,10 +97,11 @@ async function ensureAndroidChannel(): Promise<void> {
  * Call this only in response to a deliberate tap.
  */
 export async function enablePush(): Promise<PushRegistration> {
+  const Notifications = notifications();
   if (!Device.isDevice) {
     return { granted: false, token: null, note: "Push needs a physical device." };
   }
-  if (!projectId) {
+  if (!Notifications || !projectId) {
     return {
       granted: false,
       token: null,
@@ -150,6 +187,8 @@ export async function disablePush(): Promise<void> {
  */
 export async function requestAndroidNotificationPermission(): Promise<boolean> {
   if (Platform.OS !== "android") return true;
+  const Notifications = notifications();
+  if (!Notifications) return false;
   // expo-notifications wraps the Android 13+ permission automatically when
   // requestPermissionsAsync is called. On older API levels it resolves GRANTED
   // without showing a dialog.
@@ -161,7 +200,8 @@ export async function requestAndroidNotificationPermission(): Promise<boolean> {
 
 /** Set the foreground presentation once, when the app module loads. */
 export function installNotificationHandler(): void {
-  if (Platform.OS === "web") return;
+  const Notifications = notifications();
+  if (!Notifications) return;
   Notifications.setNotificationHandler({
     handleNotification: async () => ({
       shouldShowBanner: true,
