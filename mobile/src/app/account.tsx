@@ -3,11 +3,10 @@ import {
   Bell,
   CheckCircle2,
   ChevronRight,
-  Eye,
-  EyeOff,
   LogOut,
   Mail,
   RefreshCw,
+  Trash2,
   Users,
   X,
 } from "lucide-react-native";
@@ -27,6 +26,7 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useSubscribeDigest } from "@/api/hooks";
 import { AppearancePanel } from "@/components/AppearancePanel";
+import { Field } from "@/components/Field";
 import { ActionButton, DoubleRule, Panel, Screen } from "@/components/ui";
 import { useAuth } from "@/lib/auth";
 import {
@@ -43,73 +43,6 @@ import {
 import { timeAgo } from "@/lib/time";
 import { useTheme } from "@/theme/ThemeProvider";
 import { fonts, radius, spacing, type as typography } from "@/theme/tokens";
-
-function Field({
-  label,
-  value,
-  onChange,
-  placeholder,
-  secure = false,
-  keyboardType = "default",
-  autoComplete,
-}: {
-  label: string;
-  value: string;
-  onChange: (value: string) => void;
-  placeholder: string;
-  secure?: boolean;
-  keyboardType?: "default" | "email-address";
-  autoComplete?: "email" | "password" | "name";
-}) {
-  const { colors } = useTheme();
-  const [hidden, setHidden] = useState(secure);
-
-  return (
-    <View style={{ marginTop: spacing.md }}>
-      <Text style={[typography.tag, { color: colors.mutedForeground }]}>{label}</Text>
-      <View
-        style={{
-          flexDirection: "row",
-          alignItems: "center",
-          borderWidth: StyleSheet.hairlineWidth,
-          borderColor: colors.border,
-          backgroundColor: colors.card,
-          borderRadius: radius.sm,
-          marginTop: 4,
-          paddingHorizontal: spacing.sm,
-        }}
-      >
-        <TextInput
-          value={value}
-          onChangeText={onChange}
-          placeholder={placeholder}
-          placeholderTextColor={colors.mutedForeground}
-          secureTextEntry={hidden}
-          keyboardType={keyboardType}
-          autoCapitalize={keyboardType === "email-address" ? "none" : "words"}
-          autoCorrect={false}
-          autoComplete={autoComplete}
-          style={{
-            flex: 1,
-            color: colors.foreground,
-            fontFamily: fonts.sans,
-            fontSize: 15,
-            paddingVertical: 11,
-          }}
-        />
-        {secure ? (
-          <Pressable onPress={() => setHidden((current) => !current)} hitSlop={8}>
-            {hidden ? (
-              <Eye size={16} color={colors.mutedForeground} strokeWidth={1.8} />
-            ) : (
-              <EyeOff size={16} color={colors.mutedForeground} strokeWidth={1.8} />
-            )}
-          </Pressable>
-        ) : null}
-      </View>
-    </View>
-  );
-}
 
 function Chip({
   label,
@@ -143,8 +76,8 @@ function Chip({
 
 function AuthPanel() {
   const { colors } = useTheme();
-  const { signIn, signUp, error } = useAuth();
-  const [mode, setMode] = useState<"signin" | "signup">("signin");
+  const { signIn, signUp, requestPasswordReset, error } = useAuth();
+  const [mode, setMode] = useState<"signin" | "signup" | "forgot">("signin");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -159,10 +92,31 @@ function AuthPanel() {
       setFormError("Enter the email you check every day.");
       return;
     }
-    if (password.length < 6) {
-      setFormError("Use at least six characters for the password.");
+
+    if (mode === "forgot") {
+      setBusy(true);
+      try {
+        await requestPasswordReset(email);
+        setNotice(
+          `If an account exists for ${email.trim().toLowerCase()}, a reset link is on its way. Open it on this phone — the link returns to this app.`,
+        );
+      } catch (failure) {
+        setFormError(failure instanceof Error ? failure.message : "Could not send the link.");
+      } finally {
+        setBusy(false);
+      }
       return;
     }
+
+    if (mode === "signup" && password.length < 8) {
+      setFormError("Use at least eight characters for the password.");
+      return;
+    }
+    if (!password) {
+      setFormError("Enter your password.");
+      return;
+    }
+
     setBusy(true);
     try {
       if (mode === "signup") {
@@ -181,20 +135,29 @@ function AuthPanel() {
     }
   };
 
+  const switchMode = (next: "signin" | "signup" | "forgot") => {
+    setMode(next);
+    setFormError(null);
+    setNotice(null);
+  };
+
   return (
     <View style={{ marginTop: spacing.xl }}>
-      <Text style={[typography.kicker, { color: colors.primary }]}>ACCOUNT · OPTIONAL</Text>
+      <Text style={[typography.kicker, { color: colors.primary }]}>
+        {mode === "forgot" ? "PASSWORD RECOVERY" : "ACCOUNT · OPTIONAL"}
+      </Text>
       <Text
         style={[
           typography.display,
           { color: colors.foreground, fontSize: 30, lineHeight: 32, marginTop: 4 },
         ]}
       >
-        Keep the streak{"\n"}when you change phones.
+        {mode === "forgot" ? "A fresh key,\nin your inbox." : `Keep the streak\nwhen you change phones.`}
       </Text>
       <Text style={[typography.summary, { color: colors.mutedForeground, marginTop: spacing.sm }]}>
-        The wire works without an account. Signing in adds a durable copy of your progress, saves
-        and study circles. It is a union, never an overwrite: nothing on this phone is replaced.
+        {mode === "forgot"
+          ? "Recovery links are single-use and last one hour. Open the link on this phone and the app will ask for a new password."
+          : "The wire works without an account. Signing in adds a durable copy of your progress, saves and study circles. It is a union, never an overwrite: nothing on this phone is replaced."}
       </Text>
 
       {mode === "signup" ? (
@@ -208,14 +171,24 @@ function AuthPanel() {
         keyboardType="email-address"
         autoComplete="email"
       />
-      <Field
-        label="PASSWORD"
-        value={password}
-        onChange={setPassword}
-        placeholder="At least six characters"
-        secure
-        autoComplete="password"
-      />
+      {mode !== "forgot" ? (
+        <Field
+          label="PASSWORD"
+          value={password}
+          onChange={setPassword}
+          placeholder={mode === "signup" ? "At least eight characters" : "Your password"}
+          secure
+          autoComplete={mode === "signup" ? "new-password" : "current-password"}
+        />
+      ) : null}
+
+      {mode === "signin" ? (
+        <Pressable onPress={() => switchMode("forgot")} hitSlop={6} style={{ marginTop: spacing.sm }}>
+          <Text style={[typography.meta, { color: colors.primary, letterSpacing: 0.9 }]}>
+            Forgot your password?
+          </Text>
+        </Pressable>
+      ) : null}
 
       {formError ?? error ? (
         <Text style={[typography.summary, { color: colors.destructive, marginTop: spacing.sm }]}>
@@ -230,26 +203,215 @@ function AuthPanel() {
 
       <View style={{ flexDirection: "row", gap: spacing.sm, marginTop: spacing.md }}>
         <ActionButton
-          label={mode === "signin" ? "Sign in" : "Create account"}
+          label={
+            mode === "forgot" ? "Send reset link" : mode === "signin" ? "Sign in" : "Create account"
+          }
           variant="solid"
           loading={busy}
           onPress={() => void submit()}
           style={{ flex: 1 }}
         />
         <ActionButton
-          label={mode === "signin" ? "Create one" : "I have one"}
+          label={mode === "signin" ? "Create one" : mode === "signup" ? "I have one" : "Back to sign in"}
           variant="outline"
-          onPress={() => {
-            setMode(mode === "signin" ? "signup" : "signin");
-            setFormError(null);
-            setNotice(null);
-          }}
+          onPress={() => switchMode(mode === "signup" ? "signin" : mode === "forgot" ? "signin" : "signup")}
         />
       </View>
       <Text style={[typography.tag, { color: colors.mutedForeground, marginTop: spacing.sm, lineHeight: 14 }]}>
-        We store an email, a password hash and your reading state. Nothing else.
+        {mode === "forgot"
+          ? "We never say whether an address has an account — that would leak who reads here."
+          : "We store an email, a password hash and your reading state. Nothing else."}
       </Text>
     </View>
+  );
+}
+
+function SecurityPanel() {
+  const { colors } = useTheme();
+  const { changePassword } = useAuth();
+  const [current, setCurrent] = useState("");
+  const [next, setNext] = useState("");
+  const [confirm, setConfirm] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [formError, setFormError] = useState<string | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
+
+  const submit = async () => {
+    setFormError(null);
+    setNotice(null);
+    if (!current) {
+      setFormError("Enter the password you use now.");
+      return;
+    }
+    if (next.length < 8) {
+      setFormError("Use at least eight characters for the new password.");
+      return;
+    }
+    if (next !== confirm) {
+      setFormError("The two new passwords do not match.");
+      return;
+    }
+    setBusy(true);
+    try {
+      await changePassword(current, next);
+      setCurrent("");
+      setNext("");
+      setConfirm("");
+      setNotice("Password changed. Every other device was signed out.");
+    } catch (failure) {
+      setFormError(failure instanceof Error ? failure.message : "The password could not be changed.");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <Panel
+      title="PASSWORD"
+      right={<Text style={[typography.tag, { color: colors.mutedForeground }]}>SIGNED IN</Text>}
+    >
+      <Text style={[typography.tag, { color: colors.mutedForeground, lineHeight: 13 }]}>
+        Changing it signs every other device out. This phone stays signed in.
+      </Text>
+      <Field
+        label="CURRENT PASSWORD"
+        value={current}
+        onChange={setCurrent}
+        placeholder="Your password"
+        secure
+        autoComplete="current-password"
+      />
+      <Field
+        label="NEW PASSWORD"
+        value={next}
+        onChange={setNext}
+        placeholder="At least eight characters"
+        secure
+        autoComplete="new-password"
+      />
+      <Field
+        label="REPEAT NEW PASSWORD"
+        value={confirm}
+        onChange={setConfirm}
+        placeholder="Type it again"
+        secure
+        autoComplete="new-password"
+      />
+
+      {formError ? (
+        <Text style={[typography.summary, { color: colors.destructive, marginTop: spacing.sm }]}>
+          {formError}
+        </Text>
+      ) : null}
+      {notice ? (
+        <Text style={[typography.summary, { color: colors.success, marginTop: spacing.sm }]}>{notice}</Text>
+      ) : null}
+
+      <ActionButton
+        label="Change password"
+        variant="solid"
+        loading={busy}
+        onPress={() => void submit()}
+        style={{ marginTop: spacing.md }}
+      />
+    </Panel>
+  );
+}
+
+function DeletePanel() {
+  const { colors } = useTheme();
+  const router = useRouter();
+  const { deleteAccount, email } = useAuth();
+  const [password, setPassword] = useState("");
+  const [word, setWord] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [formError, setFormError] = useState<string | null>(null);
+
+  const remove = async () => {
+    setFormError(null);
+    if (!password) {
+      setFormError("Enter your password to confirm.");
+      return;
+    }
+    if (word.trim().toUpperCase() !== "DELETE") {
+      setFormError("Type DELETE to confirm.");
+      return;
+    }
+    setBusy(true);
+    try {
+      await deleteAccount(password, word);
+      Alert.alert(
+        "Account deleted",
+        "The account, its comments and its reading state are gone from the server. This phone keeps its copy.",
+        [{ text: "OK", onPress: () => router.replace("/") }],
+      );
+    } catch (failure) {
+      setFormError(failure instanceof Error ? failure.message : "The account could not be deleted.");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const confirm = () => {
+    setFormError(null);
+    if (!password) {
+      setFormError("Enter your password to confirm.");
+      return;
+    }
+    if (word.trim().toUpperCase() !== "DELETE") {
+      setFormError("Type DELETE to confirm.");
+      return;
+    }
+    Alert.alert(
+      "Delete this account?",
+      `This removes ${email ?? "the account"} and its server copy for good. Your progress stays on this phone, but no other device will see it again.`,
+      [
+        { text: "Keep it", style: "cancel" },
+        { text: "Delete", style: "destructive", onPress: () => void remove() },
+      ],
+    );
+  };
+
+  return (
+    <Panel
+      title="CLOSE THE FILE"
+      right={<Text style={[typography.tag, { color: colors.destructive }]}>PERMANENT</Text>}
+    >
+      <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+        <Trash2 size={13} color={colors.destructive} strokeWidth={2} />
+        <Text style={[typography.tag, { color: colors.mutedForeground, flex: 1, lineHeight: 13 }]}>
+          Deletes the account, its comments and its server copy. This cannot be undone.
+        </Text>
+      </View>
+      <Field
+        label="PASSWORD"
+        value={password}
+        onChange={setPassword}
+        placeholder="Prove it is you"
+        secure
+        autoComplete="current-password"
+      />
+      <Field
+        label="TYPE DELETE TO CONFIRM"
+        value={word}
+        onChange={setWord}
+        placeholder="DELETE"
+      />
+
+      {formError ? (
+        <Text style={[typography.summary, { color: colors.destructive, marginTop: spacing.sm }]}>
+          {formError}
+        </Text>
+      ) : null}
+
+      <ActionButton
+        label="Delete account"
+        variant="outline"
+        loading={busy}
+        onPress={() => confirm()}
+        style={{ marginTop: spacing.md, borderColor: colors.destructive }}
+      />
+    </Panel>
   );
 }
 
@@ -621,6 +783,14 @@ export default function AccountScreen() {
                 </View>
                 <ChevronRight size={14} color={colors.border} strokeWidth={2.2} />
               </Pressable>
+
+              <View style={{ marginTop: spacing.md }}>
+                <SecurityPanel />
+              </View>
+
+              <View style={{ marginTop: spacing.md }}>
+                <DeletePanel />
+              </View>
             </View>
           ) : null}
 

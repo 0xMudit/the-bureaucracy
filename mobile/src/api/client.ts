@@ -210,6 +210,23 @@ export async function unregisterPush(token: string, deviceId?: string | null): P
   await request("/api/mobile/push", { method: "DELETE", body: { token }, deviceId });
 }
 
+/* -------------------------------- account --------------------------------- */
+
+/**
+ * Permanently delete the signed-in account. The server re-checks the password
+ * and the DELETE confirmation; the client is not the security boundary.
+ */
+export async function deleteAccount(input: {
+  password: string;
+  confirm: string;
+}): Promise<void> {
+  await request<{ ok: true }>("/api/mobile/account", {
+    method: "DELETE",
+    body: input,
+    timeoutMs: 20_000,
+  });
+}
+
 /* -------------------------------- circles --------------------------------- */
 
 export async function getCircles(): Promise<CirclesResponse> {

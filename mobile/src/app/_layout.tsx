@@ -186,6 +186,9 @@ function RootNavigator() {
   useEffect(() => {
     if (desk.onboarded) return;
     if (segments[0] === "onboarding") return;
+    // A recovery or confirmation link must survive the gate: the reader may be
+    // finishing either on a phone that has never completed onboarding.
+    if (segments[0] === "reset-password" || segments[0] === "auth") return;
     router.replace("/onboarding");
   }, [desk.onboarded, segments, router]);
 
@@ -227,6 +230,11 @@ function RootNavigator() {
           options={{ presentation: "modal", animation: "slide_from_bottom" }}
         />
         <Stack.Screen name="circles" />
+        <Stack.Screen
+          name="reset-password"
+          options={{ gestureEnabled: false, animation: "fade" }}
+        />
+        <Stack.Screen name="auth/confirm" options={{ gestureEnabled: false, animation: "fade" }} />
       </Stack>
     </>
   );

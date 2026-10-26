@@ -1,4 +1,5 @@
 import type { Session, User } from "@supabase/supabase-js";
+import * as Linking from "expo-linking";
 import React, {
   createContext,
   useCallback,
@@ -8,7 +9,7 @@ import React, {
   useRef,
   useState,
 } from "react";
-import { setAuthToken } from "@/api/client";
+import { deleteAccount as deleteAccountRequest, setAuthToken } from "@/api/client";
 import { refreshPushRegistration } from "./notifications";
 import { resetSyncCursor, startAutoSync, syncAccount } from "./sync";
 import { supabase, supabaseConfigured } from "./supabase";
@@ -40,6 +41,12 @@ interface AuthValue {
     name?: string,
   ) => Promise<{ needsConfirmation: boolean }>;
   signOut: () => Promise<void>;
+  /** Send a single-use recovery link that reopens this app on /reset-password. */
+  requestPasswordReset: (email: string) => Promise<void>;
+  /** Verify the current password, then replace it and sign other devices out. */
+  changePassword: (current: string, next: string) => Promise<void>;
+  /** Permanently remove the account and its server copy. */
+  deleteAccount: (password: string, confirm: string) => Promise<void>;
   syncNow: () => Promise<void>;
   clearError: () => void;
 }
@@ -152,7 +159,13 @@ export function AuthProvider({
     const { data, error: failure } = await supabase.auth.signUp({
       email: email.trim(),
       password,
-      options: name?.trim() ? { data: { name: name.trim() } } : undefined,
+      options: {
+        // Bring the confirmation back into the app when the project allows the
+        // scheme; otherwise Supabase falls back to the site URL and the web
+        // confirmation still works.
+        emailRedirectTo: Linking.createURL("/auth/confirm"),
+        ...(name?.trim() ? { data: { name: name.trim() } } : {}),
+      },
     });
     if (failure) {
       setError(failure.message);
@@ -164,6 +177,68 @@ export function AuthProvider({
   const signOut = useCallback(async () => {
     if (!supabase) return;
     await supabase.auth.signOut();
+    setAuthToken(null);
+    resetSyncCursor();
+    setLastSyncedAt(null);
+  }, []);
+
+  const requestPasswordReset = useCallback(async (email: string) => {
+    if (!supabase) {
+      throw new Error("Accounts are not configured in this build.");
+    }
+    // The recovery link has to come back into the app. A reset started on the
+    // phone has no PKCE verifier in a browser's cookie jar, so the web recovery
+    // page could not exchange it.
+    const redirectTo = Linking.createURL("/reset-password");
+    const { error: failure } = await supabase.auth.resetPasswordForEmail(
+      email.trim().toLowerCase(),
+      { redirectTo },
+    );
+
+    // Never turn this into an account-existence oracle: only rate limiting is
+    // worth reporting, and even that is about the sender, not the address.
+    const text = failure?.message.toLowerCase() ?? "";
+    if (text.includes("rate limit") || text.includes("security purposes")) {
+      throw new Error("Too many reset emails. Wait a few minutes and try again.");
+    }
+    if (failure && !text.includes("user")) {
+      throw new Error("Could not reach the mail service. Try again.");
+    }
+  }, []);
+
+  const changePassword = useCallback(
+    async (current: string, next: string) => {
+      if (!supabase) {
+        throw new Error("Accounts are not configured in this build.");
+      }
+      const email = session?.user.email;
+      if (!email) throw new Error("Sign in again to change your password.");
+
+      // Prove the reader knows the current password before replacing it.
+      const reauth = await supabase.auth.signInWithPassword({ email, password: current });
+      if (reauth.error) throw new Error("The current password is not correct.");
+
+      const { error: failure } = await supabase.auth.updateUser({ password: next });
+      if (failure) {
+        const text = failure.message.toLowerCase();
+        if (text.includes("same password")) {
+          throw new Error("Choose a password different from the current one.");
+        }
+        if (text.includes("least") || text.includes("weak")) {
+          throw new Error("Use at least 8 characters for the new password.");
+        }
+        throw new Error("The password could not be changed. Try again.");
+      }
+
+      // A password change should end sessions on other devices.
+      await supabase.auth.signOut({ scope: "others" }).catch(() => undefined);
+    },
+    [session],
+  );
+
+  const deleteAccount = useCallback(async (password: string, confirm: string) => {
+    await deleteAccountRequest({ password, confirm });
+    if (supabase) await supabase.auth.signOut().catch(() => undefined);
     setAuthToken(null);
     resetSyncCursor();
     setLastSyncedAt(null);
@@ -183,10 +258,26 @@ export function AuthProvider({
       signIn,
       signUp,
       signOut,
+      requestPasswordReset,
+      changePassword,
+      deleteAccount,
       syncNow: runSync,
       clearError: () => setError(null),
     }),
-    [ready, session, syncing, lastSyncedAt, error, signIn, signUp, signOut, runSync],
+    [
+      ready,
+      session,
+      syncing,
+      lastSyncedAt,
+      error,
+      signIn,
+      signUp,
+      signOut,
+      requestPasswordReset,
+      changePassword,
+      deleteAccount,
+      runSync,
+    ],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
