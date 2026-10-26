@@ -2,35 +2,105 @@
   "expo": {
     "name": "The Bureaucracy",
     "slug": "the-bureaucracy",
-    "version": "0.1.0",
+    "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "scheme": "bureaucracy",
-    "userInterfaceStyle": "automatic",
-    "backgroundColor": "#F8F7F3",
-    "primaryColor": "#A9271F",
+
+    "userInterfaceStyle": "dark",
+
+    "backgroundColor": "#1C1C1C",
+    "primaryColor": "#FAFAFA",
+
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#1C1C1C"
+    },
+
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "app.thebureaucracy.mobile",
-      "infoPlist": {}
+      "requireFullScreen": false,
+      "associatedDomains": [
+        "applinks:the-bureaucracy.vercel.app"
+      ],
+      "infoPlist": {
+        "NSUserNotificationUsageDescription": "We send a 7 AM daily brief, streak nudges and reply alerts. You control every type in Settings.",
+        "UIBackgroundModes": ["fetch", "remote-notification"]
+      }
     },
+
     "android": {
       "package": "app.thebureaucracy.mobile",
+      "versionCode": 1,
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#F8F7F3"
+        "backgroundColor": "#1C1C1C"
       },
-      "permissions": []
+      "permissions": [
+        "android.permission.INTERNET",
+        "android.permission.VIBRATE",
+        "android.permission.RECEIVE_BOOT_COMPLETED",
+        "android.permission.POST_NOTIFICATIONS"
+      ],
+      "softwareKeyboardLayoutMode": "pan",
+      "intentFilters": [
+        {
+          "action": "VIEW",
+          "autoVerify": true,
+          "data": [
+            {
+              "scheme": "https",
+              "host": "the-bureaucracy.vercel.app",
+              "pathPrefix": "/item"
+            },
+            {
+              "scheme": "https",
+              "host": "the-bureaucracy.vercel.app",
+              "pathPrefix": "/brief"
+            }
+          ],
+          "category": ["BROWSABLE", "DEFAULT"]
+        },
+        {
+          "action": "VIEW",
+          "data": [
+            {
+              "scheme": "bureaucracy"
+            }
+          ],
+          "category": ["BROWSABLE", "DEFAULT"]
+        }
+      ]
     },
+
+    "web": {
+      "bundler": "metro",
+      "favicon": "./assets/favicon.png"
+    },
+
     "plugins": [
-      "expo-router",
+      [
+        "expo-router",
+        {
+          "origin": "https://the-bureaucracy.vercel.app"
+        }
+      ],
       "expo-secure-store",
+      [
+        "expo-system-ui",
+        {
+          "style": "dark"
+        }
+      ],
       [
         "expo-notifications",
         {
           "icon": "./assets/adaptive-icon.png",
-          "color": "#A9271F",
-          "defaultChannel": "brief"
+          "color": "#FAFAFA",
+          "defaultChannel": "brief",
+          "sounds": []
         }
       ],
       [
@@ -39,14 +109,24 @@
           "image": "./assets/splash-icon.png",
           "imageWidth": 180,
           "resizeMode": "contain",
-          "backgroundColor": "#F8F7F3",
+          "backgroundColor": "#1C1C1C",
           "dark": {
             "image": "./assets/splash-icon.png",
-            "backgroundColor": "#171410"
+            "imageWidth": 180,
+            "backgroundColor": "#1C1C1C"
           }
         }
       ]
-    ]
+    ],
+
+    "experiments": {
+      "typedRoutes": true
+    },
+
+    "extra": {
+      "eas": {
+        "projectId": "the-bureaucracy"
+      }
+    }
   }
 }
-

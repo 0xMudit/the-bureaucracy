@@ -140,6 +140,25 @@ export async function disablePush(): Promise<void> {
   }
 }
 
+/**
+ * Android 13+ (API 33) introduced the POST_NOTIFICATIONS runtime permission.
+ * We request it once at startup — after hydration — so the reader isn't hit
+ * with a system dialog before they've even seen the wire.
+ *
+ * Returns true if permission was already granted or just granted.
+ * On iOS or older Android, this is a no-op that returns true.
+ */
+export async function requestAndroidNotificationPermission(): Promise<boolean> {
+  if (Platform.OS !== "android") return true;
+  // expo-notifications wraps the Android 13+ permission automatically when
+  // requestPermissionsAsync is called. On older API levels it resolves GRANTED
+  // without showing a dialog.
+  const { status } = await Notifications.requestPermissionsAsync({
+    android: {},
+  });
+  return status === Notifications.PermissionStatus.GRANTED;
+}
+
 /** Set the foreground presentation once, when the app module loads. */
 export function installNotificationHandler(): void {
   if (Platform.OS === "web") return;

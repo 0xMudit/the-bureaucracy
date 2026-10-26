@@ -25,7 +25,8 @@ import {
 } from "@/lib/coverage";
 import { setFilters } from "@/lib/filters";
 import { useProgress } from "@/lib/progress";
-import { useTheme, type ThemeMode } from "@/theme/ThemeProvider";
+import { AppearancePanel } from "@/components/AppearancePanel";
+import { useTheme } from "@/theme/ThemeProvider";
 import { fonts, radius, spacing, type as typography } from "@/theme/tokens";
 
 type Row =
@@ -150,54 +151,6 @@ function CoverageCard({
         </View>
       ) : null}
     </View>
-  );
-}
-
-function ThemePicker() {
-  const { colors, mode, setMode } = useTheme();
-  const options: { id: ThemeMode; label: string }[] = [
-    { id: "system", label: "System" },
-    { id: "light", label: "Light" },
-    { id: "dark", label: "Dark" },
-  ];
-
-  return (
-    <Panel title="Appearance">
-      <View style={{ flexDirection: "row", gap: spacing.xs }}>
-        {options.map((option) => {
-          const active = option.id === mode;
-          return (
-            <Pressable
-              key={option.id}
-              onPress={() => setMode(option.id)}
-              accessibilityRole="button"
-              accessibilityState={{ selected: active }}
-              style={({ pressed }) => ({
-                flex: 1,
-                alignItems: "center",
-                paddingVertical: 7,
-                borderWidth: StyleSheet.hairlineWidth,
-                borderColor: active ? colors.primary : colors.border,
-                backgroundColor: active ? colors.accent : "transparent",
-                opacity: pressed ? 0.7 : 1,
-              })}
-            >
-              <Text
-                style={[
-                  typography.tag,
-                  { color: active ? colors.primary : colors.mutedForeground, fontSize: 9 },
-                ]}
-              >
-                {option.label}
-              </Text>
-            </Pressable>
-          );
-        })}
-      </View>
-      <Text style={[typography.tag, { color: colors.mutedForeground, fontSize: 8.5, marginTop: spacing.sm }]}>
-        Matches the paper: warm stock in light, ink in dark.
-      </Text>
-    </Panel>
   );
 }
 
@@ -377,7 +330,7 @@ export default function SyllabusScreen() {
         )}
         ListFooterComponent={
           <View style={{ gap: spacing.md, paddingTop: spacing.xl }}>
-            <ThemePicker />
+            <AppearancePanel />
             <Panel title="How this is filed">
               <Text style={[typography.summary, { color: colors.mutedForeground, lineHeight: 19 }]}>
                 Twelve themes across Prelims, GS I–IV and Essay; six optional lenses. The classifier

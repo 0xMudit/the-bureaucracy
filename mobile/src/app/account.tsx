@@ -26,6 +26,7 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useSubscribeDigest } from "@/api/hooks";
+import { AppearancePanel } from "@/components/AppearancePanel";
 import { ActionButton, DoubleRule, Panel, Screen } from "@/components/ui";
 import { useAuth } from "@/lib/auth";
 import {
@@ -624,6 +625,10 @@ export default function AccountScreen() {
           ) : null}
 
           <View style={{ marginTop: spacing.xl }}>
+            <AppearancePanel />
+          </View>
+
+          <View style={{ marginTop: spacing.md }}>
             <DeskPanel />
           </View>
 

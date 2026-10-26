@@ -7,6 +7,18 @@ import { darkColors, lightColors, type Palette } from "./tokens";
 export type ThemeMode = "system" | "light" | "dark";
 
 const STORAGE_KEY = "tb.theme.mode";
+let restoredMode: ThemeMode = "dark";
+
+export async function hydrateTheme(): Promise<void> {
+  try {
+    const stored = await AsyncStorage.getItem(STORAGE_KEY);
+    if (stored === "light" || stored === "dark" || stored === "system") {
+      restoredMode = stored;
+    }
+  } catch {
+    // A missing preference is not an error; dark is the default.
+  }
+}
 
 interface ThemeValue {
   /** What the reader chose. `system` follows the OS. */
@@ -23,23 +35,9 @@ const ThemeContext = createContext<ThemeValue | null>(null);
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const system = useColorScheme();
-  const [mode, setModeState] = useState<ThemeMode>("system");
-
-  useEffect(() => {
-    let alive = true;
-    AsyncStorage.getItem(STORAGE_KEY)
-      .then((stored) => {
-        if (alive && (stored === "light" || stored === "dark" || stored === "system")) {
-          setModeState(stored);
-        }
-      })
-      .catch(() => {
-        // A missing preference is not an error; `system` is the default.
-      });
-    return () => {
-      alive = false;
-    };
-  }, []);
+  // Default to dark — matches the web app's defaultTheme="dark" and the
+  // premium dark-first design aesthetic. Users can override via the toggle.
+  const [mode, setModeState] = useState<ThemeMode>(restoredMode);
 
   const scheme: "light" | "dark" =
     mode === "system" ? (system === "dark" ? "dark" : "light") : mode;
@@ -53,6 +51,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   }, [colors.background]);
 
   const setMode = useCallback((next: ThemeMode) => {
+    restoredMode = next;
     setModeState(next);
     AsyncStorage.setItem(STORAGE_KEY, next).catch(() => {});
   }, []);

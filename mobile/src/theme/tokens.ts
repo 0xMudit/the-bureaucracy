@@ -1,51 +1,91 @@
 /**
- * Design tokens, ported from the web app's `app/globals.css`.
+ * Design tokens for the mobile app — kept in sync with `app/globals.css`.
  *
- * The web uses OKLCH; React Native only understands sRGB, so the palette below
- * is the computed hex equivalent of each token. Keep them in sync if the web
- * palette moves.
+ * The web uses OKLCH CSS variables; React Native only understands sRGB hex.
+ * The values below are the computed hex equivalents of the Soho-inspired
+ * design system (zinc-based, premium neutral dark palette).
+ *
+ * Dark is the default theme. Light mode is warm paper / editorial.
+ *
+ * To update: convert the OKLCH values from globals.css at oklch.com
  */
 
 export const lightColors = {
-  background: "#F8F7F3",
-  card: "#FEFDFB",
-  popover: "#FFFDFB",
-  foreground: "#211E19",
-  primary: "#A9271F",
-  primaryForeground: "#FFF8F4",
-  secondary: "#EFEDE5",
-  secondaryForeground: "#2D2A24",
-  muted: "#F0EEE7",
-  mutedForeground: "#69635A",
-  accent: "#F2E7DB",
-  accentForeground: "#3A302A",
-  destructive: "#B3261E",
-  border: "#DFDAD0",
-  input: "#D8D2C7",
+  /* oklch(0.980 0.004 80) */
+  background: "#F9F8F5",
+  /* oklch(1.000 0.000 0) */
+  card: "#FFFFFF",
+  /* oklch(1.000 0.000 0) */
+  popover: "#FFFFFF",
+  /* oklch(0.145 0.010 55) */
+  foreground: "#1C1A17",
+  /* oklch(0.205 0.000 0) — near-black for Soho-style primary */
+  primary: "#292929",
+  /* oklch(0.985 0.000 0) */
+  primaryForeground: "#FAFAFA",
+  /* oklch(0.960 0.005 80) */
+  secondary: "#F4F3EF",
+  /* oklch(0.205 0.000 0) */
+  secondaryForeground: "#292929",
+  /* oklch(0.960 0.005 80) */
+  muted: "#F4F3EF",
+  /* oklch(0.380 0.012 60) */
+  mutedForeground: "#514D46",
+  /* oklch(0.960 0.005 80) */
+  accent: "#F4F3EF",
+  /* oklch(0.205 0.000 0) */
+  accentForeground: "#292929",
+  /* oklch(0.577 0.245 27.325) */
+  destructive: "#DC2626",
+  /* oklch(0.922 0.006 78) */
+  border: "#E7E5DF",
+  /* oklch(0.922 0.006 78) */
+  input: "#E7E5DF",
+  /* oklch(0.55 0.14 72) */
   warn: "#8A5A00",
-  success: "#1D6E46",
-  sidebar: "#F3F1EA",
+  /* oklch(0.52 0.13 156) */
+  success: "#1D7A50",
+  /* oklch(0.985 0.002 75) */
+  sidebar: "#F9F8F6",
 } as const;
 
 export const darkColors: { [K in keyof typeof lightColors]: string } = {
-  background: "#171410",
-  card: "#201C18",
-  popover: "#24201B",
-  foreground: "#F2EDE5",
-  primary: "#F06A60",
-  primaryForeground: "#1A0E0C",
-  secondary: "#2B2621",
-  secondaryForeground: "#EEE8DF",
-  muted: "#28231E",
-  mutedForeground: "#B8AEA1",
-  accent: "#3B241F",
-  accentForeground: "#FBEDE9",
-  destructive: "#FF6B61",
-  border: "#3A332C",
-  input: "#453C34",
-  warn: "#E6A23C",
-  success: "#5BD39A",
-  sidebar: "#1B1713",
+  /* oklch(0.145 0.000 0) — deep zinc, true dark */
+  background: "#1C1C1C",
+  /* oklch(0.205 0.000 0) */
+  card: "#292929",
+  /* oklch(0.205 0.000 0) */
+  popover: "#292929",
+  /* oklch(0.985 0.000 0) — near-white foreground, high contrast */
+  foreground: "#FAFAFA",
+  /* oklch(0.985 0.000 0) — white primary in dark (Soho style) */
+  primary: "#FAFAFA",
+  /* oklch(0.205 0.000 0) */
+  primaryForeground: "#292929",
+  /* oklch(0.269 0.000 0) */
+  secondary: "#363636",
+  /* oklch(0.985 0.000 0) */
+  secondaryForeground: "#FAFAFA",
+  /* oklch(0.269 0.000 0) */
+  muted: "#363636",
+  /* oklch(0.708 0.000 0) */
+  mutedForeground: "#A3A3A3",
+  /* oklch(0.269 0.000 0) */
+  accent: "#363636",
+  /* oklch(0.985 0.000 0) */
+  accentForeground: "#FAFAFA",
+  /* oklch(0.704 0.191 22.216) */
+  destructive: "#F87171",
+  /* oklch(1.000 0.000 0 / 10%) on dark card */
+  border: "#3D3D3D",
+  /* oklch(1.000 0.000 0 / 15%) */
+  input: "#474747",
+  /* oklch(0.78 0.13 72) */
+  warn: "#D4A843",
+  /* oklch(0.72 0.13 156) */
+  success: "#4ADE80",
+  /* oklch(0.205 0.000 0) */
+  sidebar: "#292929",
 };
 
 export type Palette = { [K in keyof typeof lightColors]: string };
