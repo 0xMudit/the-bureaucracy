@@ -16,6 +16,15 @@ additional_redirect_urls = [
   "https://the-bureaucracy-*.vercel.app/**",
   "http://localhost:3000",
   "http://localhost:3000/**",
+  # The phone app: recovery and confirmation links must come back to the app.
+  # Without these Supabase silently falls back to `site_url`, so the flow
+  # finishes in a browser the phone was never signed in to.
+  "bureaucracy://reset-password",
+  "bureaucracy://auth/confirm",
+  # Expo Go serves the project over the LAN. Exact paths: a new LAN IP needs a
+  # new entry, which is cheaper than allow-listing every `exp://` host.
+  "exp://192.168.1.3:8081/--/reset-password",
+  "exp://192.168.1.3:8081/--/auth/confirm",
 ]
 
 [auth.email]
