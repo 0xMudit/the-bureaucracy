@@ -1,7 +1,10 @@
 import { cachedComments, cachedItem, cachedItems } from "@/lib/cached";
 import { SITE, NEWS_WINDOW_MS } from "@/lib/config";
 import { buildCommentTree, countComments } from "@/lib/comments";
+import { entitlementForUser, FREE_ENTITLEMENT } from "@/lib/entitlements";
+import { mobileUser } from "@/lib/mobile-auth";
 import { enrichItem, mobileError, mobileJson, preflight, readDeviceId, slimCommentTree } from "@/lib/mobile";
+import { premiumView } from "@/lib/premium";
 import { buildFeed } from "@/lib/rank";
 import { getReactionStates } from "@/lib/social";
 import { canWrite } from "@/lib/store";
@@ -49,6 +52,12 @@ export async function GET(request: Request, { params }: RouteContext) {
     );
     const state = reactions[item.id];
 
+    // The bearer token is the app's account proof. No header means no extra
+    // round trip: anonymous readers are resolved as free without touching auth.
+    const viewer = await mobileUser(request);
+    const entitlement = viewer ? await entitlementForUser(viewer.id) : FREE_ENTITLEMENT;
+    const premium = await premiumView(item, entitlement, { generate: true });
+
     return mobileJson({
       ok: true,
       item: {
@@ -57,6 +66,7 @@ export async function GET(request: Request, { params }: RouteContext) {
         dislikeCount: state?.dislikes ?? item.dislikeCount ?? 0,
         reaction: state?.reaction ?? null,
       },
+      premium: { ...premium, upgradeUrl: `${SITE.url}/plus` },
       related: related.map((entry) => enrichItem(entry, entry.position, entry.rankScore)),
       comments: slimCommentTree(tree),
       commentCount: countComments(tree),

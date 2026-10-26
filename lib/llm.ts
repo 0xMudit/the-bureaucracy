@@ -45,6 +45,8 @@ export interface LlmResult {
   provider: string;
   model: string;
   latencyMs: number;
+  tokensIn: number;
+  tokensOut: number;
   attempts: LlmFailure[];
   fallback: boolean;
 }
@@ -122,6 +124,11 @@ function extractJson(raw: string): unknown {
   }
 }
 
+/** Parse a provider response that may be wrapped in fences or prose. */
+export function parseJsonResponse(raw: string): unknown {
+  return extractJson(raw);
+}
+
 function normalise(value: unknown): unknown {
   if (!value || typeof value !== "object") return value;
   const record = value as Record<string, unknown>;
@@ -146,11 +153,32 @@ function normalise(value: unknown): unknown {
   };
 }
 
+interface Completion {
+  text: string;
+  tokensIn: number;
+  tokensOut: number;
+}
+
+interface CompletionOptions {
+  maxTokens?: number;
+  temperature?: number;
+}
+
 interface Provider {
   id: string;
   model: string;
   available: () => boolean;
-  complete: (prompt: string, system: string, signal: AbortSignal) => Promise<string>;
+  complete: (
+    prompt: string,
+    system: string,
+    signal: AbortSignal,
+    options?: CompletionOptions,
+  ) => Promise<Completion>;
+}
+
+/** Rough token count for providers that omit usage metadata. */
+export function estimateTokens(text: string): number {
+  return Math.max(1, Math.ceil(text.length / 4));
 }
 
 function env(name: string): string | undefined {
@@ -159,7 +187,7 @@ function env(name: string): string | undefined {
 }
 
 const GEMINI_MODEL = () => env("GEMINI_MODEL") ?? "gemini-2.0-flash";
-const GROQ_MODEL = () => env("GROQ_MODEL") ?? "llama-3.3-70b-versatile";
+const GROQ_MODEL = () => env("GROQ_MODEL") ?? "openai/gpt-oss-120b";
 const OPENROUTER_MODEL = () => env("OPENROUTER_MODEL") ?? "meta-llama/llama-3.3-70b-instruct:free";
 const CLOUDFLARE_MODEL = () => env("CLOUDFLARE_AI_MODEL") ?? "@cf/meta/llama-3.1-8b-instruct";
 
@@ -182,7 +210,7 @@ const PROVIDERS: Provider[] = [
     id: "gemini",
     model: GEMINI_MODEL(),
     available: () => Boolean(env("GEMINI_API_KEY")),
-    async complete(promptText, system, signal) {
+    async complete(promptText, system, signal, options) {
       const key = env("GEMINI_API_KEY");
       const model = GEMINI_MODEL();
       const data = await postJson(
@@ -191,8 +219,8 @@ const PROVIDERS: Provider[] = [
           systemInstruction: { parts: [{ text: system }] },
           contents: [{ role: "user", parts: [{ text: promptText }] }],
           generationConfig: {
-            temperature: 0.25,
-            maxOutputTokens: 900,
+            temperature: options?.temperature ?? 0.25,
+            maxOutputTokens: options?.maxTokens ?? 900,
             responseMimeType: "application/json",
           },
         },
@@ -202,20 +230,27 @@ const PROVIDERS: Provider[] = [
       const candidates = data.candidates as { content?: { parts?: { text?: string }[] } }[] | undefined;
       const text = candidates?.[0]?.content?.parts?.map((part) => part.text ?? "").join("") ?? "";
       if (!text) throw new Error("Gemini returned no text.");
-      return text;
+      const usage = data.usageMetadata as
+        | { promptTokenCount?: number; candidatesTokenCount?: number }
+        | undefined;
+      return {
+        text,
+        tokensIn: usage?.promptTokenCount ?? estimateTokens(system + promptText),
+        tokensOut: usage?.candidatesTokenCount ?? estimateTokens(text),
+      };
     },
   },
   {
     id: "groq",
     model: GROQ_MODEL(),
     available: () => Boolean(env("GROQ_API_KEY")),
-    async complete(promptText, system, signal) {
+    async complete(promptText, system, signal, options) {
       const data = await postJson(
         "https://api.groq.com/openai/v1/chat/completions",
         {
           model: GROQ_MODEL(),
-          temperature: 0.25,
-          max_tokens: 900,
+          temperature: options?.temperature ?? 0.25,
+          max_tokens: options?.maxTokens ?? 900,
           response_format: { type: "json_object" },
           messages: [
             { role: "system", content: system },
@@ -228,20 +263,25 @@ const PROVIDERS: Provider[] = [
       const choices = data.choices as { message?: { content?: string } }[] | undefined;
       const text = choices?.[0]?.message?.content ?? "";
       if (!text) throw new Error("Groq returned no text.");
-      return text;
+      const usage = data.usage as { prompt_tokens?: number; completion_tokens?: number } | undefined;
+      return {
+        text,
+        tokensIn: usage?.prompt_tokens ?? estimateTokens(system + promptText),
+        tokensOut: usage?.completion_tokens ?? estimateTokens(text),
+      };
     },
   },
   {
     id: "openrouter",
     model: OPENROUTER_MODEL(),
     available: () => Boolean(env("OPENROUTER_API_KEY")),
-    async complete(promptText, system, signal) {
+    async complete(promptText, system, signal, options) {
       const data = await postJson(
         "https://openrouter.ai/api/v1/chat/completions",
         {
           model: OPENROUTER_MODEL(),
-          temperature: 0.25,
-          max_tokens: 900,
+          temperature: options?.temperature ?? 0.25,
+          max_tokens: options?.maxTokens ?? 900,
           response_format: { type: "json_object" },
           messages: [
             { role: "system", content: system },
@@ -258,14 +298,19 @@ const PROVIDERS: Provider[] = [
       const choices = data.choices as { message?: { content?: string } }[] | undefined;
       const text = choices?.[0]?.message?.content ?? "";
       if (!text) throw new Error("OpenRouter returned no text.");
-      return text;
+      const usage = data.usage as { prompt_tokens?: number; completion_tokens?: number } | undefined;
+      return {
+        text,
+        tokensIn: usage?.prompt_tokens ?? estimateTokens(system + promptText),
+        tokensOut: usage?.completion_tokens ?? estimateTokens(text),
+      };
     },
   },
   {
     id: "cloudflare",
     model: CLOUDFLARE_MODEL(),
     available: () => Boolean(env("CLOUDFLARE_ACCOUNT_ID") && env("CLOUDFLARE_AI_TOKEN")),
-    async complete(promptText, system, signal) {
+    async complete(promptText, system, signal, options) {
       const account = env("CLOUDFLARE_ACCOUNT_ID");
       const model = CLOUDFLARE_MODEL();
       const data = await postJson(
@@ -275,8 +320,8 @@ const PROVIDERS: Provider[] = [
             { role: "system", content: system },
             { role: "user", content: promptText },
           ],
-          max_tokens: 900,
-          temperature: 0.25,
+          max_tokens: options?.maxTokens ?? 900,
+          temperature: options?.temperature ?? 0.25,
         },
         { authorization: `Bearer ${env("CLOUDFLARE_AI_TOKEN")}` },
         signal,
@@ -284,7 +329,11 @@ const PROVIDERS: Provider[] = [
       const result = data.result as { response?: string } | string | undefined;
       const text = typeof result === "string" ? result : result?.response ?? "";
       if (!text) throw new Error("Workers AI returned no text.");
-      return text;
+      return {
+        text,
+        tokensIn: estimateTokens(system + promptText),
+        tokensOut: estimateTokens(text),
+      };
     },
   },
 ];
@@ -352,8 +401,8 @@ async function callProvider(provider: Provider, input: ArticleInput): Promise<Ll
     // One retry per provider, then fall through to the next provider.
     for (let attempt = 0; attempt < 2; attempt += 1) {
       try {
-        const raw = await provider.complete(prompt(input), SYSTEM, controller.signal);
-        const parsed = articleIntelSchema.safeParse(normalise(extractJson(raw)));
+        const completion = await provider.complete(prompt(input), SYSTEM, controller.signal);
+        const parsed = articleIntelSchema.safeParse(normalise(extractJson(completion.text)));
         if (!parsed.success) {
           lastError = parsed.error.issues.map((issue) => `${issue.path.join(".")}: ${issue.message}`).join("; ");
           attempts.push({ provider: provider.id, message: `validation: ${lastError.slice(0, 300)}` });
@@ -368,6 +417,8 @@ async function callProvider(provider: Provider, input: ArticleInput): Promise<Ll
           provider: provider.id,
           model: provider.model,
           latencyMs: Date.now() - started,
+          tokensIn: completion.tokensIn,
+          tokensOut: completion.tokensOut,
           attempts,
           fallback: false,
         };
@@ -408,6 +459,8 @@ export async function generateArticleIntel(input: ArticleInput): Promise<LlmResu
     provider: "fallback",
     model: "excerpt",
     latencyMs: Date.now() - started,
+    tokensIn: 0,
+    tokensOut: 0,
     attempts,
     fallback: true,
   };
@@ -424,4 +477,85 @@ export function inputFromItem(item: FeedItem): ArticleInput {
     publishedAt: item.publishedAt,
     currentTopic: item.primaryTopic,
   };
+}
+
+/* --------------------------- generic JSON calls --------------------------- */
+
+export interface JsonCompletion {
+  text: string;
+  provider: string;
+  model: string;
+  tokensIn: number;
+  tokensOut: number;
+  latencyMs: number;
+  attempts: LlmFailure[];
+}
+
+/**
+ * Run one JSON-shaped prompt through the same provider chain the classifier
+ * uses. `order` puts a preferred provider first while keeping every other
+ * configured provider as a fallback — the premium pack asks for Groq, but a
+ * missing key in one environment must not blank the feature.
+ */
+export async function completeJson(options: {
+  system: string;
+  prompt: string;
+  maxTokens?: number;
+  temperature?: number;
+  order?: string[];
+  timeoutMs?: number;
+}): Promise<JsonCompletion> {
+  const available = PROVIDERS.filter((provider) => provider.available());
+  const preferred = options.order ?? [];
+  const ordered: Provider[] = [
+    ...preferred
+      .map((id) => available.find((provider) => provider.id === id))
+      .filter((provider): provider is Provider => Boolean(provider)),
+    ...available.filter((provider) => !preferred.includes(provider.id)),
+  ];
+  if (!ordered.length) throw new Error("No LLM provider key is configured.");
+
+  const controller = new AbortController();
+  const timeout = setTimeout(
+    () => controller.abort(),
+    options.timeoutMs ?? Number(process.env.LLM_TIMEOUT_MS ?? 30_000),
+  );
+  const started = Date.now();
+  const attempts: LlmFailure[] = [];
+
+  try {
+    for (const provider of ordered) {
+      for (let attempt = 0; attempt < 2; attempt += 1) {
+        try {
+          const completion = await provider.complete(options.prompt, options.system, controller.signal, {
+            maxTokens: options.maxTokens,
+            temperature: options.temperature,
+          });
+          if (!completion.text.trim()) throw new Error("empty response");
+          return {
+            text: completion.text,
+            provider: provider.id,
+            model: provider.model,
+            tokensIn: completion.tokensIn,
+            tokensOut: completion.tokensOut,
+            latencyMs: Date.now() - started,
+            attempts,
+          };
+        } catch (error) {
+          attempts.push({
+            provider: provider.id,
+            message: error instanceof Error ? error.message.slice(0, 300) : "failed",
+          });
+          if (controller.signal.aborted) break;
+        }
+      }
+      if (controller.signal.aborted) break;
+    }
+    throw new Error(
+      attempts.map((attempt) => `${attempt.provider}: ${attempt.message}`).join(" | ").slice(0, 600) ||
+        "Every provider failed.",
+    );
+  } finally {
+    clearTimeout(timeout);
+  }
 }

@@ -122,10 +122,45 @@ export interface CommentNode {
   children: CommentNode[];
 }
 
+export interface PremiumTrap {
+  statement: string;
+  verdict: "true" | "false";
+  why: string;
+}
+
+/** The paid companion to a story. Present on every story response. */
+export interface PremiumPack {
+  deepRead: string;
+  takeaways: string[];
+  prelimsTraps: PremiumTrap[];
+  mains: {
+    question: string;
+    intro: string;
+    points: string[];
+    conclusion: string;
+    keywords: string[];
+    dataPoint: string;
+  };
+  glossary: { term: string; meaning: string }[];
+}
+
+export interface PremiumView {
+  locked: boolean;
+  plan: "free" | "plus" | "mains";
+  teaser: { headline: string; includes: string[] };
+  pack: PremiumPack | null;
+  /** A paid reader whose pack is still generating or failed to generate. */
+  unavailable: boolean;
+  generatedAt: string | null;
+  model: string | null;
+  upgradeUrl: string;
+}
+
 export interface StoryResponse {
   version: number;
   ok: true;
   item: FeedItem;
+  premium: PremiumView;
   related: FeedItem[];
   comments: CommentNode[];
   commentCount: number;

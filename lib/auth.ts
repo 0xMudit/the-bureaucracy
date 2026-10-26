@@ -2,6 +2,7 @@
 import { cookies } from "next/headers";
 import { SITE } from "@/lib/config";
 import { normalizeAvatarConfig, type AvatarConfig } from "@/lib/avatar";
+import { normalizePlan, type Plan } from "@/lib/entitlements";
 import { hasPermission, normalizeRole, type Permission, type Role } from "@/lib/rbac";
 import { serviceClient } from "@/lib/store";
 import { authConfigured, createSupabaseServer } from "@/lib/supabase/server";
@@ -20,6 +21,9 @@ export interface SessionUser {
   publicSaves: boolean;
   state: string | null;
   district: string | null;
+  plan: Plan;
+  planExpiresAt: string | null;
+  planSource: string | null;
 }
 
 /** Emails that are always treated as editors, on top of the database role. */
@@ -85,6 +89,9 @@ export const getSessionUser = cache(async (): Promise<SessionUser | null> => {
     public_saves: boolean | null;
     state: string | null;
     district: string | null;
+    plan: string | null;
+    plan_expires_at: string | null;
+    plan_source: string | null;
   } | null = null;
   const fallbackName = email ? email.split("@")[0].replace(/[._-]+/g, " ") : "Reader";
 
@@ -92,7 +99,7 @@ export const getSessionUser = cache(async (): Promise<SessionUser | null> => {
   if (db) {
     const { data } = await db
       .from("profiles")
-      .select("display_name, role, status, username, avatar_config, onboarded_at, onboard_skipped_at, public_saves, state, district")
+      .select("display_name, role, status, username, avatar_config, onboarded_at, onboard_skipped_at, public_saves, state, district, plan, plan_expires_at, plan_source")
       .eq("id", userId)
       .maybeSingle();
     profile = data;
@@ -138,6 +145,9 @@ export const getSessionUser = cache(async (): Promise<SessionUser | null> => {
     publicSaves: profile?.public_saves !== false,
     state: profile?.state ?? null,
     district: profile?.district ?? null,
+    plan: normalizePlan(profile?.plan),
+    planExpiresAt: profile?.plan_expires_at ?? null,
+    planSource: profile?.plan_source ?? null,
   };
 });
 

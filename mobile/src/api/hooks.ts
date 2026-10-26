@@ -14,6 +14,7 @@ import {
 } from "./client";
 import type { FeedFilters, FeedResponse, StoryResponse } from "./types";
 import { getDeviceId } from "@/lib/device";
+import { useAuth } from "@/lib/auth";
 import { useDesk } from "@/lib/desk";
 import { filterKey } from "@/lib/filters";
 
@@ -101,9 +102,14 @@ export function useSubscribeDigest() {
 
 export function useStory(id: string | undefined) {
   const device = useDeviceId();
+  const { session } = useAuth();
+  const viewer = session?.user.id ?? "anonymous";
 
   return useQuery({
-    queryKey: ["story", id, device.data ?? "anonymous"],
+    // The key carries the account so signing in refetches the story: the
+    // premium pack is resolved on the server from the bearer token, and a
+    // cached anonymous response would keep showing the locked teaser.
+    queryKey: ["story", id, device.data ?? "anonymous", viewer],
     queryFn: () => getStory(id as string, device.data),
     enabled: Boolean(id && device.data),
     staleTime: 30_000,

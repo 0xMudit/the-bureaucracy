@@ -28,6 +28,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { ApiError } from "@/api/client";
 import { useStory, useTaxonomy, useReact } from "@/api/hooks";
 import { CommentThread } from "@/components/CommentThread";
+import { PremiumPack } from "@/components/PremiumPack";
 import { ReactionBar } from "@/components/ReactionBar";
 import { SaveButton } from "@/components/SaveButton";
 import {
@@ -332,6 +333,8 @@ export default function StoryScreen() {
         </View>
 
         <View style={{ paddingHorizontal: spacing.lg, paddingTop: spacing.xl, gap: spacing.md }}>
+          {data?.premium ? <PremiumPack premium={data.premium} /> : null}
+
           <Panel
             title="Why it matters"
             right={

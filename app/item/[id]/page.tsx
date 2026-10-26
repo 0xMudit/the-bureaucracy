@@ -12,12 +12,15 @@ import { DiscussionLive } from "@/components/discussion-live";
 import { BriefNext } from "@/components/brief-next";
 import { ReadButton, ReadingProgress } from "@/components/reading-loop";
 import { PrelimsReveal } from "@/components/prelims-reveal";
+import { PremiumPack } from "@/components/premium-pack";
 import { ShareButton } from "@/components/share-button";
 import { buildCommentTree } from "@/lib/comments";
 import { getSessionUser } from "@/lib/auth";
+import { entitlementOf } from "@/lib/entitlements";
 import { NEWS_WINDOW_MS, SITE } from "@/lib/config";
 import { buildFeed } from "@/lib/rank";
 import { briefFromItems } from "@/lib/brief";
+import { premiumView } from "@/lib/premium";
 import { quizFor } from "@/lib/quiz";
 import { matchPyq } from "@/lib/pyq";
 import { DESK_COOKIE, parseDesk } from "@/lib/desk";
@@ -79,7 +82,22 @@ export default async function ItemPage({ params, searchParams }: PageProps) {
   const jar = await cookies();
   const desk = parseDesk(jar.get(DESK_COOKIE)?.value);
   const user = await getSessionUser();
-  const [comments, all, viewer] = await Promise.all([cachedComments(item.id), cachedItems(), viewerActor()]);
+  const entitlement = entitlementOf(
+    user
+      ? {
+          plan: user.plan,
+          planExpiresAt: user.planExpiresAt,
+          planSource: user.planSource,
+          role: user.role,
+        }
+      : null,
+  );
+  const [premium, comments, all, viewer] = await Promise.all([
+    premiumView(item, entitlement, { generate: true }),
+    cachedComments(item.id),
+    cachedItems(),
+    viewerActor(),
+  ]);
   const [reactions, commentLikes] = await Promise.all([
     getReactionStates(viewer, [item.id]),
     getCommentLikeStates(
@@ -211,6 +229,8 @@ export default async function ItemPage({ params, searchParams }: PageProps) {
               </span>
             </div>
           </div>
+
+          <PremiumPack premium={premium} />
 
           <PrelimsReveal itemId={item.id} quiz={quiz} />
 

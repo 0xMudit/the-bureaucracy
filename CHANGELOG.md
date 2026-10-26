@@ -8,6 +8,14 @@ All notable changes to this project are documented here. The format follows
 
 ### Added
 
+- **Premium read** (`/plus`, `lib/premium.ts`): a Groq-written pack per story — a deep read,
+  takeaways, three Prelims traps with reasoning, a Mains skeleton and a glossary — generated once
+  per story per prompt version and cached in `tb_premium_reads`. The story API and the web page
+  return the paid text only to a `plus` or `mains` plan; free readers get a teaser, and the gate is
+  server-side, never a CSS overlay.
+- **Entitlements** (`lib/entitlements.ts`): `free` / `plus` / `mains` on `profiles`, `can(feature)`,
+  read-time expiry so a lapsed plan needs no cron, and an automatic top tier for admins. Provider
+  usage lands in `tb_ai_usage` with token counts and estimated cost.
 - **Read-time de-duplication** (`lib/dedupe.ts`): near-duplicate stories that entered in
   different ingest runs now collapse on the front page, the brief and the mobile feed, keeping
   the highest-tier, highest-scoring copy.
