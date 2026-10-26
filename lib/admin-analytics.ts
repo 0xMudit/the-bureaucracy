@@ -210,7 +210,7 @@ export async function loadAdminAnalytics(): Promise<AdminAnalytics> {
   const bounceRate = pagesByVisitor.size ? Math.round((singlePage / pagesByVisitor.size) * 100) : 0;
 
   const series: SeriesPoint[] = [];
-  for (let offset = 13; offset >= 0; offset -= 1) {
+  for (let offset = 29; offset >= 0; offset -= 1) {
     const date = new Date(now - offset * DAY);
     const key = dayKey(date);
     const dayViews = pageViews.filter((visit) => visit.created_at.slice(0, 10) === key);
