@@ -1,11 +1,16 @@
 import { Platform } from "react-native";
 import type {
   ApiFailure,
+  BillingOrderResponse,
+  BillingPeriod,
+  BillingVerifyResponse,
+  BillingViewResponse,
   BriefResponse,
   CircleResponse,
   CirclesResponse,
   FeedFilters,
   FeedResponse,
+  PaidPlanId,
   ReaderStateResponse,
   ReaderProgressPayload,
   ReaderSave,
@@ -256,9 +261,7 @@ export async function subscribeDigest(email: string): Promise<SubscribeResponse>
 
 export async function getStory(id: string, deviceId?: string | null): Promise<StoryResponse> {
   return request<StoryResponse>(`/api/mobile/item/${encodeURIComponent(id)}`, { deviceId });
-}
-
-export async function getTaxonomy(): Promise<TaxonomyResponse> {
+}export async function getTaxonomy(): Promise<TaxonomyResponse> {
   return request<TaxonomyResponse>("/api/mobile/taxonomy", { timeoutMs: 15_000 });
 }
 
@@ -271,5 +274,44 @@ export async function postReaction(
     method: "POST",
     body: { itemId, kind },
     deviceId,
+  });
+}
+
+/* -------------------------------- billing --------------------------------- */
+
+/** Prices and the plan that applies now. Anonymous callers get the price list. */
+export async function getBilling(): Promise<BillingViewResponse> {
+  return request<BillingViewResponse>("/api/mobile/billing/plans");
+}
+
+/**
+ * Ask the server for an order. The plan and period are the only inputs: the
+ * amount is resolved from the catalog on the server, never sent from here.
+ */
+export async function createBillingOrder(
+  plan: PaidPlanId,
+  period: BillingPeriod,
+): Promise<BillingOrderResponse> {
+  return request<BillingOrderResponse>("/api/mobile/billing/order", {
+    method: "POST",
+    body: { plan, period },
+    timeoutMs: 20_000,
+  });
+}
+
+/**
+ * Hand the checkout result back for verification. The server checks the
+ * signature and asks Razorpay whether the payment was captured before it
+ * grants anything.
+ */
+export async function verifyBillingPayment(input: {
+  orderId: string;
+  paymentId: string;
+  signature: string;
+}): Promise<BillingVerifyResponse> {
+  return request<BillingVerifyResponse>("/api/mobile/billing/verify", {
+    method: "POST",
+    body: input,
+    timeoutMs: 25_000,
   });
 }

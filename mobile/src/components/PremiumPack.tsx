@@ -1,6 +1,7 @@
+import { useRouter } from "expo-router";
 import { Check, ChevronDown, Lock, Sparkles } from "lucide-react-native";
 import React, { useState } from "react";
-import { Linking, Pressable, StyleSheet, Text, View } from "react-native";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 import type { PremiumTrap, PremiumView } from "@/api/types";
 import { ActionButton } from "@/components/ui";
 import { useTheme } from "@/theme/ThemeProvider";
@@ -78,6 +79,7 @@ export function PremiumPack({ premium }: { premium: PremiumView }) {
 
 function Locked({ premium }: { premium: PremiumView }) {
   const { colors } = useTheme();
+  const router = useRouter();
   return (
     <View style={{ paddingHorizontal: spacing.md, paddingVertical: spacing.md }}>
       <Text style={[typography.tag, { color: colors.primary, fontSize: 8.5 }]}>
@@ -107,7 +109,7 @@ function Locked({ premium }: { premium: PremiumView }) {
         <ActionButton
           label="Unlock the full read"
           variant="solid"
-          onPress={() => void Linking.openURL(premium.upgradeUrl).catch(() => {})}
+          onPress={() => router.push("/plus")}
         />
       </View>
       <Text
@@ -116,7 +118,7 @@ function Locked({ premium }: { premium: PremiumView }) {
           { color: colors.mutedForeground, fontSize: 8, marginTop: spacing.sm, lineHeight: 13 },
         ]}
       >
-        Generated once per story by Groq, then cached. Your plan is checked on the server.
+        Paid in the app. Generated once per story, then cached. Your plan is checked on the server.
       </Text>
     </View>
   );

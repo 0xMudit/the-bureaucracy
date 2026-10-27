@@ -8,6 +8,14 @@ All notable changes to this project are documented here. The format follows
 
 ### Added
 
+- **In-app membership** (`/plus` in the app, `lib/billing.ts`): Razorpay's native checkout opens over
+  the paywall — no browser redirect. The app asks the server for an order priced from `CATALOG`, then
+  returns Razorpay's three signed values; `POST /api/mobile/billing/verify` checks the HMAC **and**
+  fetches the payment to require `captured` before writing `profiles.plan`. One-time orders per
+  prepaid period, so there is no auto-debit: renewals are manual and `plan_expires_at` drives access.
+  A signed webhook (`/api/billing/razorpay`) applies `payment.captured`, `payment.failed` and
+  `refund.processed` for payments that complete while the app is closed, idempotent via
+  `tb_payments` status transitions. See [`docs/billing.md`](docs/billing.md).
 - **Premium read** (`/plus`, `lib/premium.ts`): a Groq-written pack per story — a deep read,
   takeaways, three Prelims traps with reasoning, a Mains skeleton and a glossary — generated once
   per story per prompt version and cached in `tb_premium_reads`. The story API and the web page

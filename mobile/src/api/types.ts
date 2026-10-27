@@ -237,7 +237,6 @@ export interface ApiFailure {
   error: string;
   retryAfter?: number;
 }
-
 /* ------------------------------- reader desk ------------------------------ */
 
 export type ExamTrack = "upsc" | "state";
@@ -369,4 +368,72 @@ export interface SubscribeResponse {
   pending?: boolean;
   confirmUrl?: string;
   error?: string;
+}
+
+/* -------------------------------- billing --------------------------------- */
+
+export type PlanId = "free" | "plus" | "mains";
+export type PaidPlanId = Exclude<PlanId, "free">;
+export type BillingPeriod = "monthly" | "yearly";
+
+export interface Entitlement {
+  plan: PlanId;
+  /** ISO timestamp, or null for a plan that does not expire. */
+  expiresAt: string | null;
+  /** manual, razorpay, staff, founding, refund… */
+  source: string | null;
+}
+
+export interface BillingPlan {
+  plan: PaidPlanId;
+  period: BillingPeriod;
+  /** Paise, as the server priced it. The client never computes a total. */
+  amount: number;
+  price: string;
+  perMonth: string;
+  days: number;
+  label: string;
+  cadence: string;
+  blurb: string;
+}
+
+export interface BillingView {
+  configured: boolean;
+  contact: string;
+  plans: BillingPlan[];
+  current: {
+    plan: PlanId;
+    expiresAt: string | null;
+    source: string | null;
+  };
+}
+
+export interface BillingViewResponse extends BillingView {
+  version: number;
+  ok: true;
+}
+
+export interface BillingOrder {
+  id: string;
+  amount: number;
+  currency: string;
+  keyId: string;
+  name: string;
+  description: string;
+  prefill: { name: string; email: string };
+  notes: Record<string, string>;
+}
+
+export interface BillingOrderResponse {
+  version: number;
+  ok: true;
+  order: BillingOrder;
+}
+
+export interface BillingVerifyResponse {
+  version: number;
+  ok: true;
+  /** False when the webhook already granted the plan while the app was away. */
+  activated: boolean;
+  entitlement: Entitlement;
 }

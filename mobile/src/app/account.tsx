@@ -6,6 +6,7 @@ import {
   LogOut,
   Mail,
   RefreshCw,
+  Sparkles,
   Trash2,
   Users,
   X,
@@ -24,11 +25,12 @@ import {
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { useSubscribeDigest } from "@/api/hooks";
+import { useSubscribeDigest, useBilling } from "@/api/hooks";
 import { AppearancePanel } from "@/components/AppearancePanel";
 import { Field } from "@/components/Field";
 import { ActionButton, DoubleRule, Panel, Screen } from "@/components/ui";
 import { useAuth } from "@/lib/auth";
+import { membershipDate } from "@/lib/billing";
 import {
   MINUTE_CHOICES,
   OPTIONAL_CHOICES,
@@ -638,6 +640,53 @@ function PushPanel() {
   );
 }
 
+function MembershipRow() {
+  const { colors } = useTheme();
+  const router = useRouter();
+  const billing = useBilling();
+  const current = billing.data?.current;
+  const paid = Boolean(current && current.plan !== "free");
+  const until = membershipDate(current?.expiresAt ?? null);
+  const label = current?.plan === "mains" ? "Mains" : paid ? "Plus" : "Free";
+
+  return (
+    <Pressable
+      onPress={() => router.push("/plus")}
+      style={({ pressed }) => ({
+        flexDirection: "row",
+        alignItems: "center",
+        gap: spacing.sm,
+        borderWidth: StyleSheet.hairlineWidth,
+        borderColor: paid ? colors.primary : colors.border,
+        backgroundColor: colors.card,
+        padding: spacing.md,
+        marginTop: spacing.md,
+        borderRadius: radius.sm,
+        opacity: pressed ? 0.65 : 1,
+      })}
+    >
+      <Sparkles
+        size={15}
+        color={paid ? colors.primary : colors.mutedForeground}
+        strokeWidth={1.9}
+      />
+      <View style={{ flex: 1 }}>
+        <Text style={[typography.ui, { color: colors.foreground, fontSize: 13.5 }]}>
+          Membership · {label}
+        </Text>
+        <Text style={[typography.tag, { color: colors.mutedForeground, marginTop: 1 }]}>
+          {paid
+            ? until
+              ? `Full read active until ${until}`
+              : "Full read active, no expiry"
+            : "The full read, archive and Mains skeleton"}
+        </Text>
+      </View>
+      <ChevronRight size={14} color={colors.border} strokeWidth={2.2} />
+    </Pressable>
+  );
+}
+
 export default function AccountScreen() {
   const { colors } = useTheme();
   const router = useRouter();
@@ -784,10 +833,11 @@ export default function AccountScreen() {
                 <ChevronRight size={14} color={colors.border} strokeWidth={2.2} />
               </Pressable>
 
+              <MembershipRow />
+
               <View style={{ marginTop: spacing.md }}>
                 <SecurityPanel />
               </View>
-
               <View style={{ marginTop: spacing.md }}>
                 <DeletePanel />
               </View>

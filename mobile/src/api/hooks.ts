@@ -3,6 +3,7 @@ import * as Haptics from "expo-haptics";
 import {
   ApiError,
   createCircle,
+  getBilling,
   getBrief,
   getCircles,
   getFeed,
@@ -15,6 +16,7 @@ import {
 import type { FeedFilters, FeedResponse, StoryResponse } from "./types";
 import { getDeviceId } from "@/lib/device";
 import { useAuth } from "@/lib/auth";
+import { purchasePlan } from "@/lib/billing";
 import { useDesk } from "@/lib/desk";
 import { filterKey } from "@/lib/filters";
 
@@ -97,6 +99,41 @@ export function useJoinCircle() {
 export function useSubscribeDigest() {
   return useMutation({
     mutationFn: (email: string) => subscribeDigest(email),
+  });
+}
+
+/**
+ * Prices and the current plan. Keyed by account because the entitlement is
+ * resolved from the bearer token: signing in or out must not reuse a stale
+ * "free" answer.
+ */
+export function useBilling(enabled = true) {
+  const { session } = useAuth();
+  const viewer = session?.user.id ?? "anonymous";
+
+  return useQuery({
+    queryKey: ["billing", viewer],
+    queryFn: getBilling,
+    enabled,
+    staleTime: 60_000,
+    gcTime: 30 * 60_000,
+    retry: (attempt, error) => error instanceof ApiError && error.retryable && attempt < 2,
+  });
+}
+
+/**
+ * The whole purchase: order, native sheet, server verification. On success the
+ * open story is refetched too, so the pack appears without a manual pull.
+ */
+export function usePurchase() {
+  const client = useQueryClient();
+
+  return useMutation({
+    mutationFn: purchasePlan,
+    onSuccess: () => {
+      void client.invalidateQueries({ queryKey: ["billing"] });
+      void client.invalidateQueries({ queryKey: ["story"] });
+    },
   });
 }
 

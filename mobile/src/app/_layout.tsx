@@ -231,6 +231,10 @@ function RootNavigator() {
         />
         <Stack.Screen name="circles" />
         <Stack.Screen
+          name="plus"
+          options={{ presentation: "modal", animation: "slide_from_bottom" }}
+        />
+        <Stack.Screen
           name="reset-password"
           options={{ gestureEnabled: false, animation: "fade" }}
         />

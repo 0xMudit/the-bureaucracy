@@ -114,7 +114,14 @@ site cannot disagree. Full detail: [mobile.md](mobile.md).
 | `GET` | `/api/mobile/item/[id]` | Story + topic rationale + comments + related. `410` once it leaves the window. |
 | `GET` | `/api/mobile/taxonomy` | Papers, themes and optional lenses, CDN-cached for a day. |
 | `POST` | `/api/mobile/vote` | `{ "itemId": "…" }`, toggled per `x-device-id`. 30/min. |
-| `OPTIONS` | all four | CORS preflight. |
+| `GET` | `/api/mobile/billing/plans` | Catalog prices and the caller's current entitlement. |
+| `POST` | `/api/mobile/billing/order` | `{ plan, period }` → Razorpay order; the amount comes from the server's catalog. 12/hour. |
+| `POST` | `/api/mobile/billing/verify` | `{ orderId, paymentId, signature }`; HMAC + captured-payment check, then grants the plan. 30/hour. |
+| `OPTIONS` | all | CORS preflight. |
+
+Payments are described in [billing.md](billing.md). Razorpay calls the server directly at
+`POST /api/billing/razorpay` (signed raw body, no CORS), which recovers payments that finish while the
+app is closed.
 
 Every response carries `version` (currently `1`) and `ok`, is `access-control-allow-origin: *`, and
 errors are `{ version, ok: false, error, retryAfter? }`. Votes are namespaced server-side as

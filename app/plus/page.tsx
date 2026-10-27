@@ -170,12 +170,14 @@ export default async function PlusPage() {
       <section className="mt-8 border border-border bg-card px-4 py-5">
         <p className="font-mono text-[8.5px] uppercase tracking-[0.16em] text-primary">Billing</p>
         <h2 className="mt-2 font-display text-2xl leading-tight tracking-[-0.02em]">
-          Founding access is open now. Checkout is next.
+          Paid inside the app. No redirect, no auto-renew.
         </h2>
         <p className="mt-2 max-w-2xl text-[13px] leading-relaxed text-muted-foreground">
-          Card and UPI subscriptions are being wired up. Until they are live, the first cohort gets
-          Plus for three months at no cost, and keeps the founding price when billing opens. Write
-          from the address you sign in with and mention the phone or web account you use.
+          Membership is bought in the iOS and Android app: Razorpay&apos;s native sheet opens over the
+          paywall for UPI, cards and net banking, and the server checks the payment before it unlocks
+          anything. Web checkout is not open yet — until it is, readers who mostly use the web can
+          request founding access and keep the founding price. Write from the address you sign in
+          with and mention the phone or web account you use.
         </p>
         <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-2">
           <a
@@ -192,7 +194,7 @@ export default async function PlusPage() {
           </Link>
         </div>
         <p className="mt-3 font-mono text-[8px] uppercase leading-relaxed tracking-[0.08em] text-muted-foreground">
-          No auto-renewal, no card stored. Cancel or pause any month when billing opens.
+          Each payment covers one period. Nothing is stored on a card and nothing renews by itself.
         </p>
       </section>
 
